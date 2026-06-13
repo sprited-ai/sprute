@@ -13,6 +13,7 @@ import {
 } from "../core/gen.js";
 import { decodeImage, encodePng } from "./io.js";
 import { PACKAGE_ROOT } from "./pkg.js";
+import { readKey, credentialsPath } from "./keystore.js";
 
 export { defaultPrompt };
 export type { GenerateOptions, Provider, SheetCheck };
@@ -26,7 +27,9 @@ function apiKey(envKey: string): string {
       if (line.startsWith(`${envKey}=`)) return line.slice(envKey.length + 1).trim();
     }
   }
-  throw new Error(`no ${envKey} in env, ./.env, or sprute/.env`);
+  const stored = readKey(envKey);
+  if (stored) return stored;
+  throw new Error(`no ${envKey} in env, ./.env, or ${credentialsPath()} — run \`sprute login\``);
 }
 
 const codec: Codec = {

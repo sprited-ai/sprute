@@ -39,7 +39,7 @@ export interface GenerateOptions {
 }
 
 export async function generateSheet(ctx: GenContext, template: RawImage, prompt: string, opts: GenerateOptions = {}): Promise<RawImage> {
-  const provider = opts.provider ?? "gemini";
+  const provider = opts.provider ?? "replicate";
   const model = opts.model ?? DEFAULT_MODEL[provider];
   const key = ctx.apiKey(opts.envKey ?? DEFAULT_ENV[provider]);
   const b64 = toBase64(await ctx.codec.encodePng(template));
