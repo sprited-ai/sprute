@@ -1,5 +1,10 @@
 # Comfy connection — Sprited account as the broker (+ RFC to Comfy-Org)
 
+> **M2-parked (2026-06-12).** v1 is Node library + CLI with BYO aggregator keys
+> ([`006`](006-product-surfaces.md)). Everything in this doc — Sprited account,
+> broker, OAuth, key custody, paid Cloud — is M2, demand-gated, behind v1.
+> Recorded, not scheduled.
+
 Revision note (2026-06-12): an earlier draft proposed "comfy-gate", a
 Comfy-branded open-community auth gateway. Killed — using their brand on
 a service that custodies user keys is a trademark and accountability

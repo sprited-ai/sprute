@@ -53,13 +53,13 @@ Until Jin answers, treat the below as "the BYO-key v1 shape," with M2 parked.
   scaling + ToS + key custody + provider deals are the **embedding developer's**
   responsibility, not sprute's. sprute = LICENSE + a short "responsibilities"
   note; never phones home, never stores keys centrally.
-- **webUI key handling = local-first.** No real browser secret store exists
-  (Credential Management API = login creds only; localStorage/IndexedDB =
-  plaintext; Web Crypto wraps at-rest but not in-use). So `sprute serve` (or the
-  web build) keeps the key in local config/env server-side-local; the browser
-  never holds it. A provider token is "service_role"-class (a spending bearer,
-  no per-row authz) — never put it in the browser, unlike a Supabase
-  publishable key (public-by-design, gated by RLS).
+- **webUI / browser: parked** ([`006`](006-product-surfaces.md)). v1 is Node
+  library + CLI only. This sidesteps the hard problem rather than solving it: no
+  real browser secret store exists (Credential Management API = login creds only;
+  localStorage/IndexedDB = plaintext; Web Crypto wraps at-rest, not in-use), and
+  a provider token is "service_role"-class (a spending bearer, no per-row authz)
+  you must never put in a browser. If the web surface returns, the key stays
+  server-side-local (`sprute serve`-style); the browser never holds it.
 
 ## Provider backends (reconcile with the existing `--provider` abstraction)
 

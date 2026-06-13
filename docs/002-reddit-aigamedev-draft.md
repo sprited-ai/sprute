@@ -12,7 +12,7 @@ the whole thing as a CLI: **sprute** (MIT).
 One command:
 
 ```
-GEMINI_API_KEY=... npx sprute gen char -d "a small forest fairy"
+REPLICATE_API_TOKEN=... npx sprute "a small forest fairy"
 ```
 
 → 8-direction spritesheet + animated turnaround + concept art. Works from a
@@ -30,4 +30,3 @@ idle/attack animations, Godot/Unity import, MCP server, whatever. If people
 here want a feature, I'll build it.
 
 Repo: https://github.com/sprited-ai/sprute
-Browser demo (BYO Gemini key): https://sprited-ai.github.io/sprute/

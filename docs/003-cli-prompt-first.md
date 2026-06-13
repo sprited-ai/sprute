@@ -76,18 +76,20 @@ think about it again.
 ```
 $ npx sprute "a goblin archer"
   ▌ sprute needs an image-model key (one-time setup)
-  ▌ 1. Gemini API key   — aistudio.google.com/apikey (Nano Banana Pro)
-  ▌ 2. Comfy API key    — platform.comfy.org (coming)
+  ▌ 1. Replicate API token  — replicate.com/account/api-tokens
+  ▌ 2. Fal API key          — fal.ai/dashboard/keys
+  ▌ 3. Comfy API key        — platform.comfy.org
+  ▌    advanced: your own ComfyUI endpoint (URL + auth header)
   paste key: ****
-  ✓ key works (gemini-3-pro-image-preview reachable)
+  ✓ key works (nano-banana reachable via Replicate)
   ✓ saved to ~/.sprute/credentials.json (0600)
 ```
 
-Key resolution order: `GEMINI_API_KEY` env → `./.env` →
-`~/.sprute/credentials.json`. `sprute login` re-runs the flow; env always
-wins so CI stays simple. Honest framing: today this is key management,
-not OAuth — Gemini has no OAuth-for-API-key flow. The word `login` still
-earns its name as the guided first-run.
+Key resolution order: provider token in env (`REPLICATE_API_TOKEN` / `FAL_KEY`
+/ …) → `./.env` → `~/.sprute/credentials.json`. `sprute login` re-runs the flow;
+env always wins so CI stays simple. Honest framing: today this is key
+management, not OAuth — these are raw API tokens. The word `login` still earns
+its name as the guided first-run.
 
 ## COMFY_ORG_API_KEY — research findings (2026-06)
 
