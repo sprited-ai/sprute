@@ -1,7 +1,7 @@
 /** Character config — declare a character once, `sprute build` does the rest:
  * compose reference into the template, generate via the model, extract, key,
  * assemble. JSON or YAML. */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import YAML from "yaml";
 import { PACKAGE_ROOT } from "./node/pkg.js";
@@ -106,6 +106,19 @@ export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfi
     ...(cfg.reference && { reference: rel(cfg.reference) }),
     seed, seedRolled, template, output: rel(cfg.output ?? "."),
   };
+}
+
+/** Project defaults — ./sprute.config.{json,yaml,yml}, vite-style: a partial
+ * CharacterConfig merged UNDER the prompt and flags (flags > prompt > project >
+ * builtin). Returns {} when no project config is present. */
+export function loadProjectConfig(base: string): Partial<CharacterConfig> {
+  for (const name of ["sprute.config.json", "sprute.config.yaml", "sprute.config.yml"]) {
+    const file = join(base, name);
+    if (!existsSync(file)) continue;
+    const raw = readFileSync(file, "utf8");
+    return (name.endsWith(".json") ? JSON.parse(raw) : YAML.parse(raw)) as Partial<CharacterConfig>;
+  }
+  return {};
 }
 
 export function loadConfig(path: string): ResolvedConfig {

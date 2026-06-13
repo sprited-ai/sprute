@@ -1,54 +1,123 @@
 #!/usr/bin/env node
-/** sprute CLI.
+/** sprute CLI — prompt-first.
  *
- *   sprute build <character.yaml>
- *   sprute extract <sheet.png> [--row N] [--skip-ref N] -o <dir>
- *   sprute extract-anim <sheet.png> --frames 8 [--row N] [--skip-ref N] [--fps 8] -o <dir>
+ *   sprute "a small forest fairy"      generate from a description
+ *   sprute generate "a goblin archer"  explicit form of the same
+ *   sprute <name>.sprute.yaml          rerun a saved build exactly
+ *   sprute -d "…" [-r ref.png] …       flags-only build
+ *   sprute init                        write ./sprute.config.json (project defaults)
+ *   sprute login                       set up an image-model key
+ *
+ * Extraction and QC are no longer CLI subcommands — they stay importable from
+ * the core library (src/core/extract.ts, src/node/generate.ts).
  */
 import { parseArgs } from "node:util";
 import { join, relative } from "node:path";
+import { writeFileSync, existsSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
 import YAML from "yaml";
-import { extractDirections, extractAnimation, SPIN_ORDER } from "./core/extract.js";
-import { centerOnCanvas } from "./core/image.js";
-import { makeSpriteSheet } from "./core/sheet.js";
-import { writeFileSync } from "node:fs";
-import { readImage, writePng, writeAnimatedWebp, writeBytes } from "./node/io.js";
-import { loadConfig, resolveConfig } from "./config.js";
+import { writePng, writeAnimatedWebp, writeBytes } from "./node/io.js";
+import { loadConfig, loadProjectConfig, resolveConfig } from "./config.js";
 import type { CharacterConfig, ResolvedConfig } from "./config.js";
 import { startProgress } from "./node/progress.js";
 import { startReport } from "./node/report.js";
-import { ZSH, BASH } from "./node/completions.js";
-import { checkSpritesheet, fixSpritesheet } from "./node/generate.js";
 import { buildCharacter, nextCharName } from "./node/build.js";
-
-const [cmd, sheetPath, ...rest] = process.argv.slice(2);
+import { writeKey, credentialsPath } from "./node/keystore.js";
 
 // ~417ms per direction — slow enough to actually look at each pose
 const TURNTABLE_FPS = 2.4;
 
 function usage(): never {
-  console.error('usage: sprute gen char [name] [-d "description"] [-r reference.png] [--seed N] [-o dir] [--sheet] [--matting floodfill|toonout] [--no-check] [--max-fixes N] [--report] [--intermediate]');
-  console.error('       sprute build <name> [flags as above]');
-  console.error("       sprute build <name.sprute.yaml|json>");
-  console.error("       sprute extract <sheet.png> [--row N] [--skip-ref N] -o <dir>");
-  console.error("       sprute extract-anim <sheet.png> --frames N [--row N] [--skip-ref N] [--fps N] [--canvas 256] -o <dir>");
-  console.error('       sprute check <spritesheet.png> [-d "description"] [--fix [-o out.png]]');
-  console.error("       sprute completion [zsh|bash]");
+  console.error("usage:");
+  console.error('  sprute "a small forest fairy"      generate from a description');
+  console.error('  sprute generate "a goblin archer"  explicit form of the same');
+  console.error("  sprute <name>.sprute.yaml          rerun a saved build exactly");
+  console.error('  sprute -d "…" [-r ref.png] …       flags-only build');
+  console.error("  sprute init                        write ./sprute.config.json");
+  console.error("  sprute login                       set up an image-model key");
+  console.error("");
+  console.error("build flags: -d <desc>  -r <ref.png>  --seed N  -o <dir>  --sheet");
+  console.error("             --template NAME  --provider NAME  --matting floodfill|toonout");
+  console.error("             --no-check  --max-fixes N  --report  --intermediate");
   process.exit(1);
 }
 
-if (cmd === "completion") {
-  // shell omitted: whatever the user is typing in right now
-  const shell = sheetPath ?? (process.env.SHELL?.endsWith("bash") ? "bash" : "zsh");
-  if (shell !== "zsh" && shell !== "bash") usage();
-  process.stdout.write(shell === "zsh" ? ZSH : BASH);
-  process.exit(0);
+// ---------------------------------------------------------------- login --
+
+// M1 ships the Replicate provider only — login offers what generation can
+// actually use. Fal and Comfy join the menu when their gen.ts branches land
+// (docs/006 sequencing: Replicate → Fal → Comfy).
+const LOGIN_PROVIDERS: { envKey: string; label: string; url: string; verify?: (key: string) => Promise<boolean> }[] = [
+  { envKey: "REPLICATE_API_TOKEN", label: "Replicate API token", url: "replicate.com/account/api-tokens", verify: verifyReplicate },
+];
+
+async function verifyReplicate(token: string): Promise<boolean> {
+  try {
+    const res = await fetch("https://api.replicate.com/v1/account", { headers: { Authorization: `Bearer ${token}` } });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
-if (!cmd || !sheetPath) usage();
+async function login(): Promise<void> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    console.log("sprute needs an image-model key (one-time setup)\n");
+    LOGIN_PROVIDERS.forEach((p, i) => console.log(`  ${i + 1}. ${p.label.padEnd(18)} — ${p.url}`));
+    const provider = LOGIN_PROVIDERS[Number((await rl.question("\nchoose [1]: ")).trim() || "1") - 1];
+    if (!provider) {
+      console.error("invalid choice");
+      process.exit(1);
+    }
+    const key = (await rl.question(`paste ${provider.label}: `)).trim();
+    if (!key) {
+      console.error("no key entered");
+      process.exit(1);
+    }
+    if (provider.verify) {
+      process.stdout.write("verifying… ");
+      const ok = await provider.verify(key);
+      console.log(ok ? "✓" : "✗");
+      if (!ok) {
+        console.error(`${provider.label} rejected — not saved`);
+        process.exit(1);
+      }
+    } else {
+      console.log("(saved without verification)");
+    }
+    writeKey(provider.envKey, key);
+    console.log(`✓ saved to ${credentialsPath()} (0600)`);
+  } finally {
+    rl.close();
+  }
+}
 
+// ----------------------------------------------------------------- init --
 
-function configFromFlags(name: string | undefined, args: string[]): { cfg: ResolvedConfig; template?: string } {
+function init(): void {
+  const path = join(process.cwd(), "sprute.config.json");
+  if (existsSync(path)) {
+    console.error(`${relative(process.cwd(), path)} already exists`);
+    process.exit(1);
+  }
+  const defaults = { output: "./outputs", model: { provider: "replicate" }, matting: "toonout" };
+  writeFileSync(path, JSON.stringify(defaults, null, 2) + "\n");
+  console.log(`wrote ${relative(process.cwd(), path)} — project defaults for sprute builds`);
+}
+
+// ------------------------------------------------------------- generate --
+
+/** Split leading bare words (the description) from the first flag onward, so
+ * both `sprute "a forest fairy"` and `sprute a forest fairy --seed 42` work. */
+function splitDesc(args: string[]): { description?: string; rest: string[] } {
+  const i = args.findIndex((a) => a.startsWith("-"));
+  const words = i === -1 ? args : args.slice(0, i);
+  return { description: words.length ? words.join(" ") : undefined, rest: i === -1 ? [] : args.slice(i) };
+}
+
+/** Merge precedence: flags > prompt > ./sprute.config.json > builtin. */
+function configFromFlags(description: string | undefined, args: string[]): { cfg: ResolvedConfig; template?: string } {
   const { values: b } = parseArgs({
     args,
     options: {
@@ -75,27 +144,32 @@ function configFromFlags(name: string | undefined, args: string[]): { cfg: Resol
   if (b.seed !== undefined && b.seed !== "random" && !Number.isInteger(Number(b.seed))) {
     throw new Error(`--seed wants an integer or "random", got "${b.seed}"`);
   }
-  const cfg = resolveConfig({
-    name,
-    description: b.description,
-    reference: b.reference,
-    seed: b.seed === undefined || b.seed === "random" ? undefined : Number(b.seed),
-    output: b.output ?? "./outputs",
-    template: b.template,
-    model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : undefined,
-    outputs: b.sheet ? { sheet: true } : undefined,
-    matting: b.matting as CharacterConfig["matting"],
-    check: b["no-check"] ? false : undefined,
-    maxFixes: b["max-fixes"] !== undefined ? Number(b["max-fixes"]) : undefined,
-    report: b.report || undefined,
-    intermediate: b.intermediate || undefined,
-  }, process.cwd());
+  const project = loadProjectConfig(process.cwd());
+  const template = b.template ?? (typeof project.template === "string" ? project.template : undefined);
+  const cfg = resolveConfig(
+    {
+      name: project.name,
+      description: b.description ?? description ?? project.description,
+      reference: b.reference ?? project.reference,
+      seed: b.seed === undefined ? project.seed : b.seed === "random" ? undefined : Number(b.seed),
+      output: b.output ?? project.output ?? "./outputs",
+      template: b.template ?? project.template,
+      model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : project.model,
+      outputs: b.sheet ? { sheet: true } : project.outputs,
+      matting: (b.matting as CharacterConfig["matting"]) ?? project.matting,
+      check: b["no-check"] ? false : project.check,
+      maxFixes: b["max-fixes"] !== undefined ? Number(b["max-fixes"]) : project.maxFixes,
+      report: b.report || project.report || undefined,
+      intermediate: b.intermediate || project.intermediate || undefined,
+    },
+    process.cwd(),
+  );
   // resolveConfig swaps the template name for its spec — keep the name for the yaml
-  return { cfg, template: b.template };
+  return { cfg, template };
 }
 
-/** Flag builds drop a config next to the outputs, with the resolved name and
- * seed baked in — `sprute build <name>.sprute.yaml` reruns the exact build.
+/** Flag/prompt builds drop a config next to the outputs, with the resolved name
+ * and seed baked in — `sprute <name>.sprute.yaml` reruns the exact build.
  * Paths are written relative to the yaml, which is how loadConfig reads them. */
 function buildYaml(cfg: ResolvedConfig, templateName: string | undefined, name: string): string {
   return YAML.stringify({
@@ -114,30 +188,23 @@ function buildYaml(cfg: ResolvedConfig, templateName: string | undefined, name: 
   });
 }
 
-if (cmd === "build" || cmd === "gen" || cmd === "generate") {
-  let cfg: ResolvedConfig;
-  // set for flag-driven builds (vs a config file) — those also write a yaml
-  let flags: { cfg: ResolvedConfig; template?: string } | undefined;
-  if (cmd === "build") {
-    if (/\.(ya?ml|json)$/.test(sheetPath)) {
-      cfg = loadConfig(sheetPath);
-    } else {
-      flags = configFromFlags(sheetPath, rest);
-      cfg = flags.cfg;
-    }
-  } else {
-    // gen char[acter] [name] — everything defaults, flags optional
-    if (!/^char(acter)?$/.test(sheetPath)) usage();
-    const named = rest[0] !== undefined && !rest[0].startsWith("-");
-    flags = configFromFlags(named ? rest[0] : undefined, named ? rest.slice(1) : rest);
-    cfg = flags.cfg;
-  }
+/** A name from the description ("a small forest fairy" → "a-small-forest-fairy"),
+ * de-duped against existing outputs; falls back to the char-NNN counter. */
+function deriveName(cfg: ResolvedConfig): string {
+  if (!cfg.description) return nextCharName(cfg.output);
+  const base =
+    cfg.description.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").split("-").slice(0, 4).join("-") ||
+    "char";
+  let name = base;
+  for (let n = 2; existsSync(join(cfg.output, `${name}.spritesheet.png`)); n++) name = `${base}-${n}`;
+  return name;
+}
+
+async function runBuild(cfgIn: ResolvedConfig, flags?: { cfg: ResolvedConfig; template?: string }): Promise<void> {
   // resolve the name up front — the report and intermediate paths carry it
-  const name = cfg.name ?? nextCharName(cfg.output);
-  cfg = { ...cfg, name };
-  const report = cfg.report
-    ? startReport(join(cfg.output, `${name}.report.md`), `${name} — build report`)
-    : undefined;
+  const name = cfgIn.name ?? deriveName(cfgIn);
+  const cfg = { ...cfgIn, name };
+  const report = cfg.report ? startReport(join(cfg.output, `${name}.report.md`), `${name} — build report`) : undefined;
   let stepN = 0;
   const { seed, sheet, concept, cells, spritesheet, entity } = await buildCharacter(cfg, {
     log: (line) => console.error(line),
@@ -162,73 +229,52 @@ if (cmd === "build" || cmd === "gen" || cmd === "generate") {
   writeFileSync(join(cfg.output, `${name}.entity.json`), JSON.stringify(entity, null, 2) + "\n");
   // the seed that actually produced the kept sheet, not the one we started with
   if (flags) writeFileSync(join(cfg.output, `${name}.sprute.yaml`), buildYaml({ ...cfg, seed }, flags.template, name));
-  const exts = [...(concept ? ["concept.png"] : []), "spritesheet.png", "turntable.webp", "entity.json",
-    ...(flags ? ["sprute.yaml"] : []), ...(cfg.report ? ["report.md"] : [])];
+  const exts = [
+    ...(concept ? ["concept.png"] : []),
+    "spritesheet.png",
+    "turntable.webp",
+    "entity.json",
+    ...(flags ? ["sprute.yaml"] : []),
+    ...(cfg.report ? ["report.md"] : []),
+  ];
   console.log(`"${name}" -> ${cfg.output}/${name}.{${exts.join(",")}}`);
+}
+
+// ------------------------------------------------------------- dispatch --
+
+const argv = process.argv.slice(2);
+const first = argv[0];
+
+if (first === "login") {
+  await login();
   process.exit(0);
 }
-
-if (cmd === "check") {
-  // standalone QC: same VLM review the build pipeline runs, exit 1 on defects;
-  // --fix hands the sheet to the image model for an in-place repair
-  const { values: c } = parseArgs({ args: rest, options: {
-    description: { type: "string", short: "d" },
-    fix: { type: "boolean" },
-    output: { type: "string", short: "o" },
-  } });
-  const img = await readImage(sheetPath);
-  const verdict = await checkSpritesheet(img, c.description);
-  if (verdict.ok) {
-    console.log("clean");
-    process.exit(0);
-  }
-  for (const i of verdict.issues) console.log(`${i.cell ?? "sheet"} — ${i.note}`);
-  if (!c.fix) process.exit(1);
-  const strip = extractAnimation(img, 8, { panel: { x: 0, y: 0, width: img.width, height: img.height } });
-  const r = await fixSpritesheet(strip, c.description);
-  if (r.report) console.error(`fix: ${r.report.replace(/\s*\n\s*/g, " ")}`);
-  if (r.clean) {
-    console.log("the image model found nothing to fix");
-    process.exit(1);
-  }
-  const out = c.output ?? sheetPath.replace(/\.png$/i, "") + ".fixed.png";
-  await writePng(out, makeSpriteSheet(r.cells));
-  const after = await checkSpritesheet(makeSpriteSheet(r.cells), c.description);
-  console.log(`${after.ok ? "clean after fix" : `${after.issues.length} issue(s) remain after fix`} -> ${out}`);
-  process.exit(after.ok ? 0 : 1);
+if (first === "init") {
+  init();
+  process.exit(0);
+}
+if (first === undefined || first === "help" || first === "--help" || first === "-h") {
+  // bare invocation → interactive session (M2); until then, usage
+  usage();
 }
 
-const { values: v } = parseArgs({
-  args: rest,
-  options: {
-    output: { type: "string", short: "o" },
-    row: { type: "string" },
-    "skip-ref": { type: "string" },
-    frames: { type: "string" },
-    fps: { type: "string" },
-    canvas: { type: "string" },
-  },
-});
-if (!v.output) usage();
+let flags: { cfg: ResolvedConfig; template?: string } | undefined;
+let cfg: ResolvedConfig;
+if (/\.(ya?ml|json)$/.test(first)) {
+  // rerun a saved build exactly — no project-config merge
+  cfg = loadConfig(first);
+} else if (first === "generate") {
+  const { description, rest } = splitDesc(argv.slice(1));
+  flags = configFromFlags(description, rest);
+  cfg = flags.cfg;
+} else if (first.startsWith("-")) {
+  flags = configFromFlags(undefined, argv);
+  cfg = flags.cfg;
+} else {
+  const { description, rest } = splitDesc(argv);
+  flags = configFromFlags(description, rest);
+  cfg = flags.cfg;
+}
 
-const sheet = await readImage(sheetPath);
-const opts = {
-  row: v.row !== undefined ? Number(v.row) : undefined,
-  skipRef: v["skip-ref"] !== undefined ? Number(v["skip-ref"]) : undefined,
-};
-
-if (cmd === "extract") {
-  const sprites = extractDirections(sheet, opts);
-  const ordered = SPIN_ORDER.map((d) => sprites[d]);
-  await writePng(join(v.output, "spritesheet.png"), makeSpriteSheet(ordered));
-  await writeAnimatedWebp(join(v.output, "turntable.webp"), ordered, TURNTABLE_FPS);
-  console.log(`spritesheet.png [${SPIN_ORDER.join(" ")}] + turntable.webp -> ${v.output} (SW/W/NW mirrored)`);
-} else if (cmd === "extract-anim") {
-  if (!v.frames) usage();
-  const size = v.canvas !== undefined ? Number(v.canvas) : 256;
-  const fps = v.fps !== undefined ? Number(v.fps) : 8;
-  const frames = extractAnimation(sheet, Number(v.frames), opts).map((f) => centerOnCanvas(f, size));
-  await writePng(join(v.output, "spritesheet.png"), makeSpriteSheet(frames));
-  await writeAnimatedWebp(join(v.output, "anim.webp"), frames, fps);
-  console.log(`${frames.length} frames -> ${v.output} (spritesheet.png + anim.webp @${fps}fps)`);
-} else usage();
+await runBuild(cfg, flags);
+process.exit(0);
