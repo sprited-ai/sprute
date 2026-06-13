@@ -1,9 +1,9 @@
 /** Find the gait period by autocorrelation, pick 8 frames across one cycle,
  * key the flat background, center, write spritesheet + loop webp. */
-import { readImage, writePng, writeAnimatedWebp } from "/Users/jin/dev/sprited/src/node/io.js";
-import { crop, centerOnCanvas, type RawImage } from "/Users/jin/dev/sprited/src/core/image.js";
-import { keyCell } from "/Users/jin/dev/sprited/src/core/keyer.js";
-import { makeSpriteSheet } from "/Users/jin/dev/sprited/src/core/sheet.js";
+import { readImage, writePng, writeAnimatedWebp } from "/Users/jin/dev/sprute/src/node/io.js";
+import { crop, centerOnCanvas, type RawImage } from "/Users/jin/dev/sprute/src/core/image.js";
+import { keyCell } from "/Users/jin/dev/sprute/src/core/keyer.js";
+import { makeSpriteSheet } from "/Users/jin/dev/sprute/src/core/sheet.js";
 
 const N = 96, FPS = 24;
 const frames: RawImage[] = [];
