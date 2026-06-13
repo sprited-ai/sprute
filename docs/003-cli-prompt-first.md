@@ -21,6 +21,11 @@ npx sprute login                            # first-run auth, Claude Code style
   (+12-25% markup, silent seedream fallback footgun, niche audience);
   add aggregator keys when users ask. Comfy key only helps users already
   running ComfyUI — "coming" at best.
+  > **SUPERSEDED (2026-06-12, Jin) →** v1 goes aggregator-first:
+  > **Replicate → Fal → Comfy** (+ own-ComfyUI). Gemini-direct drops from the
+  > v1 doors (later option, not killed); markup accepted; the footgun is
+  > handled in code (pin model id + validate response `model`). Full
+  > resolution in [`005`](005-byok-direction-from-mana-session.md#resolved--provider-surface-2026-06-12-jin).
 - **Money placement:** the act of paying never happens on OSS surfaces
   (CLI, sprute.dev) — always link out to sprited.ai. The fact that money
   is involved is never hidden: every option is labeled "billed by X"

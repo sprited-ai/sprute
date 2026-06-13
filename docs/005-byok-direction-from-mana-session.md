@@ -1,11 +1,34 @@
 # BYO-key direction (notes from the 2026-06-12 mana session)
 
-> **Status: reconciliation notes, NOT a settled spec.** Captured from a design
-> conversation that happened in the `~/dev/mana` repo session on 2026-06-12,
-> handed off here. One open question for Jin (below) before this supersedes
-> anything. Does **not** overwrite [`004-comfy-gateway.md`](004-comfy-gateway.md).
+> **Status: reconciliation notes.** Captured from a design conversation in the
+> `~/dev/mana` repo session on 2026-06-12, handed off here. The provider half of
+> the open question is now **RESOLVED** (see below); the M2/OAuth half stays
+> parked. Does **not** overwrite [`004-comfy-gateway.md`](004-comfy-gateway.md).
 
-## The one open question
+## RESOLVED — provider surface (2026-06-12, Jin)
+
+This supersedes [`003`](003-cli-prompt-first.md)'s "two doors (Gemini BYOK +
+Sprited Cloud), no Replicate/fal in v1." v1 goes **aggregator-first**:
+
+- **Provider priority: Replicate → Fal → Comfy** (+ own-ComfyUI endpoint).
+  One key → many models, including the **video** models walk-cycles need.
+- **Gemini-direct: dropped from the v1 doors**, not killed — fine to bring
+  back as an **option later**. Reason it's not a v1 door: it can't carry the
+  roadmap (no video; `-preview` churn; per-vendor prepay).
+- **Markup: accepted** for the default aggregator path — the price of their
+  vendor BD/ToS deals ("legitimacy outsourcing"), not a blocker. The **no-markup
+  escape hatch** is the own-ComfyUI pick: a user who wants to spend their own
+  per-vendor keys directly runs ComfyUI + [comfy-api-liberation](https://github.com/holo-q/comfy-api-liberation)
+  on their box and configures sprute to point at it. Later, advanced, user-side —
+  sprute just exposes the endpoint/key config; it never holds vendor keys itself.
+- **seedream silent-fallback footgun: mitigated in code.** sprute always pins
+  the explicit model id and validates the response's `model` field; it never
+  relies on an aggregator's default route. So a silent model swap — real or
+  not — can't reach the template trick.
+- **Still open (M2):** 004's OAuth/broker/custody/Cloud — untouched today,
+  stays demand-gated. See the M2 question below.
+
+## The (remaining) open question — M2
 
 `004-comfy-gateway.md` plans a Sprited-account **broker** + server-side Comfy
 key **custody** + real **OAuth** + paid **Sprited Cloud** (its M2). In the mana
