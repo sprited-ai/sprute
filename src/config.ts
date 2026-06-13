@@ -44,7 +44,7 @@ export interface CharacterConfig {
   template?: string | TemplateSpec;
 
   model?: {
-    provider?: "gemini" | "novita-seedream" | "novita-qwen";
+    provider?: "replicate" | "gemini" | "novita-seedream" | "novita-qwen";
     id?: string;
     envKey?: string;
   };

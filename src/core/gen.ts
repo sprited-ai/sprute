@@ -8,14 +8,16 @@ import { keyCell } from "./keyer.js";
 import { SPIN_ORDER } from "./extract.js";
 import { toBase64, fromBase64, type Codec } from "./codec.js";
 
-export type Provider = "gemini" | "novita-seedream" | "novita-qwen";
+export type Provider = "replicate" | "gemini" | "novita-seedream" | "novita-qwen";
 
 export const DEFAULT_MODEL: Record<Provider, string> = {
+  replicate: "google/nano-banana-pro",
   gemini: "gemini-3-pro-image-preview",
   "novita-seedream": "seedream-4.0",
   "novita-qwen": "qwen-image-edit",
 };
 export const DEFAULT_ENV: Record<Provider, string> = {
+  replicate: "REPLICATE_API_TOKEN",
   gemini: "GEMINI_API_KEY",
   "novita-seedream": "NOVITA_API_KEY",
   "novita-qwen": "NOVITA_API_KEY",
@@ -70,6 +72,29 @@ export async function generateSheet(ctx: GenContext, template: RawImage, prompt:
     if (attempt < 1) continue;
     throw new Error("gemini returned no image");
     }
+  }
+
+  if (provider === "replicate") {
+    // Replicate runs exactly the model named in the URL — no silent model
+    // swap, so the template trick is safe. `Prefer: wait` returns the finished
+    // prediction synchronously (up to ~60s), no polling needed.
+    const res = await fetch(`https://api.replicate.com/v1/models/${model}/predictions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${key}`,
+        Prefer: "wait",
+      },
+      body: JSON.stringify({
+        input: { prompt, image_input: [`data:image/png;base64,${b64}`], output_format: "png" },
+      }),
+    });
+    if (!res.ok) throw new Error(`replicate ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const json = await res.json() as { status: string; output?: string | string[]; error?: string };
+    if (json.status !== "succeeded") throw new Error(`replicate ${json.status}: ${json.error ?? ""}`.slice(0, 200));
+    const url = Array.isArray(json.output) ? json.output[0] : json.output;
+    if (!url) throw new Error("replicate returned no image");
+    return ctx.codec.decodeImage(new Uint8Array(await (await fetch(url)).arrayBuffer()));
   }
 
   if (provider === "novita-seedream") {
