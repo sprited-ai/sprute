@@ -214,6 +214,75 @@ Track B (animation):
 - Does fine-tuning let us *drop the template trick entirely* (a character LoRA
   generating consistent directions directly)?
 
+## Research findings & recommendation (2026-06-13, deep-research)
+
+Deep-research pass: 5 angles, 25 sources fetched, 109 claims → 25 adversarially
+verified (18 confirmed, 7 killed). **The single most important finding is a
+negative one:** *nothing in the corpus benchmarks any open model's anime
+aesthetic against NBP, nor any open I2V model's stylized-2D locomotion against
+Seedance.* Every aesthetic/quality claim is a vendor card or a practitioner
+blog. So research **narrows the field to test — it does not pick the winner.**
+That is exactly why the eval harness is the first build.
+
+### Part A — generation (verified)
+
+- **Z-Image (Alibaba Tongyi-MAI)** — genuinely **Apache 2.0** (commercial-safe,
+  unlike FLUX dev), 6B non-distilled, authors explicitly position it for *LoRA +
+  ControlNet*, runs/LoRA-trains in ~16GB, hundreds of Civitai LoRAs already.
+  Anime competence is a **model-card claim, not benchmarked.** Weak spot:
+  ControlNet is only an immature **model-patch** with reported quality issues.
+- **SDXL anime stack (Illustrious XL / NoobAI-XL / Pony V6)** — the de-facto
+  proven-aesthetic local anime stack (curated guides still recommend only these,
+  not FLUX/Z-Image/Qwen), cheapest LoRA (8–16GB), richest control (ControlNet,
+  IP-Adapter, inpaint). Illustrious = neutral base, *derivatives outperform it*;
+  NoobAI = ~13M Danbooru+e621, v-pred variant (better adherence/color).
+- **FLUX.1-Fill-dev + FluxFillControlNetInpaintPipeline** — cleanest single-pass
+  mask-fill + ControlNet (the literal template-fill pattern), but **non-commercial
+  license** and a maintainer note its output isn't yet on par with Qwen-Edit/Kontext.
+- **Qwen-Image 2512** — decent anime, **Apache 2.0**, but 20B/~41GB → LoRA ≥24GB,
+  full FT 40GB+. Viable on 96GB, costly.
+- *Killed claims:* "SDXL = largest LoRA ecosystem" (0-3), several specific VRAM
+  numbers (treat all VRAM figures as approximate), the tidy license-split table.
+
+### Part B — animation (verified)
+
+- **Wan2.2 I2V** is the open fine-tune target. MoE → **two LoRAs** (high-noise +
+  low-noise) trained separately (diffusion-pipe / musubi-tuner / AI-Toolkit),
+  both applied at inference. Wan2.5/2.6 **not confirmed to exist.**
+- **RGBA extraction:** native-alpha research (Wan-Alpha, TransPixeler) is
+  LoRA/alpha-token based but **Wan-Alpha is T2V-only — I2V weights unreleased**,
+  TransPixeler is T2V on CogVideoX → neither serves I2V today. Practical path:
+  **MatAnyone** temporal matting (foreground + per-frame alpha, consistent
+  propagation) — needs a first-frame mask (SAM2), but a fixed sprite template
+  makes that cheap. The **white/black dual-render diff** trick (banked from
+  SpriteDX/exp005) remains the zero-dependency fallback.
+
+### My recommendation (independent reasoning)
+
+1. **The eval harness is the real first move, not model choice.** Since no claim
+   benchmarks beauty-vs-NBP or motion-vs-Seedance, committing to a base now is
+   guessing. Build the harness (aesthetic + 8-dir consistency + gait scoring),
+   then let measured bake-off pick the base. This *is* the repeatable moat.
+2. **Bias the Part-A moat toward Z-Image, with SDXL-anime as the aesthetic
+   benchmark to beat.** Reasons: (a) clean **Apache 2.0** is a genuine product
+   advantage — fine-tune, sell output, no license drama (SDXL-derivative and
+   FLUX licensing is murky/non-commercial); (b) modern non-distilled base = a
+   higher fine-tune ceiling than an already-saturated SDXL; (c) **Z-Image's main
+   weakness — immature ControlNet/fill — is largely neutralized by your own call
+   that the template-fill flow is just one optional pipeline.** Going
+   *character-LoRA t2i + consistency* instead of template-fill sidesteps the
+   exact thing Z-Image is weak at. If the bake-off shows SDXL-anime is
+   meaningfully prettier and we can't close it with a LoRA, fall back to it.
+3. **Part B: commit to fine-tuning Wan2.2 I2V; treat Seedance-quality as a
+   hypothesis to test, not an assumption.** exp005 already shows un-tuned video
+   models walk-cycle; the bet is that a style+motion LoRA on our data locks
+   fidelity and gait together. Use MatAnyone for alpha now; the white/black trick
+   as fallback; revisit Wan-Alpha when I2V weights land.
+
+The honest center: both headline questions (beauty-vs-NBP, motion-vs-Seedance)
+are **empirically open** and must be settled on *our* data. The moat is the
+apparatus that settles them repeatably.
+
 ## Sources
 
 - Wan2.2 fine-tuning tooling: [AMD ROCm Wan2.2 finetune guide](https://rocm.blogs.amd.com/artificial-intelligence/finetuning-wan-part1/README.html), [fal wan-22 trainer](https://fal.ai/models/fal-ai/wan-22-image-trainer), [Medium: training Wan2.2 for character/style](https://medium.com/@ahmadareeb3026/training-wan2-2-for-your-character-custom-style-ultra-realistic-images-f8993350c862)
