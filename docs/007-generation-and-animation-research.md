@@ -28,6 +28,14 @@ and the best of those live on **Civitai**. Two research tracks follow.
 
 ## The moat (the actual goal)
 
+**Thesis: generic → specialized.** NBP and the big closed models are *generic* —
+general-purpose, expensive per call, optimized for nothing in particular. Our
+edge is the opposite: **fine-tune the narrow task** (walk cycle, animation
+states, our character look) so it runs **fast, cheap, and repeatable** on our
+own hardware. We don't out-general the generalists; we out-specialize them on
+the vertical that matters. A walk-cycle LoRA that nails *our* look in seconds for
+cents beats renting a generic model that's merely competent and pricey.
+
 The base model is **commodity** — anyone can download Z-Image, Wan2.2, an
 Illustrious checkpoint. Picking "the best model" is the *start*, not the moat.
 The moat is what we build on top, and how **repeatably** we can rebuild it:
