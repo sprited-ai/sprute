@@ -8,19 +8,23 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, chmodSync } from "n
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const DIR = join(homedir(), ".sprute");
-const FILE = join(DIR, "credentials.json");
+// computed lazily (not at module load) so it tracks the environment.
+// SPRUTE_CONFIG_DIR relocates the store (CI, sandboxes, tests).
+function dir(): string {
+  return process.env.SPRUTE_CONFIG_DIR ?? join(homedir(), ".sprute");
+}
 
 export function credentialsPath(): string {
-  return FILE;
+  return join(dir(), "credentials.json");
 }
 
 type Store = Record<string, string>;
 
 function read(): Store {
-  if (!existsSync(FILE)) return {};
+  const file = credentialsPath();
+  if (!existsSync(file)) return {};
   try {
-    return JSON.parse(readFileSync(FILE, "utf8")) as Store;
+    return JSON.parse(readFileSync(file, "utf8")) as Store;
   } catch {
     return {};
   }
@@ -31,10 +35,11 @@ export function readKey(envKey: string): string | undefined {
 }
 
 export function writeKey(envKey: string, value: string): void {
-  mkdirSync(DIR, { recursive: true });
+  mkdirSync(dir(), { recursive: true });
   const store = read();
   store[envKey] = value;
-  writeFileSync(FILE, JSON.stringify(store, null, 2) + "\n", { mode: 0o600 });
+  const file = credentialsPath();
+  writeFileSync(file, JSON.stringify(store, null, 2) + "\n", { mode: 0o600 });
   // enforce 0600 even if the file pre-existed with looser permissions
-  chmodSync(FILE, 0o600);
+  chmodSync(file, 0o600);
 }

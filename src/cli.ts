@@ -11,14 +11,13 @@
  * Extraction and QC are no longer CLI subcommands — they stay importable from
  * the core library (src/core/extract.ts, src/node/generate.ts).
  */
-import { parseArgs } from "node:util";
 import { join, relative } from "node:path";
 import { writeFileSync, existsSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
-import YAML from "yaml";
 import { writePng, writeAnimatedWebp, writeBytes } from "./node/io.js";
 import { loadConfig, loadProjectConfig, resolveConfig } from "./config.js";
-import type { CharacterConfig, ResolvedConfig } from "./config.js";
+import type { ResolvedConfig } from "./config.js";
+import { splitDesc, slugify, parseFlags, mergeConfig, buildYaml } from "./args.js";
 import { startProgress } from "./node/progress.js";
 import { startReport } from "./node/report.js";
 import { buildCharacter, nextCharName } from "./node/build.js";
@@ -108,93 +107,19 @@ function init(): void {
 
 // ------------------------------------------------------------- generate --
 
-/** Split leading bare words (the description) from the first flag onward, so
- * both `sprute "a forest fairy"` and `sprute a forest fairy --seed 42` work. */
-function splitDesc(args: string[]): { description?: string; rest: string[] } {
-  const i = args.findIndex((a) => a.startsWith("-"));
-  const words = i === -1 ? args : args.slice(0, i);
-  return { description: words.length ? words.join(" ") : undefined, rest: i === -1 ? [] : args.slice(i) };
-}
-
-/** Merge precedence: flags > prompt > ./sprute.config.json > builtin. */
+/** Build a resolved config from the prompt, flags, and project defaults.
+ * Merge precedence (in src/args.ts): flags > prompt > ./sprute.config.json >
+ * builtin. The template name is kept aside for the reproducible yaml. */
 function configFromFlags(description: string | undefined, args: string[]): { cfg: ResolvedConfig; template?: string } {
-  const { values: b } = parseArgs({
-    args,
-    options: {
-      description: { type: "string", short: "d" },
-      reference: { type: "string", short: "r" },
-      seed: { type: "string" },
-      output: { type: "string", short: "o" },
-      sheet: { type: "boolean" },
-      template: { type: "string" },
-      provider: { type: "string" },
-      matting: { type: "string" },
-      "no-check": { type: "boolean" },
-      "max-fixes": { type: "string" },
-      report: { type: "boolean" },
-      intermediate: { type: "boolean" },
-    },
-  });
-  if (b.matting !== undefined && b.matting !== "floodfill" && b.matting !== "toonout") {
-    throw new Error(`--matting wants "floodfill" or "toonout", got "${b.matting}"`);
-  }
-  if (b["max-fixes"] !== undefined && !Number.isInteger(Number(b["max-fixes"]))) {
-    throw new Error(`--max-fixes wants an integer, got "${b["max-fixes"]}"`);
-  }
-  if (b.seed !== undefined && b.seed !== "random" && !Number.isInteger(Number(b.seed))) {
-    throw new Error(`--seed wants an integer or "random", got "${b.seed}"`);
-  }
-  const project = loadProjectConfig(process.cwd());
-  const template = b.template ?? (typeof project.template === "string" ? project.template : undefined);
-  const cfg = resolveConfig(
-    {
-      name: project.name,
-      description: b.description ?? description ?? project.description,
-      reference: b.reference ?? project.reference,
-      seed: b.seed === undefined ? project.seed : b.seed === "random" ? undefined : Number(b.seed),
-      output: b.output ?? project.output ?? "./outputs",
-      template: b.template ?? project.template,
-      model: b.provider ? { provider: b.provider as NonNullable<CharacterConfig["model"]>["provider"] } : project.model,
-      outputs: b.sheet ? { sheet: true } : project.outputs,
-      matting: (b.matting as CharacterConfig["matting"]) ?? project.matting,
-      check: b["no-check"] ? false : project.check,
-      maxFixes: b["max-fixes"] !== undefined ? Number(b["max-fixes"]) : project.maxFixes,
-      report: b.report || project.report || undefined,
-      intermediate: b.intermediate || project.intermediate || undefined,
-    },
-    process.cwd(),
-  );
-  // resolveConfig swaps the template name for its spec — keep the name for the yaml
-  return { cfg, template };
-}
-
-/** Flag/prompt builds drop a config next to the outputs, with the resolved name
- * and seed baked in — `sprute <name>.sprute.yaml` reruns the exact build.
- * Paths are written relative to the yaml, which is how loadConfig reads them. */
-function buildYaml(cfg: ResolvedConfig, templateName: string | undefined, name: string): string {
-  return YAML.stringify({
-    name,
-    ...(cfg.description && { description: cfg.description }),
-    ...(cfg.reference && { reference: relative(cfg.output, cfg.reference) }),
-    seed: cfg.seed,
-    ...(templateName && { template: templateName }),
-    ...(cfg.model?.provider && { model: { provider: cfg.model.provider } }),
-    ...(cfg.outputs?.sheet && { outputs: { sheet: cfg.outputs.sheet } }),
-    ...(cfg.matting && { matting: cfg.matting }),
-    ...(cfg.check === false && { check: false }),
-    ...(cfg.maxFixes !== undefined && { maxFixes: cfg.maxFixes }),
-    ...(cfg.report && { report: true }),
-    ...(cfg.intermediate && { intermediate: true }),
-  });
+  const { cfg, template } = mergeConfig(parseFlags(args), description, loadProjectConfig(process.cwd()));
+  return { cfg: resolveConfig(cfg, process.cwd()), template };
 }
 
 /** A name from the description ("a small forest fairy" → "a-small-forest-fairy"),
  * de-duped against existing outputs; falls back to the char-NNN counter. */
 function deriveName(cfg: ResolvedConfig): string {
   if (!cfg.description) return nextCharName(cfg.output);
-  const base =
-    cfg.description.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").split("-").slice(0, 4).join("-") ||
-    "char";
+  const base = slugify(cfg.description);
   let name = base;
   for (let n = 2; existsSync(join(cfg.output, `${name}.spritesheet.png`)); n++) name = `${base}-${n}`;
   return name;
