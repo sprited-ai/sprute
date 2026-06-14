@@ -32,10 +32,9 @@ The base model is **commodity** — anyone can download Z-Image, Wan2.2, an
 Illustrious checkpoint. Picking "the best model" is the *start*, not the moat.
 The moat is what we build on top, and how **repeatably** we can rebuild it:
 
-1. **Proprietary dataset** — the real asset. `motionseed.1` motion data (real
-   gait + pixel sprites + per-frame pose/phase) + our own sprite/turnaround
-   corpus + the 8-direction / animation-state labeling. Others can't copy what
-   they can't see.
+1. **Proprietary dataset** — the real asset. Our own sprite/turnaround corpus +
+   8-direction / animation-state labeling + curated motion references we build
+   for fine-tuning. Others can't copy what they can't see.
 2. **Fine-tuned models on it** — a generation LoRA/FT (aesthetic + character
    identity) and a Wan2.2 animation LoRA (Seedance-quality locomotion). The
    weights are ours; the base is swappable underneath.
@@ -122,8 +121,9 @@ character's identity ("캐릭은 마치 캐릭 느낌으로").
 - **Today's gap (un-tuned):** Wan2.2 = frame-precise control, ~25% cheaper,
   runs locally; Seedance 1 Pro = higher res, longer, premium motion quality.
   Fine-tuning aims to close the motion-quality gap for *our* narrow domain.
-- **Dataset:** this is where `motionseed.1` (motion training data — real gait
-  footage + pixel sprites + per-frame pose/phase metadata) becomes relevant.
+- **Dataset:** a purpose-built motion set — reference locomotion clips paired
+  with our character sprites, labeled by state (walk/run/dance/idle) and gait
+  phase. Built fresh for this; the dataset is the moat ([the moat](#the-moat-the-actual-goal)).
 
 ### What "good" requires (from exp 005, Seedance vs Veo)
 
@@ -263,16 +263,16 @@ That is exactly why the eval harness is the first build.
    benchmarks beauty-vs-NBP or motion-vs-Seedance, committing to a base now is
    guessing. Build the harness (aesthetic + 8-dir consistency + gait scoring),
    then let measured bake-off pick the base. This *is* the repeatable moat.
-2. **Bias the Part-A moat toward Z-Image, with SDXL-anime as the aesthetic
-   benchmark to beat.** Reasons: (a) clean **Apache 2.0** is a genuine product
-   advantage — fine-tune, sell output, no license drama (SDXL-derivative and
-   FLUX licensing is murky/non-commercial); (b) modern non-distilled base = a
-   higher fine-tune ceiling than an already-saturated SDXL; (c) **Z-Image's main
-   weakness — immature ControlNet/fill — is largely neutralized by your own call
-   that the template-fill flow is just one optional pipeline.** Going
-   *character-LoRA t2i + consistency* instead of template-fill sidesteps the
-   exact thing Z-Image is weak at. If the bake-off shows SDXL-anime is
-   meaningfully prettier and we can't close it with a LoRA, fall back to it.
+2. **Start Part A on Illustrious (SDXL-anime); keep Z-Image as the clean-license
+   parallel bet.** Jin's read (2026-06-13): Illustrious is the most-recommended
+   model so far — which matches the research's proven-aesthetic finding. So start
+   there: fastest to a striking result, cheapest LoRA, richest control. Two
+   caveats to track: (a) **license per-checkpoint** — Illustrious/derivative
+   terms (Fair-AI-public-RAIL etc.) must be checked before shipping commercial
+   output; (b) SDXL is an older base with a lower fine-tune ceiling. **Z-Image
+   stays the parallel bet** for its clean Apache 2.0 and higher ceiling — and its
+   weak ControlNet is moot since template-fill is now optional. Let the eval
+   harness decide if Z-Image (or a fine-tune) ever beats the Illustrious result.
 3. **Part B: commit to fine-tuning Wan2.2 I2V; treat Seedance-quality as a
    hypothesis to test, not an assumption.** exp005 already shows un-tuned video
    models walk-cycle; the bet is that a style+motion LoRA on our data locks
