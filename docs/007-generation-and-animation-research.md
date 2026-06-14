@@ -315,10 +315,60 @@ The honest center: both headline questions (beauty-vs-NBP, motion-vs-Seedance)
 are **empirically open** and must be settled on *our* data. The moat is the
 apparatus that settles them repeatably.
 
+## The pretty-vs-stale playbook (workflow recipe)
+
+Second deep-research pass ("what do the best practitioners actually *do*"; 25
+claims verified, 18 confirmed). Headline: **the best results are not single-pass
+— they are a multi-stage pipeline plus aesthetic curation.** What separates
+"pretty/striking" from the "stale/generic" base default (the NBP complaint),
+ranked by impact:
+
+1. **Prompt in the model's native dialect.** Illustrious/NoobAI: `masterpiece,
+   best quality` (+) and `worst quality, low quality` (−) — **NOT** Pony's
+   `score_9, score_8_up, …` chain (a memorized unit for Pony only). Wrong dialect
+   → generic. Danbooru tags, comma-separated, order `count/gender, character,
+   series, artist, general, quality`; avoid long natural-language and underscores.
+2. **Artist-tag mixing = the signature-aesthetic lever** — the main way to escape
+   generic; isolate artist tags in their own CLIP chunk (`BREAK`) or quality
+   degrades. (CLIP-specific; does NOT transfer to LLM-text-encoder models — medium confidence.)
+3. **Heavy negatives (Illustrious)** — very negative-sensitive (unlike Pony);
+   quality keywords in the negative materially help, especially at high res.
+4. **Settings consensus:** Euler a or DPM++ 2M Karras, 20–28 steps (30–40 hires),
+   **CFG ~5** (3–7, don't overbake past ~6–7.5), Clip Skip 2 for Illustrious;
+   v-pred variants want lower CFG (3–5).
+5. **Multi-stage refinement is the default:** txt2img → **hires fix** →
+   **ADetailer/FaceDetailer** (Impact Pack: detect → crop → upscale → inpaint →
+   paste-back; fixes faces & hands lost at low res) → **inpainting** →
+   **low-denoise tiled upscale** (Ultimate SD Upscale ~0.15 denoise, ~15 steps,
+   ControlNet off, long side 2500–3000px; SUPIR for detail restoration). The
+   popular vslinx all-in-one ComfyUI graph bundles exactly these stages.
+
+**The crux:** pretty = native-dialect prompt + artist-tag curation + multi-stage
+detailing/upscale. Generic = single-pass base output — which is exactly NBP's
+staleness. **Not confirmed (open):** exact LoRA-stack composition (counts/weights),
+regional-prompting prevalence, what elite artists do beyond shipped templates.
+
+### How this maps to our moat
+
+- **Refinement stages transfer directly to sprite cells:** add hires +
+  FaceDetailer + low-denoise tiled upscale to the sprute pipeline → fixes the
+  faces/hands/detail low-res cells lose. This alone should beat NBP's single-pass look.
+- **Aesthetic curation belongs in our fine-tune, not per-prompt** — bake the
+  house style into our LoRA/FT (repeatable, consistent, ours = the moat) instead
+  of artist-tag juggling.
+- **Caveat for the Z-Anime lean:** this craft playbook is mature for the
+  **Illustrious/SDXL-anime** family (CLIP tag dialects, score tags, BREAK
+  chunking); **Z-Image/Z-Anime is a newer architecture** where it may not
+  transfer — its best-results playbook is nascent. A point *for* Illustrious
+  (proven craft) to weigh against Z-Anime's license/ceiling edge; fine-tuning
+  softens it (less reliance on per-prompt craft). **The bake-off must compare
+  full pipelines (base + refinement), not bare base outputs.**
+
 ## Sources
 
 - Wan2.2 fine-tuning tooling: [AMD ROCm Wan2.2 finetune guide](https://rocm.blogs.amd.com/artificial-intelligence/finetuning-wan-part1/README.html), [fal wan-22 trainer](https://fal.ai/models/fal-ai/wan-22-image-trainer), [Medium: training Wan2.2 for character/style](https://medium.com/@ahmadareeb3026/training-wan2-2-for-your-character-custom-style-ultra-realistic-images-f8993350c862)
 - Z-Anime: [Civitai Z-Image-Turbo-Anime](https://civitai.com/models/2259646/z-image-turbo-anime), [Next Diffusion guide](https://www.nextdiffusion.ai/tutorials/z-anime-image-generation-in-comfyui), [HF SeeSee21/Z-Anime](https://huggingface.co/SeeSee21/Z-Anime)
 - Seedance vs Wan2.2: [Melies comparison](https://melies.co/compare/seedance-v1-pro-vs-wan-v2-2), [WaveSpeed 2026 comparison](https://wavespeed.ai/blog/posts/wan-2-7-vs-seedance-2-vs-sora-2-vs-veo-3-1-fast-image-to-video-comparison/)
 - Civitai anime models: [Illustrious / NoobAI / Pony overviews](https://anifusion.ai/models/)
+- Workflow playbook: [Pony score tags](https://civitai.com/articles/4248/what-is-score9-and-how-to-use-it-in-pony-diffusion), [Arctenox Illustrious prompt guide](https://civitai.com/articles/23210/arctenoxs-simple-prompt-guide-for-illustrious), [RouWei-0.8 card](https://huggingface.co/Minthy/RouWei-0.8), [ComfyUI Impact Pack (FaceDetailer)](https://github.com/ltdrdata/ComfyUI-Impact-Pack), [Civitai upscaling guide](https://civitai.com/articles/8456/upscaling-guide), [vslinx all-in-one workflow](https://civitai.com/models/1297813), [ComfyUI-SUPIR](https://github.com/kijai/ComfyUI-SUPIR)
 - Local: `experiments/005-walkcycle/notes.md`; SpriteDX repos (paths cited inline).
