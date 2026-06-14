@@ -75,6 +75,9 @@ the moat: a closed API, the public base weights, or a one-off hand-tuned output.
 
 **Build order:** eval harness first (so every model claim is measured) →
 candidate bake-off → fine-tune the winner on our data → fold into `sprute`.
+*(Eval harness now built: [`experiments/006-model-bakeoff/`](../experiments/006-model-bakeoff/) —
+VLM judge scoring aesthetic/illustration/anatomy/detail/appeal, per-model
+ranking, validated. Next: run the bake-off on gin once a base is sourced.)*
 
 ---
 
