@@ -42,17 +42,21 @@ Running the matting model (BiRefNet / ToonOut) on Cloudflare Workers is a
 concern, and not necessarily via `sprute/web`. `sprute/web` is parked (kept, not
 deleted) to preserve the option; nothing about it blocks v1.
 
-## Removal checklist (execute at M1, not before)
+## Removal checklist (M1)
 
-- [ ] github-pages deployment: delete `.github/workflows/pages.yml` + take down
-      the live page (external action — Jin to confirm timing).
-- [ ] `demo/` vite app + `package.json` `dev` script (`vite demo --open`) — retire.
-- [ ] `src/web/` (browser build, onnxruntime-web matting, canvas codec) — park
-      (drop from the published surface; web is given up for now).
-- [ ] README: drop the demo-page link + "the web UI" framing (lines ~123-148)
-      and the `sprute/web` usage block; keep the Node library example.
-- [ ] Reddit draft [`002`](002-reddit-aigamedev-draft.md): remove the browser-demo
-      line; headline command → `npx sprute "…"` with an aggregator key.
+- [x] `demo/` vite app + `package.json` `dev` script + `.github/workflows/pages.yml`
+      deleted (commit `2b6bc2a`).
+- [x] `src/web/` kept, parked (not deleted) — source, tsup entries, and the
+      `./web` / `toonout` browser exports left intact for a future off-browser
+      revival. (Conservative reading of "parked, not deleted"; fully unpublishing
+      the web export can happen later if it bit-rots.)
+- [x] README synced to prompt-first + Replicate; demo/web sections dropped
+      (commit `68d505a`).
+- [x] Reddit draft [`002`](002-reddit-aigamedev-draft.md): browser-demo line
+      removed; headline command → `npx sprute "…"`.
+- [ ] **External (Jin):** take down the live page at
+      github.com/sprited-ai/sprute → Settings → Pages. Deleting `pages.yml`
+      stops redeploys; the current deployment stays up until removed there.
 
 ## Sequencing
 
