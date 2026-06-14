@@ -292,16 +292,19 @@ That is exactly why the eval harness is the first build.
    benchmarks beauty-vs-NBP or motion-vs-Seedance, committing to a base now is
    guessing. Build the harness (aesthetic + 8-dir consistency + gait scoring),
    then let measured bake-off pick the base. This *is* the repeatable moat.
-2. **Start Part A on Illustrious (SDXL-anime); keep Z-Image as the clean-license
-   parallel bet.** Jin's read (2026-06-13): Illustrious is the most-recommended
-   model so far — which matches the research's proven-aesthetic finding. So start
-   there: fastest to a striking result, cheapest LoRA, richest control. Two
-   caveats to track: (a) **license per-checkpoint** — Illustrious/derivative
-   terms (Fair-AI-public-RAIL etc.) must be checked before shipping commercial
-   output; (b) SDXL is an older base with a lower fine-tune ceiling. **Z-Image
-   stays the parallel bet** for its clean Apache 2.0 and higher ceiling — and its
-   weak ControlNet is moot since template-fill is now optional. Let the eval
-   harness decide if Z-Image (or a fine-tune) ever beats the Illustrious result.
+2. **Lead Part A on Z-Anime (Z-Image); make Illustrious the benchmark it must
+   beat.** Z-Anime fits our *fine-tune-our-own* moat better than Illustrious:
+   (a) clean **Apache 2.0** — commercial-safe output, no license drama
+   (Illustrious is per-checkpoint Fair-AI-RAIL/murky); (b) modern 6B
+   non-distilled base, built for LoRA/fine-tune → **higher ceiling** than
+   saturated SDXL; (c) since *we* make our LoRAs, the base's tuning-fitness
+   matters more than community-LoRA maturity; (d) Z-Image's weak ControlNet is
+   moot now that template-fill is optional (go character-LoRA t2i). Practical
+   path: **Z-Anime + our character/style LoRA** — start from pretty, lock our
+   look. **The one unverified risk** (per research): whether Z-Image anime
+   aesthetics actually beat *proven* Illustrious — so the cheap insurance before
+   spending fine-tune budget is a **Z-Anime vs Illustrious bake-off** on the same
+   prompts (gin + ComfyUI). Illustrious is the fallback if it wins decisively.
 3. **Part B: commit to fine-tuning Wan2.2 I2V; treat Seedance-quality as a
    hypothesis to test, not an assumption.** exp005 already shows un-tuned video
    models walk-cycle; the bet is that a style+motion LoRA on our data locks
