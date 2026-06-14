@@ -26,6 +26,20 @@ and the best of those live on **Civitai**. Two research tracks follow.
 
 ---
 
+## Target style: illustration (with a pixel-art caveat)
+
+For sprute's sprites, **illustration / anime style is the right base** — it's
+what the existing examples (lisa, monet) already are, and it's exactly what the
+Civitai anime ecosystem (Illustrious/NoobAI) excels at. The large modern market
+is hand-drawn 2D / anime characters, not only retro pixels.
+
+Caveat — define which "sprite" we mean: **classic pixel-art** would use
+illustration as the *source* but needs a pixelization pass (downscale + palette
+quantize) or pixel-art-specific LoRAs/models (Retro-Diffusion-class), which
+shifts the model choice. Default assumption here: **illustration-style sprites.**
+Either way, fine-tuning locks our house style — so the style is a choice we
+own, not the base model's default.
+
 ## The moat (the actual goal)
 
 **Thesis: generic → specialized.** NBP and the big closed models are *generic* —
@@ -212,6 +226,13 @@ Track B (animation):
   inference for Z-Image/SDXL-class and Wan2.2.
 - **RunPod** — burst capacity for bigger runs / parallel sweeps.
 - See [Infra & accounts](../) memory: HF `sprited`, ToonOut ONNX, `comfy.sprited.ai`.
+
+**Execution environment for the bake-off:** the candidates only partially exist
+on hosted APIs (NoobAI-XL on Replicate `delta-lock/noobai-xl`, Wan I2V on fal
+`fal-ai/wan-i2v`, Z-Image on TensorArt) — no unified endpoint, and Civitai
+checkpoints/LoRAs (where Jin is sourcing) download to run locally. So the real
+bake-off env is **gin + ComfyUI** (download checkpoint → run our prompt set →
+score), not hosted APIs.
 
 ## Open questions
 
