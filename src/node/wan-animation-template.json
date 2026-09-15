@@ -1,0 +1,239 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan_animate_2_distill_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": [
+        "1",
+        0
+      ],
+      "shift": 8.0
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "CLIPVisionLoader",
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    }
+  },
+  "7": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "5",
+        0
+      ],
+      "image": [
+        "6",
+        0
+      ],
+      "crop": "none"
+    }
+  },
+  "8": {
+    "class_type": "VHS_LoadVideoPath",
+    "inputs": {
+      "video": "",
+      "force_rate": 24,
+      "custom_width": 512,
+      "custom_height": 512,
+      "frame_load_cap": 65,
+      "skip_first_frames": 0,
+      "select_every_nth": 1,
+      "format": "None"
+    }
+  },
+  "9": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "3",
+        0
+      ],
+      "text": ""
+    }
+  },
+  "10": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "3",
+        0
+      ],
+      "text": "distorted limbs, turning, camera movement, long legs, running, jumping"
+    }
+  },
+  "11": {
+    "class_type": "WanAnimate2ToVideo",
+    "inputs": {
+      "positive": [
+        "9",
+        0
+      ],
+      "negative": [
+        "10",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ],
+      "width": 512,
+      "height": 512,
+      "length": 65,
+      "batch_size": 1,
+      "video_frame_offset": 0,
+      "pose_strength": 1.0,
+      "pose_start_percent": 0.0,
+      "pose_end_percent": 1.0,
+      "reference_image_strength": 1.0,
+      "reference_image": [
+        "6",
+        0
+      ],
+      "pose_video": [
+        "8",
+        0
+      ],
+      "clip_vision_output": [
+        "7",
+        0
+      ],
+      "clip_vision_output_pose": [
+        "18",
+        0
+      ],
+      "positive_pose": [
+        "20",
+        0
+      ]
+    }
+  },
+  "12": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "seed": 42,
+      "steps": 10,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": [
+        "11",
+        0
+      ],
+      "negative": [
+        "11",
+        1
+      ],
+      "latent_image": [
+        "11",
+        2
+      ],
+      "denoise": 1.0
+    }
+  },
+  "13": {
+    "class_type": "TrimVideoLatent",
+    "inputs": {
+      "samples": [
+        "12",
+        0
+      ],
+      "trim_amount": [
+        "11",
+        3
+      ]
+    }
+  },
+  "14": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "13",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "15": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": [
+        "14",
+        0
+      ],
+      "frame_rate": 24,
+      "loop_count": 0,
+      "filename_prefix": "",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 16,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true
+    }
+  },
+  "18": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "5",
+        0
+      ],
+      "image": [
+        "19",
+        0
+      ],
+      "crop": "none"
+    }
+  },
+  "19": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    }
+  },
+  "20": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "3",
+        0
+      ],
+      "text": ""
+    }
+  }
+}

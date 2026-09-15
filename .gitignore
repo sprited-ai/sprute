@@ -9,3 +9,4 @@ tmp/
 *.tgz
 .DS_Store
 outputs/
+sprute.animation.json

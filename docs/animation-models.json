@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "checkedAt": "2026-09-12",
+  "scope": "Four model files used by the fixed WAN planner. Not a complete runtime, matting or transitive-license inventory.",
+  "totalBytes": 41043835715,
+  "models": [
+    {
+      "filename": "wan_animate_2_distill_bf16.safetensors",
+      "relativePath": "diffusion_models/wan_animate_2_distill_bf16.safetensors",
+      "bytes": 32789894104,
+      "publishedSha256": "eb05383cb4b71228bbeb959f4468431a93ab25d0399054b317f399be114d08f9",
+      "observedSha256": "eb05383cb4b71228bbeb959f4468431a93ab25d0399054b317f399be114d08f9",
+      "revision": "924563469bb8ac056e6171c3123a12903317606d",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan-Animate-2/blob/924563469bb8ac056e6171c3123a12903317606d/diffusion_models/wan_animate_2_distill_bf16.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/924563469bb8ac056e6171c3123a12903317606d/diffusion_models/wan_animate_2_distill_bf16.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    },
+    {
+      "filename": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "relativePath": "text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "bytes": 6735906897,
+      "publishedSha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "observedSha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "revision": "924563469bb8ac056e6171c3123a12903317606d",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan-Animate-2/blob/924563469bb8ac056e6171c3123a12903317606d/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/924563469bb8ac056e6171c3123a12903317606d/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    },
+    {
+      "filename": "wan_2.1_vae.safetensors",
+      "relativePath": "vae/wan_2.1_vae.safetensors",
+      "bytes": 253815318,
+      "publishedSha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+      "observedSha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+      "revision": "dfcea77bcf258496e20c69cd84e8e8e41909bb3b",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/blob/dfcea77bcf258496e20c69cd84e8e8e41909bb3b/split_files/vae/wan_2.1_vae.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/dfcea77bcf258496e20c69cd84e8e8e41909bb3b/split_files/vae/wan_2.1_vae.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    },
+    {
+      "filename": "clip_vision_h.safetensors",
+      "relativePath": "clip_vision/clip_vision_h.safetensors",
+      "bytes": 1264219396,
+      "publishedSha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161",
+      "observedSha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161",
+      "revision": "924563469bb8ac056e6171c3123a12903317606d",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan-Animate-2/blob/924563469bb8ac056e6171c3123a12903317606d/clip_vision/clip_vision_h.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/924563469bb8ac056e6171c3123a12903317606d/clip_vision/clip_vision_h.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    }
+  ]
+}

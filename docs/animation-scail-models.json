@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "profile": "scail2",
+  "scope": "Four server model files used by the integrated animate command; excludes ToonOut and runtime dependencies. Content identity does not establish license clearance or output quality.",
+  "totalBytes": 25948528468,
+  "models": [
+    {
+      "filename": "wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+      "relativePath": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+      "bytes": 17694586857,
+      "publishedSha256": "11513b4697ecf566de0cb74660c478f301fb6699a62b10369e91a6ed0fd6b083",
+      "observedSha256": "11513b4697ecf566de0cb74660c478f301fb6699a62b10369e91a6ed0fd6b083",
+      "revision": "3bd725f20edad6967a65792af3017e251a5bd853",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/SCAIL-2/blob/3bd725f20edad6967a65792af3017e251a5bd853/diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/SCAIL-2/resolve/3bd725f20edad6967a65792af3017e251a5bd853/diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+      "verification": "Full installed file hash matched publisher LFS metadata in experiment 091",
+      "qualityStatus": "experimental",
+      "licenseDeclared": "MIT in official upstream and pinned Comfy model cards; distinct from Apache-2.0 upstream code license",
+      "licenseSource": "https://huggingface.co/Comfy-Org/SCAIL-2/blob/3bd725f20edad6967a65792af3017e251a5bd853/README.md"
+    },
+    {
+      "filename": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "relativePath": "text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "bytes": 6735906897,
+      "publishedSha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "observedSha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68",
+      "revision": "924563469bb8ac056e6171c3123a12903317606d",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan-Animate-2/blob/924563469bb8ac056e6171c3123a12903317606d/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/924563469bb8ac056e6171c3123a12903317606d/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    },
+    {
+      "filename": "wan_2.1_vae.safetensors",
+      "relativePath": "vae/wan_2.1_vae.safetensors",
+      "bytes": 253815318,
+      "publishedSha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+      "observedSha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b",
+      "revision": "dfcea77bcf258496e20c69cd84e8e8e41909bb3b",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/blob/dfcea77bcf258496e20c69cd84e8e8e41909bb3b/split_files/vae/wan_2.1_vae.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/dfcea77bcf258496e20c69cd84e8e8e41909bb3b/split_files/vae/wan_2.1_vae.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    },
+    {
+      "filename": "clip_vision_h.safetensors",
+      "relativePath": "clip_vision/clip_vision_h.safetensors",
+      "bytes": 1264219396,
+      "publishedSha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161",
+      "observedSha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161",
+      "revision": "924563469bb8ac056e6171c3123a12903317606d",
+      "repackagedArtifact": "https://huggingface.co/Comfy-Org/Wan-Animate-2/blob/924563469bb8ac056e6171c3123a12903317606d/clip_vision/clip_vision_h.safetensors",
+      "downloadUrl": "https://huggingface.co/Comfy-Org/Wan-Animate-2/resolve/924563469bb8ac056e6171c3123a12903317606d/clip_vision/clip_vision_h.safetensors",
+      "verification": "Full installed file hashed on gin; size and SHA256 match publisher LFS metadata",
+      "licenseDeclared": "Apache-2.0 at repository level; auxiliary upstream attribution audit remains separate",
+      "qualityStatus": "experimental"
+    }
+  ]
+}

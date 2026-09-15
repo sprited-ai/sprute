@@ -6,3 +6,5 @@ export * from "./entity.js";
 export * from "./codec.js";
 export * from "./gen.js";
 export * from "./templates.js";
+export * from "./animation.js";
+export * from "./animation-registration.js";

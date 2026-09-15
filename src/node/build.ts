@@ -7,6 +7,7 @@ import { findPanels, extractDirections, SPIN_ORDER, GENERATED_DIRECTIONS, MIRROR
 import { createImage, crop, paste, flipX, pasteIntoSlot, type RawImage } from "../core/image.js";
 import { makeSpriteSheet } from "../core/sheet.js";
 import { makeEntity, type EntityDescriptor } from "../core/entity.js";
+import {loadFixedDirections, applyFixedDirections} from "./fixed-directions.js";
 import { readImage } from "./io.js";
 import { generateSheet, defaultPrompt, fixSpritesheet } from "./generate.js";
 import { toonoutMatting, hasReplicateToken } from "./matting.js";
@@ -59,6 +60,7 @@ export async function buildCharacter(cfg: ResolvedConfig, hooks: BuildHooks = {}
   const stage = hooks.stage ?? (() => {});
   const report = hooks.reporter;
 
+  const fixed = await loadFixedDirections(cfg.fixedDirections);
   const template = await readImage(cfg.template!.image);
   // measure the extraction panel on the CLEAN template (before pasting a
   // reference whose background could fuse with the panel), then scale to
@@ -186,6 +188,11 @@ export async function buildCharacter(cfg: ResolvedConfig, hooks: BuildHooks = {}
     }
   }
 
+  cells = applyFixedDirections(cells, fixed);
+  if (Object.keys(fixed).length) {
+    const message = `Preserved supplied directions: ${Object.keys(fixed).join(", ")} (original pixels, no resize)`;
+    log(message); report?.log(message);
+  }
   const spritesheet = makeSpriteSheet(cells);
   report?.log(`## result — seed \`${seed}\``);
   await report?.image("final spritesheet", spritesheet);

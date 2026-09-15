@@ -7,7 +7,9 @@ import { compositeOn, createImage, resizeBilinear, type RawImage } from "./image
 
 export const TOONOUT_SIZE = 1024;
 export const TOONOUT_MODEL_URL =
-  "https://huggingface.co/sprited/birefnet-toonout-onnx/resolve/main/birefnet-toonout-fp16.onnx";
+  "https://huggingface.co/sprited/birefnet-toonout-onnx/resolve/2ded6fe6063fe146b7b30d8b4cfc5636df322525/birefnet-toonout-fp16.onnx";
+export const TOONOUT_MODEL_BYTES = 492381880;
+export const TOONOUT_MODEL_SHA256 = '213a8a98ee426ef8f02d247eb5a5a9889359e37c2e1e7e31e282d61034d08a83';
 
 // ImageNet normalization — BiRefNet's training preprocessing
 const MEAN = [0.485, 0.456, 0.406];

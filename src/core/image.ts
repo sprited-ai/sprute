@@ -113,10 +113,14 @@ export function paste(dst: RawImage, src: RawImage, x: number, y: number): void 
       if (dx < 0 || dx >= dst.width) continue;
       const s = (sy * src.width + sx) * 4, d = (dy * dst.width + dx) * 4;
       const a = src.data[s + 3] / 255;
-      dst.data[d] = src.data[s] * a + dst.data[d] * (1 - a);
-      dst.data[d + 1] = src.data[s + 1] * a + dst.data[d + 1] * (1 - a);
-      dst.data[d + 2] = src.data[s + 2] * a + dst.data[d + 2] * (1 - a);
-      dst.data[d + 3] = Math.max(dst.data[d + 3], src.data[s + 3]);
+      if (a === 0) continue;
+      const backgroundAlpha = dst.data[d + 3] / 255;
+      const outAlpha = a + backgroundAlpha * (1 - a);
+      // RawImage stores straight (not premultiplied) RGBA.
+      for (let channel = 0; channel < 3; channel++) {
+        dst.data[d + channel] = (src.data[s + channel] * a + dst.data[d + channel] * backgroundAlpha * (1 - a)) / outAlpha;
+      }
+      dst.data[d + 3] = outAlpha * 255;
     }
   }
 }

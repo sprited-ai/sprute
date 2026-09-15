@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "profile": "one-to-all-1.3b-v2",
+  "models": [
+    {
+      "relativePath": "base/model_index.json",
+      "bytes": 400,
+      "publishedSha256": "b8b28e022329acf975e027579a1d2dc3de44dba28f4c909b98a880fbf5b0de7d",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "5939d0bf16bfab26f95f149dc29abf898ed5056c",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/model_index.json"
+    },
+    {
+      "relativePath": "base/text_encoder/config.json",
+      "bytes": 854,
+      "publishedSha256": "4087b6192155a4643f6d29fd326c4610103130674011ef4d0a53f8bce5de967d",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "2fd01c57dddd8ae386d518c69c087c8ba8c73804",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/config.json"
+    },
+    {
+      "relativePath": "base/text_encoder/model-00001-of-00005.safetensors",
+      "bytes": 4972389712,
+      "publishedSha256": "c0ef3a140898e228a3520c9adec60743d2e8e5b3d229651bb37f1a3921919f99",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "383f168e1318f0f8d6777b1ba5e88546c1273c46",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model-00001-of-00005.safetensors"
+    },
+    {
+      "relativePath": "base/text_encoder/model-00002-of-00005.safetensors",
+      "bytes": 4899225672,
+      "publishedSha256": "481c7b2b39771c44df6dd8d13ee12ed072d731b4a650bd092885d4d52db229ad",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "05f1cf9934e3ec7e228b51a93b56875cee468b86",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model-00002-of-00005.safetensors"
+    },
+    {
+      "relativePath": "base/text_encoder/model-00003-of-00005.safetensors",
+      "bytes": 4966309504,
+      "publishedSha256": "f93148bcc04052a169e1e49bfcf6125df6cf9bf243cb9c627da75266cf8e35c3",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "3ea8c93410053a1d42cde624bdf8faf011d329e3",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model-00003-of-00005.safetensors"
+    },
+    {
+      "relativePath": "base/text_encoder/model-00004-of-00005.safetensors",
+      "bytes": 4999880704,
+      "publishedSha256": "a451792c739c05bca4606190cc2dd16731411bac03b4cf6aacc5767321f857c9",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "9c4d6361dc5ed76d8c129e9c7ad1c64ec7045637",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model-00004-of-00005.safetensors"
+    },
+    {
+      "relativePath": "base/text_encoder/model-00005-of-00005.safetensors",
+      "bytes": 2885866152,
+      "publishedSha256": "7e76e18d224531b8197a46231cb53daf7f2f6ca707130252becf933026ac4eea",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "75aa52c300dafa768721d112ac5a7f11512156ff",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model-00005-of-00005.safetensors"
+    },
+    {
+      "relativePath": "base/text_encoder/model.safetensors.index.json",
+      "bytes": 22476,
+      "publishedSha256": "8af791f24a6447aa30c95786f40adf23d3c9df97470d2f36159c8f1113f120b4",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "60ece61b46ecb3e6a5b705ea304bc97535317c2a",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/text_encoder/model.safetensors.index.json"
+    },
+    {
+      "relativePath": "base/tokenizer/special_tokens_map.json",
+      "bytes": 7079,
+      "publishedSha256": "456b58fd240a06c743a7c2cf8008bec501240d68ebd1fc4018ea569505fea270",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "2ed25bf989a28d20b5d4b5822fbc24666d12a6f7",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/tokenizer/special_tokens_map.json"
+    },
+    {
+      "relativePath": "base/tokenizer/spiece.model",
+      "bytes": 4548313,
+      "publishedSha256": "e3909a67b780650b35cf529ac782ad2b6b26e6d1f849d3fbb6a872905f452458",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "2fe5f347e9f9367585589ae89e997dfbd5cf802c",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/tokenizer/spiece.model"
+    },
+    {
+      "relativePath": "base/tokenizer/tokenizer.json",
+      "bytes": 16837459,
+      "publishedSha256": "20a46ac256746594ed7e1e3ef733b83fbc5a6f0922aa7480eda961743de080ef",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "9c6427ab2f801c942da4ee9740f1a750d3978a3b",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/tokenizer/tokenizer.json"
+    },
+    {
+      "relativePath": "base/tokenizer/tokenizer_config.json",
+      "bytes": 61758,
+      "publishedSha256": "1d8d2a216bf8e70ac15b7ddcea566c4dd0433c024b39a58ca5e4c66bd78defbd",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "09d434f9457238f697f4c208aab47f58caa15bfe",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/tokenizer/tokenizer_config.json"
+    },
+    {
+      "relativePath": "base/vae/config.json",
+      "bytes": 724,
+      "publishedSha256": "f0c1cc1d7decb5badc384f54691746a27a9aeff49f7ebca974e583389342d527",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "fe988ee53511225fb2fd0a01004d6e19524df75f",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/vae/config.json"
+    },
+    {
+      "relativePath": "base/vae/diffusion_pytorch_model.safetensors",
+      "bytes": 507591892,
+      "publishedSha256": "d6e524b3fffede1787a74e81b30976dce5400c4439ba64222168e607ed19e793",
+      "sha256Source": "upstream-lfs",
+      "repository": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
+      "revision": "0fad780a534b6463e45facd96134c9f345acfa5b",
+      "gitBlobId": "af13d1f7b1bc28a9f1e9cd85cac5da951aead1b3",
+      "downloadUrl": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/resolve/0fad780a534b6463e45facd96134c9f345acfa5b/vae/diffusion_pytorch_model.safetensors"
+    },
+    {
+      "relativePath": "checkpoint/model-00001-of-00002.safetensors",
+      "bytes": 4987852568,
+      "publishedSha256": "abaaf2855453c22bf58f7db7335f16263d2fd80422406a7a6c5e2b55d0179cfd",
+      "sha256Source": "upstream-lfs",
+      "repository": "MochunniaN1/One-to-All-1.3b_2",
+      "revision": "ca7559df87ca932818f704972b0b738a2e312a37",
+      "gitBlobId": "f2a4d0ffcd765ed4a6aa8990e0353a219789d859",
+      "downloadUrl": "https://huggingface.co/MochunniaN1/One-to-All-1.3b_2/resolve/ca7559df87ca932818f704972b0b738a2e312a37/model-00001-of-00002.safetensors"
+    },
+    {
+      "relativePath": "checkpoint/model-00002-of-00002.safetensors",
+      "bytes": 1583583000,
+      "publishedSha256": "ffbb2f80d16580e68dc2cccc0c6aaf73a89b5f8e61993bccc4dbed0c725141ee",
+      "sha256Source": "upstream-lfs",
+      "repository": "MochunniaN1/One-to-All-1.3b_2",
+      "revision": "ca7559df87ca932818f704972b0b738a2e312a37",
+      "gitBlobId": "8f99542fc09d7948d2790075cafec85489534617",
+      "downloadUrl": "https://huggingface.co/MochunniaN1/One-to-All-1.3b_2/resolve/ca7559df87ca932818f704972b0b738a2e312a37/model-00002-of-00002.safetensors"
+    },
+    {
+      "relativePath": "checkpoint/model.safetensors.index.json",
+      "bytes": 100012,
+      "publishedSha256": "53dac13fd97a73a0438baf0cda3c1bfe507fc66d4eda80ad9378229bf3db7bf0",
+      "sha256Source": "derived-after-git-blob-verification",
+      "repository": "MochunniaN1/One-to-All-1.3b_2",
+      "revision": "ca7559df87ca932818f704972b0b738a2e312a37",
+      "gitBlobId": "d5e934867d9d1cb52defd8ab087790fd09b65d74",
+      "downloadUrl": "https://huggingface.co/MochunniaN1/One-to-All-1.3b_2/resolve/ca7559df87ca932818f704972b0b738a2e312a37/model.safetensors.index.json"
+    }
+  ]
+}

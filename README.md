@@ -1,158 +1,76 @@
 # sprute
 
-Open workflow for generating **8-direction game character sprites** from a
-single reference image, using template-guided image models (Nano Banana Pro
-and friends).
+**Make your own game character face 8 directions.**
 
-Made by [Sprited](https://spritedx.com) — this is the workflow behind the
-character sheets we've been posting. People kept asking "mind sharing your
-workflow?" — this repo is the answer.
+Start with a character picture, or describe one. sprute uses AI to draw it from
+different angles and puts the results into one image for your game.
 
-![turnaround](https://raw.githubusercontent.com/sprited-ai/sprute/main/examples/monet.turntable.webp)
+![A character turning to face eight directions](https://raw.githubusercontent.com/sprited-ai/sprute/main/examples/monet.turntable.webp)
 
-## The technique
+## Make a character
 
-1. **Example-anchored template.** A labeled sheet: top row shows a worked
-   example (reference photo → 5 direction sprites), bottom row has your
-   reference + empty slots. The model completes the pattern. No fine-tuning,
-   no LoRA — one image-edit call.
-2. **5 directions, not 8.** Generate S, SE, E, NE, N; mirror SE/E/NE into
-   SW/W/NW. Halves the consistency burden. (Caveat: asymmetric details flip.)
-3. **Harvest.** Auto-detect the sprite panel, slice cells, remove the
-   background with a dependency-light floodfill keyer (no GPU matting needed
-   on flat template backgrounds), assemble animated WebP turnarounds.
+You need a computer with Node.js and npm installed, plus a Replicate API token
+(a key that lets sprute use the AI). **The tool is open source, but AI generation
+costs money through your Replicate account.**
 
-We use Nano Banana Pro (`google/nano-banana-pro`, via Replicate) — currently
-the only model that reliably does both reference-fill and new-character
-creation while preserving the template layout. Seedream 4.0 / Qwen-Image-Edit
-comparisons (partial successes, failure modes) are in the experiment notes.
+### 1. Connect the AI
 
-## Quick start
-
-One command (needs a [Replicate API token](https://replicate.com/account/api-tokens)):
+Open your computer's terminal—the app where you type commands. Paste this and
+press Enter:
 
 ```sh
-REPLICATE_API_TOKEN=... npx sprute "a small forest fairy with green wings"
+npx sprute login
 ```
 
-Or set the key up once and forget it — `npx sprute login` walks you through it
-(saved to `~/.sprute/credentials.json`, 0600), then just:
+Follow the instructions to add your API token. You only need to do this once.
+
+### 2. Describe your character
 
 ```sh
-npx sprute "a goblin archer with a rusty crossbow"
+npx sprute "a small forest fairy with green wings"
 ```
 
-The character is filed under a name derived from the description
-(`a-small-forest-fairy`). Pass `--seed N` to reproduce a build, or `-r
-./fairy.png` to steer from a reference image — or describe nothing and let the
-reference carry the look. Every build also drops a `<name>.sprute.yaml` next to
-the outputs with the name and seed baked in, so any one-off build re-runs
-exactly:
+Replace the words inside the quotes with your own idea!
+
+Already have a drawing? Use its file path instead:
 
 ```sh
-npx sprute fairy.sprute.yaml
+npx sprute -r ./character.png
 ```
 
-That same file is what you'd write by hand for a config-first workflow:
+Here, `./character.png` means a picture named `character.png` in the folder
+where you're running the command.
 
-```yaml
-# fairy.sprute.yaml
-name: fairy
-description: "A small forest fairy with green wings."
-reference: ./fairy.png   # optional — omit to let the model invent the look
-```
+### 3. Find your pictures
 
-Project-wide defaults live in `./sprute.config.json` (`npx sprute init` writes
-a starter); the merge order is flags > prompt > project config > builtin.
+Open the `outputs` folder in that same folder. Look for:
 
-Either way the call composes the bundled 8-direction template, generates via
-Nano Banana Pro, extracts and keys the sprites, and writes:
+- **`.spritesheet.png`** — your character facing 8 directions, with no background.
+- **`.turntable.webp`** — a moving preview like the one above.
 
-- `fairy.spritesheet.png` — 8 directions, one row
-- `fairy.turntable.webp` — animated turnaround
-- `fairy.concept.png` — the reference cell: for invented characters the model
-  draws a full concept render there; for reference builds it's your reference
-- `fairy.entity.json` — sprite metadata (directions, states, seed)
-- `fairy.sprute.yaml` — flag builds only: the config that reproduces this build
+![Eight character views in one image](https://raw.githubusercontent.com/sprited-ai/sprute/main/examples/monet.spritesheet.png)
 
-After generation the views go back to the image model itself, laid out as a
-labeled 3x3 compass grid: *"any errors? fix them and report the changes"*.
-Anatomy glitches, wrong facings, parts that change shape mid-turnaround get
-repaired in place — same character, defects fixed — and the model's text
-report is printed. `--max-fixes N` sets the number of review rounds (default
-1), `--no-check` / `check: false` skips review entirely.
+These are standing poses, not a walking animation. AI can make mistakes, so
+some pictures may need touching up. Left and right views are mirrored, which
+can switch the side of a sword or other detail.
 
-The key can also live in a `.env` file in your working directory, or be saved
-via `sprute login` (resolution order: env → `./.env` →
-`~/.sprute/credentials.json`). Useful options beyond the basics (flag form /
-config field form):
+[More examples](examples/) · [Setup details and advanced options](docs/guide.md)
 
-| flag | config field | default | meaning |
-|------|--------------|---------|---------|
-| `--seed N` | `seed` | random | a number reproduces a build; the seed used is recorded in `<name>.entity.json` |
-| `-o dir` | `output` | `./outputs` / config's directory | where outputs land |
-| `--sheet` | `outputs.sheet` | off | keep the raw generated sheet as `<name>.sheet.png` |
-| `--template` | `template` | `8dir-v1` (bundled) | a builtin template name (`8dir-v1`, `8dir-v2`); config form also takes a full `{image, inputSlot, grid}` spec |
-| `--provider` | `model.provider` | `replicate` | `google/nano-banana-pro` via Replicate (`REPLICATE_API_TOKEN`). Also: `gemini` (`GEMINI_API_KEY`), `novita-seedream`, `novita-qwen` (`NOVITA_API_KEY`) |
-| `--matting` | `matting` | `toonout` | BiRefNet-ToonOut anime matting, run locally via onnxruntime (~440MB model auto-downloaded to `~/.cache/sprute` on first use); falls back to the Replicate endpoint (`REPLICATE_API_TOKEN`), then `floodfill`. `floodfill` = fast, dependency-free |
-| `--no-check` | `check: false` | review on | skip the post-generation review/fix |
-| `--max-fixes N` | `maxFixes` | `1` | review/fix rounds per build; each round feeds the previous round's output back |
-| `--report` | `report: true` | off | stream a build log to `<name>.report.md` with every generated image inlined as a data URI |
-| `--intermediate` | `intermediate: true` | off | write every intermediate image as numbered PNGs under `<name>.intermediate/` |
+## Make it walk — development preview
 
-## Library
-
-The CLI is the product, but the pieces it drives are importable too. Build a
-character programmatically, or pull a single stage. Extraction and the
-spritesheet QC check (`extractDirections`, `extractAnimation`,
-`checkSpritesheet`) are library functions rather than CLI subcommands.
-
-The matting model on its own:
-
-```ts
-import { toonoutMatting } from "sprute/toonout";
-const matted = await toonoutMatting(cells); // RawImage[] in, RawImage[] out
-```
-
-It runs on onnxruntime (WebGPU first, CPU/WASM fallback); the model (~470MB,
-[sprited/birefnet-toonout-onnx](https://huggingface.co/sprited/birefnet-toonout-onnx))
-is fetched once on first use.
-
-## Working from source
+The development version can turn your standing character into an eight-direction
+walking animation, with a transparent sprite sheet and a browser preview:
 
 ```sh
-pnpm install
-cp .env.example .env   # add your REPLICATE_API_TOKEN
-pnpm cli examples/lisa.sprute.yaml
+node dist/cli.js animate outputs/my-character.spritesheet.png --wait
 ```
 
-`examples/` is flat: each character is a config (`<name>.sprute.yaml`), its
-reference (`<name>.reference.png`), and the outputs it produces
-(`<name>.spritesheet.png`, `<name>.turntable.webp`, `<name>.entity.json`).
-Copy an `.sprute.yaml` to start your own character.
+This needs a configured ComfyUI animation server and is **not in npm 0.4.1 yet**.
+[Set up walking once](docs/walking-setup.md) · [Make a walk and try it in Godot](docs/walking.md).
+The server setup still needs technical help; the everyday command is one line.
 
-The pipeline core (`src/core`) is pure TypeScript on `ImageData`-shaped
-buffers — no Node APIs — so the same code runs in the browser; only file IO
-and the model call (`src/node`, backed by sharp) are Node-specific.
+[Current experiments and development tools](docs/animation-development.md).
 
-The original Python lab scripts live on in `experiments/` as research notes.
-
-## Status
-
-Early research, moving fast. Current experiments:
-
-| # | name | question | status |
-|---|------|----------|--------|
-| 001 | template-8dir | Can NBP fill an 8-direction sheet by analogy? | **works** — see notes |
-| 002 | adaptive-chroma | Green-screen keying with drift-tolerant key detection | prototype |
-
-Roadmap: walk-cycle templates, MCP server.
-
-## Why open source?
-
-See [docs/001-why-oss.md](docs/001-why-oss.md).
-
-## License
-
-MIT — except the Monet character assets in `examples/` (`monet.*`), which are
-Sprited's character and for demonstration only. See [LICENSE](LICENSE).
+Made by [Sprited](https://spritedx.com). Code and templates are [MIT licensed](LICENSE).
+The character shown here is Monet; her pictures are for demonstration only,
+so please make your own character for your game.

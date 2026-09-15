@@ -1,0 +1,25 @@
+{
+  "commit": "b3c9d886c93c43e767b995e93968708ee2d410cb",
+  "files": [
+    {
+      "path": "video-generation/opensora/model_variants/__init__.py",
+      "originalSha256": "802184b63516beb894ddce1258234ac520489611f7dbae0087e4126dc984bfae",
+      "replacement": "# Experimental inference-only package; import required modules directly.\n"
+    },
+    {
+      "path": "video-generation/opensora/model_variants/wanx_diffusers_src/__init__.py",
+      "originalSha256": "a4e7661f99eeba27226e3f79fa1718dbc75497377d059f627bca503bce20ab24",
+      "replacement": "from .transformer_wan import WanTransformer3DModel\nfrom .transformer_wan_refextractor_2d_controlnet_last_prefix import WanTransformer3DModel as WanTransformer3DModel_Refextractor_2D_Controlnet_prefix\n"
+    },
+    {
+      "path": "video-generation/opensora/encoder_variants/__init__.py",
+      "originalSha256": "6a82cf8dbd8036b6157e7ab3acf9ce2dc1e0cf895881e41cbb9f24bdfb031eef",
+      "replacement": "from .wanx_t2v import WanxEncoderWrapperT2V\ndef get_text_enc(enc_name, model_path, weight_dtype, i2v_type=None):\n    if enc_name != 'wanx-t2v':\n        raise NotImplementedError(enc_name)\n    return WanxEncoderWrapperT2V(model_path, weight_dtype)\n"
+    },
+    {
+      "path": "video-generation/opensora/vae_variants/__init__.py",
+      "originalSha256": "b5a2f8c8fc4d50a268bd354ad857450b6c84b753a500da935439169c0bb8e10a",
+      "replacement": "from .wanx_vae import get_wanx_vae_wrapper\ndef get_vae(vae_name, model_path, weight_dtype):\n    if vae_name != 'wanx':\n        raise NotImplementedError(vae_name)\n    return get_wanx_vae_wrapper(model_path, weight_dtype)\n"
+    }
+  ]
+}

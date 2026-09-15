@@ -1,6 +1,6 @@
 {
   "name": "sprute",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Generate 8-direction game character sprites with template-guided image models",
   "license": "MIT",
   "publishConfig": {
@@ -21,12 +21,19 @@
   },
   "files": [
     "dist",
-    "templates"
+    "third-party/toonout",
+    "templates",
+    "motion/render-walk-drivers.py",
+    "motion/download-template.py",
+    "motion/QUATERNIUS-LICENSE.txt",
+    "motion/README.md",
+    "assets/demo"
   ],
   "scripts": {
     "build": "tsup",
     "cli": "tsx src/cli.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "sharp": "^0.35.1",

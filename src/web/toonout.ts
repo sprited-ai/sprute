@@ -5,21 +5,31 @@
  * that use this. The model (~470MB) is fetched from HF and kept in the
  * Cache API, so it downloads once per origin. */
 import type { RawImage } from "../core/image.js";
-import { TOONOUT_SIZE, TOONOUT_MODEL_URL, toonoutPreprocess, toonoutApplyMask } from "../core/toonout.js";
+import { TOONOUT_SIZE, TOONOUT_MODEL_URL, TOONOUT_MODEL_BYTES, TOONOUT_MODEL_SHA256, toonoutPreprocess, toonoutApplyMask } from "../core/toonout.js";
 
 let cached: Promise<{ ort: any; sess: any }> | undefined;
 
 async function fetchModel(url: string): Promise<ArrayBuffer> {
+  async function verified(res: Response): Promise<ArrayBuffer> {
+    if (!res.ok) throw new Error(`Model download failed: ${res.status}`);
+    const bytes = await res.arrayBuffer();
+    if (url === TOONOUT_MODEL_URL) {
+      if (bytes.byteLength !== TOONOUT_MODEL_BYTES) throw new Error('ToonOut model size mismatch');
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), x => x.toString(16).padStart(2, '0')).join('');
+      if (hash !== TOONOUT_MODEL_SHA256) throw new Error('ToonOut model hash mismatch');
+    }
+    return bytes;
+  }
   if (typeof caches !== "undefined") {
     const cache = await caches.open("sprute-models");
-    let res = await cache.match(url);
-    if (!res) {
-      await cache.add(url);
-      res = await cache.match(url);
-    }
-    if (res) return res.arrayBuffer();
+    const saved = await cache.match(url);
+    if (saved) return verified(saved);
+    const response = await fetch(url);
+    const bytes = await verified(response);
+    await cache.put(url, new Response(bytes));
+    return bytes;
   }
-  return (await fetch(url)).arrayBuffer();
+  return verified(await fetch(url));
 }
 
 function session(modelUrl: string, eps: string[]): Promise<{ ort: any; sess: any }> {
@@ -35,7 +45,7 @@ function session(modelUrl: string, eps: string[]): Promise<{ ort: any; sess: any
       }
     }
     throw new Error("unreachable");
-  })());
+  })().catch(error => { cached = undefined; throw error; }));
 }
 
 /** Matte cells through BiRefNet-ToonOut, fully client-side. */

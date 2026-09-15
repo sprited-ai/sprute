@@ -4,6 +4,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import YAML from "yaml";
+import {validateFixedDirections, type FixedDirections} from "./node/fixed-directions.js";
 import { PACKAGE_ROOT } from "./node/pkg.js";
 import { TEMPLATE_GEOMETRY, type TemplateGeometry, type Slot } from "./core/templates.js";
 
@@ -33,6 +34,8 @@ export interface CharacterConfig {
   reference?: string;
   /** Extra guidance, e.g. "Character is Lisa and she is a fairy". */
   description?: string;
+  /** Ready-to-use direction images preserved exactly in final outputs. */
+  fixedDirections?: FixedDirections;
   /** Generation seed. A number reproduces a build; "random" or omitted rolls
    * a fresh one. The resolved value lands in <name>.entity.json. */
   seed?: number | "random";
@@ -74,6 +77,12 @@ export interface CharacterConfig {
    * under <name>.intermediate/. */
   intermediate?: boolean;
 
+  /** Existing walking backend and installed motion guides. */
+  animation?: { server: string; drivers: string };
+
+  /** Open the generated offline preview after a successful build. */
+  preview?: { open?: boolean };
+
   outputs?: {
     /** Keep the raw filled sheet: true → <name>.sheet.png, or a filename. */
     sheet?: string | boolean;
@@ -90,6 +99,7 @@ export type ResolvedConfig = CharacterConfig & {
 /** Validate, roll the seed, and resolve relative paths against `base` — the
  * config file's directory, or cwd when the config came from CLI flags. */
 export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfig {
+  if (cfg.fixedDirections !== undefined) validateFixedDirections(cfg.fixedDirections);
   const seedRolled = typeof cfg.seed !== "number";
   const seed = seedRolled ? Math.floor(Math.random() * 2 ** 31) : cfg.seed as number;
   const templateName = typeof cfg.template === "string" ? cfg.template : undefined;
@@ -103,6 +113,7 @@ export function resolveConfig(cfg: CharacterConfig, base: string): ResolvedConfi
     : { ...BUILTIN_TEMPLATES[templateName ?? DEFAULT_TEMPLATE] };
   return {
     ...cfg,
+    ...(cfg.fixedDirections ? {fixedDirections: Object.fromEntries(Object.entries(cfg.fixedDirections).map(([d,p])=>[d,rel(p)]))} : {}),
     ...(cfg.reference && { reference: rel(cfg.reference) }),
     seed, seedRolled, template, output: rel(cfg.output ?? "."),
   };

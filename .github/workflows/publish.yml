@@ -26,5 +26,8 @@ jobs:
       # trusted publishing needs npm >= 11.5.1
       - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec tsc --noEmit
+      - run: pnpm test
+      - run: python3 runtime/test-install-models.py
       - run: pnpm build
       - run: npm publish

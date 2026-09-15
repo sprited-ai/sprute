@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "profile": "wan-animate2-distill-euler10-v1",
+  "status": "isolated-single-view-inference-verified",
+  "comfyUI": {
+    "repository": "https://github.com/Comfy-Org/ComfyUI",
+    "commit": "72865f4f27eaf5396f8f36370e0a2be3a9a090ee",
+    "observedVersion": "0.33.1"
+  },
+  "videoHelperSuite": {
+    "registryApi": "https://api.comfy.org/nodes/comfyui-videohelpersuite/versions/1.7.9",
+    "version": "1.7.9",
+    "downloadUrl": "https://cdn.comfy.org/kosinkadink/comfyui-videohelpersuite/1.7.9/node.zip",
+    "bytes": 106498,
+    "sha256": "ac63991d8b237afe5b2cd2b287a14b4a4d40ff203c0f2ee9d5fe61059f57cdf8",
+    "verifiedInstalledFiles": 45
+  },
+  "modelsManifest": "animation-models.json",
+  "python": {
+    "version": "3.12.13",
+    "constraintsEvidence": "../experiments/074-pinned-node-package/constraints.txt",
+    "note": "Fresh venv installation and pip check succeeded; isolated server passed14node/4modelname checks and generated one65-frame S video. Other directions, new-machine execution and quality remain unverified in this environment.",
+    "resolvedRequirements": "../runtime/requirements-linux-cu128.txt",
+    "artifactHashes": "../runtime/python-artifacts.json",
+    "installedDistributionCount": 104
+  }
+}
