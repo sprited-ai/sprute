@@ -16,3 +16,7 @@ Jin owns the v2 architecture and scaffolding. This branch collects evidence and 
 3. Later, selectively adapt small pieces into Jin's architecture. Do not bulk-merge the old experimental pipeline.
 
 The original checkout's untracked `experiments/` directory is ignored, not deleted. Already tracked experiments stay tracked. Intentional source promotion can use `git add -f` after review. No global media ignore rules: PNG/WebP/MP4 examples remain eligible for version control.
+
+## Implemented starting scripts
+
+See [scripts/animation](../../scripts/animation/README.md) for the two standalone pipelines and preserved idle/walk/run driver videos. The v2 CLI remains Jin’s work.

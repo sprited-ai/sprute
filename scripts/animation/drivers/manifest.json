@@ -1,0 +1,59 @@
+{
+  "idle": {
+    "file": "idle.mp4",
+    "sha256": "888eacc44db5f53700611fccf42482f77e87992619bc1e5c48440b2f597b00a4",
+    "video": {
+      "avg_frame_rate": "24/1",
+      "height": 768,
+      "width": 768
+    },
+    "provenance": {
+      "motion_scene": "experiments/468-chibi-run-idle/idle-driver/driver.blend",
+      "render_scene": "experiments/477-white-driver/render-white/driver.blend",
+      "camera_elevation_degrees": 15,
+      "background": "#808080",
+      "layout": "NW N NE / W empty E / SW S SE",
+      "body": "white with cool shading; warm head tint retained",
+      "source_cycle_frames": 60,
+      "source_cycle_fps": 24
+    }
+  },
+  "run": {
+    "file": "run.mp4",
+    "sha256": "1e4be24520c67a7f65a6dbe11808fe9ad24b940f0f4597c3d5119571a435dc6e",
+    "video": {
+      "avg_frame_rate": "24/1",
+      "height": 768,
+      "width": 768
+    },
+    "provenance": {
+      "motion_scene": "experiments/471-kimodo-run/contact-v4/driver.blend",
+      "render_scene": "experiments/477-white-driver/render-white/driver.blend",
+      "camera_elevation_degrees": 15,
+      "background": "#808080",
+      "layout": "NW N NE / W empty E / SW S SE",
+      "body": "white with cool shading; warm head tint retained",
+      "source_cycle_frames": 25,
+      "source_cycle_fps": 30
+    }
+  },
+  "walk": {
+    "file": "walk.mp4",
+    "sha256": "b051ebcdca123c0d6eb8ff1c315328a0400dc4cae32034cb9363fbf8f1fb5da8",
+    "video": {
+      "avg_frame_rate": "24/1",
+      "height": 768,
+      "width": 768
+    },
+    "provenance": {
+      "motion_scene": "experiments/457-chibi1/driver-shade75/driver.blend",
+      "render_scene": "experiments/477-white-driver/render-white/driver.blend",
+      "camera_elevation_degrees": 15,
+      "background": "#808080",
+      "layout": "NW N NE / W empty E / SW S SE",
+      "body": "white with cool shading; warm head tint retained",
+      "source_cycle_frames": 32,
+      "source_cycle_fps": 24
+    }
+  }
+}

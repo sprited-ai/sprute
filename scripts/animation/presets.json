@@ -1,0 +1,5 @@
+{
+  "idle": {"period_min": 48, "period_max": 68, "source_period_frames": 60, "source_fps": 24},
+  "walk": {"period_min": 26, "period_max": 38, "source_period_frames": 32, "source_fps": 24},
+  "run": {"period_min": 16, "period_max": 23, "source_period_frames": 25, "source_fps": 30}
+}
