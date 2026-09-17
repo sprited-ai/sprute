@@ -60,7 +60,7 @@ npx sprute animate character --character ./output/hero --preset idle
 <table>
 <tr><td align="center">Input</td><td><img src="docs/resources/elise-8-dir.png"></td></tr>
 <tr><td align="center"><code>idle</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset idle</code><br />[TODO]</td></tr>
-<tr><td align="center"><code>walk</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset walk</code><br />[TODO]</td></tr>
+<tr><td align="center"><code>walk</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset walk</code><br /><img src="docs/resources/elise-walk.webp"></td></tr>
 <tr><td align="center"><code>run</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset run</code><br /><img src="docs/resources/elise-run.webp"></td></tr>
 </table>
 
