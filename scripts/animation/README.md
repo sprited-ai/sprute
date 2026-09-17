@@ -119,3 +119,64 @@ ComfyUI has a separate receipt. Cleared server history or uncertain submission r
 ```
 
 Offline tests cover layout round-trip, odd grid boundaries, duplicate-frame timing, loop selection, changed inputs, prediction reuse, and failure/uncertain-submit behavior. Integration smoke checks use existing media and local ComfyUI, not new paid inference. These scripts remain experimental and do not replace visual QA.
+
+## SCAIL2 alternative (local ComfyUI)
+
+`animate_scail2.py` replaces the Seedance call with the saved SCAIL2 graph. It uses
+**the same standing strip, bundled drivers and postprocess.py** (crop → ToonOut →
+loop selection → full-size and compact transparent WebPs). No Replicate key or
+`--allow-paid` is used. It runs on the configured ComfyUI GPU, not on the client CPU.
+
+```bash
+/tmp/sprute-release-python/bin/python \
+  /Users/jin/dev/sprute/scripts/animation/animate_scail2.py \
+  --standing /Users/jin/Downloads/elise-run/standing/elise.spritesheet.png \
+  --preset run \
+  --out /Users/jin/Downloads/elise-run-scail2 \
+  --comfy http://127.0.0.1:18188
+```
+
+Use your own Python environment with requirements.txt installed; the `/tmp` venv
+above is the current local test environment, not a portable installation path.
+Add `--prepare-only` to compose inputs and a local plan without network/GPU work.
+Without that flag, the command uploads, submits, waits and postprocesses.
+
+- Default: 14B FP8 SCAIL2, LightX2V strength1, 8 steps, CFG1, shift1,
+  UniPC/simple, seed42, 768×768, 81 frames at24fps.
+- `--recipe baseline`: 20 steps, CFG3, shift3, no LoRA.
+- `--size 480` for a smaller square grid; dimensions must be multiples of48.
+- `--frames 65` reproduces the older run-test length; default81 also accommodates
+  the idle loop search. Loop bounds assume24fps.
+- `--prompt` defaults to `8 directional character sprite animation`; `--negative`
+  defaults to empty. Both accept an empty string.
+- Bundled drivers repeat their known complete cycle at24fps: idle60, walk32,
+  run20 frames. Custom `--driver` inputs must be long enough for the requested
+  output; arbitrary custom video endpoints are not silently looped.
+- Optional paired `--reference-mask` PNG and `--driver-mask` video are **SCAIL
+  identity-color inputs**, not alpha/grayscale mattes. The reference mask must
+  match the composed reference-grid.png dimensions. Driver masks must have the
+  same geometry, timing and frame alignment as the driving video. The caller
+  must supply correct identity colors; this script does not infer them. Default
+  execution is unmasked and therefore does not reproduce masked experiment473.
+
+Required ComfyUI nodes: WanSCAILToVideo, standard loaders/sampler/decoder,
+VideoHelperSuite VHS_LoadVideo/VHS_VideoCombine, and BiRefNetRMBG for postprocessing.
+Required weights (checked before submission):
+
+- wan2.1_14B_SCAIL_2_fp8_scaled.safetensors
+- umt5_xxl_fp8_e4m3fn_scaled.safetensors
+- wan_2.1_vae.safetensors
+- clip_vision_h.safetensors
+- lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16.safetensors (fast recipe)
+
+The graph is bundled here; it does not depend on the untracked runtime/experimental
+folder. This script is not a ComfyUI/model installer. It verifies uploads by hash,
+saves prediction/workflow.json and job.json, resumes the same job, and refuses to
+resubmit after uncertain or failed requests. Use a new output directory when
+changing inference settings. Output layout matches the Seedance script:
+`postprocess/latest.json` identifies the loop exports.
+
+Validation: offline graph/recovery tests, actual local preparation of Elise's
+inputs, and live node/weight/upload checks passed. No new SCAIL2 GPU inference was
+run to validate this new entry point; generated appearance and loop quality still
+require an end-to-end visual check.
