@@ -11,4 +11,5 @@
 - [ ] Use Horizontal Strips
 - [ ] Seedance 2 - use first frame conditioning
 - [ ] Consider padding
+- [ ] On-demand retargeted driving video
 - [ ] Release 2.0
