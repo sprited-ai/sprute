@@ -31,7 +31,7 @@ def save_webp(path, frames, durations, quality=65):
     if any(d <= 0 for d in durations):
         raise ValueError('Frame durations must be positive')
     frames[0].save(path, save_all=True, append_images=frames[1:], duration=durations,
-                   loop=0, lossless=False, quality=quality, method=4)
+                   loop=0, lossless=False, quality=quality, method=6, minimize_size=True, alpha_quality=80)
     total = 0
     with Image.open(path) as im:
         for n in range(im.n_frames):

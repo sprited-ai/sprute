@@ -70,19 +70,20 @@ Use a **different output folder per preset** (`hero-idle`, `hero-walk`). `--driv
 The animation pipeline calls `postprocess.py` after generation. Its result directory is printed:
 
 ```text
-hero-run/postprocess/exports/<start>-<end>-q65/
+hero-run/postprocess/exports/<start>-<end>-q65-optimized/
   horizontal.webp   # same cell dimensions/aspect as standing.png
+  horizontal-compact.webp # same cell proportions, height capped at source grid cell size
   grid.webp         # transparent 3x3
   S.webp ... SW.webp
   animations.zip
   export.json       # loop range, timing, transforms, output hashes
 ```
 
-Exports use lossy WebP Q65, transparency, source timing, infinite playback. Change `--quality` without rerunning inference. Source video must have a constant frame rate. Decoder preserves source frame count and rejects VFR instead of silently retiming it.
+Exports use lossy WebP Q65, alpha quality80, method6 and size-minimizing frame encoding, source timing and infinite playback. Full-resolution `horizontal.webp` retains the standing dimensions. `horizontal-compact.webp` caps cell height at the source grid cell size (213px for a640px grid) and keeps the cell aspect ratio to pixel rounding. `postprocess/latest.json` points to the latest exports; the command prints loop bounds and file sizes. Change `--quality` without rerunning inference. Source video must have a constant frame rate. Decoder preserves source frame count and rejects VFR instead of silently retiming it.
 
 **Sizing:** default export inverts the reference's square-cell padding. It preserves the standing cell width/height, direction order and zero extra gaps. It does not assert that the model preserved character size. Optional `--register` applies one fixed transform per direction using median height, center and foot baseline against the still; it never rescales each frame. This heuristic must be visually reviewed and stops if it would clip opaque foreground.
 
-**Loops:** auto mode searches preset period bounds, then selects a five-frame seam window with low image difference. This is a candidate, not certification. Check both the seam and a full left/right gait cycle. Use explicit frame ranges in postprocess for manual correction.
+**Loops:** both entry points default to auto mode. Standalone postprocessing requires `--preset idle|walk|run` (or infers it from the parent animation job), explicit period bounds, or an explicit `--start/--end`. Use `--loop full` deliberately to keep all frames. Auto mode searches preset period bounds, then selects a five-frame seam window with low image difference. This is a candidate, not certification. Check both the seam and a full left/right gait cycle. Use explicit frame ranges in postprocess for manual correction.
 
 ## Reprocess an existing video (no new hosted inference)
 

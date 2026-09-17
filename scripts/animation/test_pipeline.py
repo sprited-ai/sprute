@@ -9,6 +9,28 @@ from media import ORDER, GRID, bounds, choose_loop, compose_reference, horizonta
 from providers import replicate, encoded_spans
 
 class PipelineTests(unittest.TestCase):
+    def test_postprocess_defaults_to_trimmed_loop_and_compact_export(self):
+        import postprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);video=root/'video.mp4';video.write_bytes(b'fixture')
+            sheet=root/'still.png';Image.new('RGBA',(640,128)).save(sheet)
+            frames=[Image.new('RGBA',(192,192),(n%19*10,40,80,255)) for n in range(60)]
+            meta={'width':192,'durations_ms':timings(60,24),'frames':60}
+            strips=[Image.new('RGBA',(640,128),(n*10,40,80,255)) for n in range(19)]
+            args=['postprocess','--video',str(video),'--standing',str(sheet),'--out',str(root/'postprocess'),'--preset','run']
+            with patch('sys.argv',args), patch.object(postprocess,'decode_and_crop',return_value=({},meta)), patch.object(postprocess,'matte',return_value={}), patch.object(postprocess,'grids',return_value=frames), patch.object(postprocess,'horizontal',return_value=(strips,{'cell':[80,128]})):
+                postprocess.main()
+            latest=read(root/'postprocess/latest.json')
+            self.assertEqual(latest['selection']['period'],19)
+            for key,size in [('horizontal',(640,128)),('compact',(320,64))]:
+                with Image.open(latest[key]) as im:
+                    self.assertEqual(im.size,size)
+                    self.assertEqual(im.n_frames,19)
+                    duration=0
+                    for n in range(im.n_frames):
+                        im.seek(n);im.load();duration+=im.info['duration']
+                    self.assertIn(duration,[791,792])
+
     def test_reference_horizontal_roundtrip(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);sheet=Image.new('RGBA',(80*8,128))
