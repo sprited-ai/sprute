@@ -7,4 +7,8 @@
 - [ ] Search for NBP Alternative
 - [ ] Sprute 2.0 File Structure
 - [ ] sprute generate profile command
+- [ ] Make sure to cut loops.
+- [ ] Use Horizontal Strips
+- [ ] Seedance 2 - use first frame conditioning
+- [ ] Consider padding
 - [ ] Release 2.0
