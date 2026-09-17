@@ -1,0 +1,25 @@
+{
+  "model": "bytedance/seedance-2.0",
+  "input": {
+    "prompt": "8 directional character sprite animation. Use [Image1] for the character appearance and pixel-art style. Use [Video1] for the running motion, timing, eight viewing directions, and 3x3 layout. Replace each mannequin with the corresponding character view from [Image1]. Keep the center cell empty, the camera fixed, and each character in its own cell facing the same direction throughout. Continue the same running cycle for the full duration. Plain gray background.",
+    "reference_images": [
+      "/Users/jin/Downloads/elise-run/reference-8dir.png"
+    ],
+    "reference_videos": [
+      "/Users/jin/dev/sprute/experiments/477-white-driver/driving.mp4"
+    ],
+    "resolution": "480p",
+    "aspect_ratio": "1:1",
+    "duration": 5,
+    "seed": 42,
+    "generate_audio": false
+  },
+  "expected_cost_usd": 0.5,
+  "status": "prepared_not_submitted",
+  "notes": [
+    "Elise generated standing sheet, same run driver and seed42 480p settings"
+  ],
+  "sha256": {
+    "/Users/jin/Downloads/elise-run/reference-8dir.png": "c40eeae9d3770e60049f3b348ad63a858d688cef59a07aea201f62a03b57ee1a"
+  }
+}

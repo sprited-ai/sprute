@@ -1,0 +1,352 @@
+[
+  {
+    "path": "/Users/jin/Downloads/elise-run/run.py",
+    "bytes": 2098,
+    "sha256": "a25124fce1148ede835a39be1b5f86c74637d6b8d17fd89cb4caf8b9a5372332"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/submission-started.json",
+    "bytes": 62,
+    "sha256": "2ef182f8e96afd1b0e722dbd5d6bc775a1e0f6d0e11697466d2fc3fe1f53f5b1"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/request-plan.json",
+    "bytes": 1156,
+    "sha256": "ef861b15812bbaf0e6bec050d8b3608bda231c5b13dde92ee5e0eed4e1b04ac0"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/postprocess.py",
+    "bytes": 1019,
+    "sha256": "9e324b89778bbc8b7654439499cca11b2d8ca6602b04b283ee5ea6c5f2e6bc17"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/animation.mp4",
+    "bytes": 1289881,
+    "sha256": "12988eb2b118ffcc9e8ea60748dd039c7b2668883985b9496d9e27d3bd44bdca"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/elise.sprute.json",
+    "bytes": 704,
+    "sha256": "a69db6650c7a673dcd327aa223bcaa2d2fdc00a2e0aa7ac33fc8856c9bbc3208"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/prediction.json",
+    "bytes": 1215,
+    "sha256": "68af24fa560a4550819fd0243665cb416aa4897fefed5301f8eebb57e248910a"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/animation.webp",
+    "bytes": 2240430,
+    "sha256": "39292b58639df4589110b75237c546bd6bff8a5f6262fc4cb85ad9a2c11ac8d4"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/elise-build.json",
+    "bytes": 704,
+    "sha256": "a69db6650c7a673dcd327aa223bcaa2d2fdc00a2e0aa7ac33fc8856c9bbc3208"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout-input.webp",
+    "bytes": 16334122,
+    "sha256": "3956dd76d5d37d7538be1395ef29032a8c979fe18294f042bdf17d1513f7ae71"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/pack.py",
+    "bytes": 1497,
+    "sha256": "0431a306ffb40289cb92ede7cf8472cd58994a6f714d8d24ce54212ebe518127"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/N.webp",
+    "bytes": 620118,
+    "sha256": "ed95987cd9da0df4b7b5783e740a1c8ab4af875da63fb9912c541fdcb1ca05d2"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/upload.json",
+    "bytes": 64,
+    "sha256": "bf3e178e086c25d37612a304eb3d270807f435ea45d315bebbf8313d3a9da0c3"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/W.webp",
+    "bytes": 739240,
+    "sha256": "4a99726663a0416c0a226c28a73df5700e001b0b50fa767fc0feeaaf6aeaf04f"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-still-sized-loop-q65.webp",
+    "bytes": 2878980,
+    "sha256": "1983680c834300842e8456c27fe7846d870f30da87140213040baa2d351515d3"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/NW.webp",
+    "bytes": 703000,
+    "sha256": "912de3b99a50d3b9f51b620f4d3cfbeb093c74048786d4fd0cd4321869746886"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal-320x512.webp",
+    "bytes": 2878980,
+    "sha256": "1983680c834300842e8456c27fe7846d870f30da87140213040baa2d351515d3"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal-balanced.webp",
+    "bytes": 5413078,
+    "sha256": "d0ac43495d056cadf1653c5b6f47ca60456600c00ac5c35a9fc4c66456753721"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal.webp",
+    "bytes": 5388850,
+    "sha256": "344c2b8bc1e5d4245f16264cc116f556c6e0b120e82dfce76e5553df8470cf94"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/SW.webp",
+    "bytes": 742666,
+    "sha256": "8a18ce6421e8fbaf45afe2f59ddb3902113b04b42f103700352f8b1e02c0a0fd"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal-loop-q65.webp",
+    "bytes": 567872,
+    "sha256": "63278c272ae511f0d3443dec6d4b81d2e8a9b991a4831883e9fe7be46c138996"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal-tight.webp",
+    "bytes": 5426668,
+    "sha256": "0387d63ff84a348fd68d3d14db9b61d22f33c93fef3c420e20c634087db35eed"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/SE.webp",
+    "bytes": 740586,
+    "sha256": "b194a82da2ce5a869bf3b4c0251bfda9fb984562efd280c7f5d105007b922cb3"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/full-workflow.json",
+    "bytes": 5889,
+    "sha256": "626579cbaf0d76a6389e40b97214f858a5cdef78db952c8245d1510f7cfc878b"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-white.webp",
+    "bytes": 3876414,
+    "sha256": "713ac5622ab1d614da8c373b423b1e8b59e89798cc0186b89425c72faf03b08d"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/horizontal-loop.json",
+    "bytes": 227,
+    "sha256": "80af5efe459fdb98937b059ef870a228263247e35a82ff03147cd47e9b6ae4bd"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/E.webp",
+    "bytes": 742562,
+    "sha256": "9f1cf5ffe04ad3a0deee5ec90ab7d90e8fae1ebdab42a6ccac06652468deee99"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/NE.webp",
+    "bytes": 703922,
+    "sha256": "3d1e1ec6e553ee3ddd74e622c943a6df14755d856ad5502b5d3b8255e933223d"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/S.webp",
+    "bytes": 701202,
+    "sha256": "d29dd1033e40f0635158294d59b7749363d1bd30a6302c3f9b9ad0432a37a4a0"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-transparent.webp",
+    "bytes": 5392480,
+    "sha256": "f95f3c6ac5b3459ac28ebd90718cb53399c53e4192946d6071b7cd6df3b78c2e"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/process.py",
+    "bytes": 2208,
+    "sha256": "f83280d0ffadf48d5574cdd2ee1ba2a8bf7a4961d940279052be524483fbe3ef"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/elise-run-horizontal-q65.webp",
+    "bytes": 3610238,
+    "sha256": "17ab3f0b23d429fbc436161c9ccfc0c4d4df4d409004525ae0b0976558b2a4fb"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/match-still.py",
+    "bytes": 1528,
+    "sha256": "c8f2649191bb0d7e42392b47ad9f5c53c0e12e37108f4898b31abf068f58d447"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/full-history.json",
+    "bytes": 140586,
+    "sha256": "867bd9f96e27f042ce73a3270d1c1e628824d93f5cf78ae5fe5e9bedecdbd4d4"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/still-sizing.json",
+    "bytes": 420,
+    "sha256": "fd76ddccfdbaf9500f1365c48636627cf89142dd50156a419352a3e85ea84d4d"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/toonout/full-job.json",
+    "bytes": 86,
+    "sha256": "2003975d972725c762537b39ade96997224c82b62f1239d8474b557383693139"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/standing/elise.entity.json",
+    "bytes": 773,
+    "sha256": "7bd31fd9f23e4a853f81abf37e4b91561bf2e79d9e6d0ad963f3867f68252035"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-run/standing/elise.turntable.webp",
+    "bytes": 417924,
+    "sha256": "9ae37fdf94dfdde4a6ec2ee513797bcc1ce8163c734b52514297b7657c899caf"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/run.py",
+    "bytes": 2098,
+    "sha256": "a25124fce1148ede835a39be1b5f86c74637d6b8d17fd89cb4caf8b9a5372332"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/submission-started.json",
+    "bytes": 62,
+    "sha256": "086d73191277b4e41d894004b2a22f86e864de3f80cdd3080accaa676a2b8c01"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/request-plan.json",
+    "bytes": 1417,
+    "sha256": "a540a34bed4d4e110ece6a0b66176695aef48e6f278233762920eeedb0d0f1b0"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/postprocess.py",
+    "bytes": 1019,
+    "sha256": "9e324b89778bbc8b7654439499cca11b2d8ca6602b04b283ee5ea6c5f2e6bc17"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/animation.mp4",
+    "bytes": 1029926,
+    "sha256": "17c810e646114335eb5b75e38ef805ebc52d3737f38e08ab3e01a7766f9b4f6c"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/prediction.json",
+    "bytes": 1215,
+    "sha256": "859b83766d5f3db7895947ed82d6eeaa2401b9f17e07aad138aaa1c46e9670e3"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/animation.webp",
+    "bytes": 1997966,
+    "sha256": "c238e416ab1c7100711df4f9c4a5f2c423ed5fc11be73366e43523aced8e6888"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout-input.webp",
+    "bytes": 13838856,
+    "sha256": "6380db332b5c2adff2dc96f61a1807c785f2b87ed094e235b7272fe6208b8878"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/pack.py",
+    "bytes": 1501,
+    "sha256": "02a7e38293b80e4cbd5563c6eac743fe16c55a3aa5dba9ffad15acd41a3c1cfb"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/N.webp",
+    "bytes": 543780,
+    "sha256": "6096ec0e4e67c3a4771eda0769be8c5f213e7937fec979644ca7d8c283379085"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/upload.json",
+    "bytes": 68,
+    "sha256": "74b2f3674655128d3a912702c925955bfcd64aba83e2691618955243a89a1c90"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/W.webp",
+    "bytes": 622420,
+    "sha256": "0f40035ba4eed496186a74f87433a3266156dbc849fae0c3606e89250f3fa489"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/NW.webp",
+    "bytes": 607792,
+    "sha256": "e7a0f22457b2f7a70a11db8fc6b45e11049702aeca17448931d3db5d30aa466f"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/SW.webp",
+    "bytes": 650060,
+    "sha256": "57fb1535a53135ba0d8a711c0b7b994bcb3febb3b10a995cf5ed8456132bd6f5"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/SE.webp",
+    "bytes": 648880,
+    "sha256": "bffc8d773c50241d8b6376c36fa30e8594bbadbfdece4bb04c2482c27ef21fa8"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/full-workflow.json",
+    "bytes": 5901,
+    "sha256": "384573a36714abd08af73b61839e9bc38b653e3dd844f8b33b71a0dda6598480"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/E.webp",
+    "bytes": 620210,
+    "sha256": "e2a239014f082358d9d3b12fa9f79452c82dd0e4aa17ff6da8212710a3a249bc"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/elise-walk-transparent.webp",
+    "bytes": 4665482,
+    "sha256": "a5d45f9742bc413293a37fe7fea6733b80c85eb6d6aab274c574cd34ad79bb02"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/NE.webp",
+    "bytes": 609266,
+    "sha256": "c0c9b74172d2423197d63c959ba62159d5faacf42584dcfdbdf39fb864bdab1d"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/S.webp",
+    "bytes": 668050,
+    "sha256": "b88e9248234d69f59e8d7a05a09de79a2c207fa212f47e2536ed13c9757cbbf8"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/process.py",
+    "bytes": 2209,
+    "sha256": "9c67232631ec1e5a56359817277119e7bb493d01907638f03aa41f8971fc722b"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/full-history.json",
+    "bytes": 141566,
+    "sha256": "d996b4fcc7407d0f576ec0f013e08d7f6efa1475d0d746e0df0ef820ceea9e1b"
+  },
+  {
+    "path": "/Users/jin/Downloads/elise-walk/toonout/full-job.json",
+    "bytes": 86,
+    "sha256": "63bb1a3f2b2bb19b4ec868f690a9b893b657a32477c60f6c4f0bfe16ffd52be1"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/inspect-scenes.py",
+    "bytes": 752,
+    "sha256": "614ccf4034241de38fc1fe32b2353af33f7e9c65ceea4ac634d75644d79d6618"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/compose.py",
+    "bytes": 1109,
+    "sha256": "1a65ba0ac012969a04844fb32adac7db2aeaa42d4b54f66d9d6e8b85a54ddb00"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/render.py",
+    "bytes": 3178,
+    "sha256": "c62ef7c93ae1a4fa4919865f1628a82fc65ddf3e612572a068db98637454aee4"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/idle/driving.mp4",
+    "bytes": 355957,
+    "sha256": "888eacc44db5f53700611fccf42482f77e87992619bc1e5c48440b2f597b00a4"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/idle/driving.webp",
+    "bytes": 971312,
+    "sha256": "b0183380f7851e791103f9614839cec4146c98b780d76a49873a1652494daace"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/idle/metadata.json",
+    "bytes": 459,
+    "sha256": "f4805e8c1b07efcf38d4514b0fa3d91074e57a83ac20232c48d24f18cf055077"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/walk/driving.mp4",
+    "bytes": 776114,
+    "sha256": "b051ebcdca123c0d6eb8ff1c315328a0400dc4cae32034cb9363fbf8f1fb5da8"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/walk/driving.webp",
+    "bytes": 511504,
+    "sha256": "f87b935dc54ccdca250567f385fc0b3d158597fbc008993e62226b10fabd5a21"
+  },
+  {
+    "path": "/Users/jin/Downloads/white-mannequin-drivers/walk/metadata.json",
+    "bytes": 454,
+    "sha256": "a1ac2d093da7c4ac1f60b1906be9f6c5ed9e733ce98910120eb3d67e9ce3033d"
+  }
+]

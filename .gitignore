@@ -10,3 +10,13 @@ tmp/
 .DS_Store
 outputs/
 sprute.animation.json
+
+# Local research archive; promote reviewed sources into versioned docs/runtime explicitly.
+/experiments/
+
+# Local credentials and generated Blender backups
+.env.*
+!.env.example
+!.env.sample
+*.blend1
+*.blend2
