@@ -1,6 +1,6 @@
 # Make your character walk
 
-**Development preview — not included in npm 0.4.1 yet.**
+**Experimental animation workflow — included in Sprute 1.0.**
 
 Sprute can now take the eight standing poses it generated and make a walking
 animation. The first supported motion is walking in place, viewed from eight
@@ -96,7 +96,7 @@ First time here? Follow [Set up walking](walking-setup.md), then come back to
 this page. It takes you through building the development version, connecting
 the GPU server, and creating the reusable walking guides.
 
-Walking is not available in the published npm 0.4.1 package. The setup still
+Walking is included in Sprute 1.0, but the setup still
 needs someone comfortable preparing a Linux GPU server. Once connected, you
 reuse that setup for your next character.
 

@@ -1,7 +1,8 @@
 # Set up walking
 
-**Development preview.** These instructions need a Sprute source checkout that
-includes the `animate` command. Installing npm 0.4.1 alone will not add it.
+**Experimental workflow in Sprute 1.0.** These instructions use a source checkout
+to prepare the GPU server and motion guides. The npm package includes `animate`,
+but does not provision the server or install its model weights.
 If you only want standing character pictures, use the [character guide](../README.md#make-a-character).
 
 There are two parts: Sprute runs on your computer, and a GPU server makes the

@@ -56,16 +56,16 @@ can switch the side of a sword or other detail.
 
 [More examples](examples/) · [Setup details and advanced options](docs/guide.md)
 
-## Make it walk — development preview
+## Make it walk — experimental
 
-The development version can turn your standing character into an eight-direction
+Sprute 1.0 can turn your standing character into an eight-direction
 walking animation, with a transparent sprite sheet and a browser preview:
 
 ```sh
 node dist/cli.js animate outputs/my-character.spritesheet.png --wait
 ```
 
-This needs a configured ComfyUI animation server and is **not in npm 0.4.1 yet**.
+This needs a configured ComfyUI animation server and is **experimental in 1.0**.
 [Set up walking once](docs/walking-setup.md) · [Make a walk and try it in Godot](docs/walking.md).
 The server setup still needs technical help; the everyday command is one line.
 

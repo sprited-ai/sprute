@@ -26,6 +26,10 @@ jobs:
       # trusted publishing needs npm >= 11.5.1
       - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install Pillow==11.3.0
       - run: pnpm exec tsc --noEmit
       - run: pnpm test
       - run: python3 runtime/test-install-models.py
