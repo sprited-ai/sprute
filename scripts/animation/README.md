@@ -176,7 +176,13 @@ resubmit after uncertain or failed requests. Use a new output directory when
 changing inference settings. Output layout matches the Seedance script:
 `postprocess/latest.json` identifies the loop exports.
 
-Validation: offline graph/recovery tests, actual local preparation of Elise's
-inputs, and live node/weight/upload checks passed. No new SCAIL2 GPU inference was
-run to validate this new entry point; generated appearance and loop quality still
-require an end-to-end visual check.
+Validation: all 18 offline tests passed, followed by a live Elise run on the
+configured server (2026-09-17, job `10de947c-0d53-4d89-be33-816480442918`).
+The unmasked fast recipe completed inference in155.89 seconds, then cropped and
+matted all81 frames per direction and exported the selected20-frame cycle
+(source16..35 inclusive,833ms). Full horizontal output:2560×512,2,184,354bytes;
+compact:1280×256,838,028bytes. Local artifacts are in
+`/Users/jin/Downloads/elise-run-scail2/`. Dimensions, alpha, frame count and encoded
+duration were checked. Sampled views retained front/back orientation, but raised
+arms and softened shirt lettering remain visual differences. Seam-adjacent
+frames were inspected; this single run does not establish general reliability.
