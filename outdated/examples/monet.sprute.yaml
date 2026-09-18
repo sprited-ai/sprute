@@ -1,4 +1,0 @@
-# reference-driven character via NBP
-name: monet
-reference: ./monet.reference.png
-outputs: { sheet: true }

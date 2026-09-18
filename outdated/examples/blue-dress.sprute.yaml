@@ -1,6 +1,0 @@
-# photo-reference-driven character via NBP
-# matting defaults to toonout: BiRefNet-ToonOut running locally via
-# onnxruntime; set `matting: floodfill` for the dependency-free keyer
-name: blue-dress
-reference: ./blue-dress.reference.png
-outputs: { sheet: true }
