@@ -358,45 +358,6 @@
       ]
     },
     {
-      "id": 7,
-      "type": "CLIPTextEncode",
-      "pos": [
-        140,
-        340
-      ],
-      "size": [
-        260,
-        120
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 23
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            25
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.33.1",
-        "Node name for S&R": "CLIPTextEncode"
-      },
-      "widgets_values": [
-        "photorealistic, glossy plastic, sculpted figurine, dramatic lighting, gradients, walking, running, dancing, camera movement, zoom, cropped feet, outfit change, extra limbs, text, scene change, dithering, "
-      ]
-    },
-    {
       "id": 6,
       "type": "CLIPTextEncode",
       "pos": [
@@ -785,47 +746,6 @@
       ]
     },
     {
-      "id": 17,
-      "type": "SaveAnimatedWEBP",
-      "pos": [
-        720,
-        20
-      ],
-      "size": [
-        220,
-        340
-      ],
-      "flags": {},
-      "order": 18,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 53
-        }
-      ],
-      "outputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "links": null
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.33.1",
-        "Node name for S&R": "SaveAnimatedWEBP"
-      },
-      "widgets_values": [
-        "ComfyUI",
-        24,
-        true,
-        95,
-        "default"
-      ]
-    },
-    {
       "id": 23,
       "type": "BiRefNetRMBG",
       "pos": [
@@ -884,6 +804,86 @@
       ],
       "color": "#222e40",
       "bgcolor": "#364254"
+    },
+    {
+      "id": 7,
+      "type": "CLIPTextEncode",
+      "pos": [
+        140,
+        340
+      ],
+      "size": [
+        260,
+        120
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "3D, maya, render, blender, photorealistic, glossy plastic, sculpted figurine, dramatic lighting, gradients, walking, running, dancing, camera movement, zoom, cropped feet, outfit change, extra limbs, text, scene change, dithering, "
+      ]
+    },
+    {
+      "id": 17,
+      "type": "SaveAnimatedWEBP",
+      "pos": [
+        720,
+        20
+      ],
+      "size": [
+        560,
+        720
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 53
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1",
+        "Node name for S&R": "SaveAnimatedWEBP"
+      },
+      "widgets_values": [
+        "ComfyUI",
+        24,
+        true,
+        95,
+        "default"
+      ]
     }
   ],
   "links": [
@@ -1102,8 +1102,8 @@
     "ds": {
       "scale": 0.660353641213399,
       "offset": [
-        378.7702551495082,
-        1.3330741494551388
+        507.7316948010233,
+        219.79437995056992
       ]
     },
     "frontendVersion": "1.48.7",
