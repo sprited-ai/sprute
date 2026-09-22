@@ -80,12 +80,12 @@
         "Node name for S&R": "SeedNode"
       },
       "widgets_values": [
-        42,
-        "fixed"
+        101143647837911,
+        "randomize"
       ],
       "widgets_values_named": {
-        "seed": 42,
-        "fixed": "fixed"
+        "seed": 101143647837911,
+        "fixed": "randomize"
       }
     },
     {
@@ -7105,7 +7105,7 @@
               80
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 38,
             "mode": 0,
@@ -8688,7 +8688,7 @@
             "id": 617,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
+              1440,
               1620
             ],
             "size": [
@@ -8696,7 +8696,7 @@
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 11,
             "mode": 0,
@@ -8724,10 +8724,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "5,4,3,6"
+              "3,4,5,2"
             ],
             "widgets_values_named": {
-              "indexes": "5,4,3,6"
+              "indexes": "3,4,5,2"
             }
           },
           {
@@ -9206,15 +9206,15 @@
             "id": 626,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1660
+              1460,
+              1880
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 20,
             "mode": 0,
@@ -9242,10 +9242,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "2,7,0,1"
+              "6,1,0,7"
             ],
             "widgets_values_named": {
-              "indexes": "2,7,0,1"
+              "indexes": "6,1,0,7"
             }
           }
         ],
@@ -14809,7 +14809,7 @@
               80
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 38,
             "mode": 0,
@@ -16391,15 +16391,15 @@
             "id": 712,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1620
+              1555.028953283815,
+              1507.4803313135264
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 10,
             "mode": 0,
@@ -16427,25 +16427,25 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "5,4,3,6"
+              "3,4,5,2"
             ],
             "widgets_values_named": {
-              "indexes": "5,4,3,6"
+              "indexes": "3,4,5,2"
             }
           },
           {
             "id": 713,
             "type": "BatchImagesNode",
             "pos": [
-              1180,
-              1700
+              2180,
+              1720
             ],
             "size": [
               180,
               120
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 11,
             "mode": 0,
@@ -16909,15 +16909,15 @@
             "id": 722,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1660
+              1580,
+              1800
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 20,
             "mode": 0,
@@ -16945,10 +16945,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "2,7,0,1"
+              "6,1,0,7"
             ],
             "widgets_values_named": {
-              "indexes": "2,7,0,1"
+              "indexes": "6,1,0,7"
             }
           }
         ],
@@ -22512,7 +22512,7 @@
               80
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 38,
             "mode": 0,
@@ -24094,15 +24094,15 @@
             "id": 896,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1620
+              1660,
+              1420
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 10,
             "mode": 0,
@@ -24130,10 +24130,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "5,4,3,6"
+              "3,4,5,2"
             ],
             "widgets_values_named": {
-              "indexes": "5,4,3,6"
+              "indexes": "3,4,5,2"
             }
           },
           {
@@ -24612,15 +24612,15 @@
             "id": 906,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1660
+              1680,
+              1700
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 20,
             "mode": 0,
@@ -24648,10 +24648,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "2,7,0,1"
+              "6,1,0,7"
             ],
             "widgets_values_named": {
-              "indexes": "2,7,0,1"
+              "indexes": "6,1,0,7"
             }
           }
         ],
@@ -27861,10 +27861,10 @@
     "VHS_MetadataImage": true,
     "VHS_KeepIntermediate": true,
     "ds": {
-      "scale": 0.8864528451914819,
+      "scale": 1.0314516129032258,
       "offset": [
-        642.0574284230779,
-        -30.234875973123906
+        -656.6838327367573,
+        -985
       ]
     }
   },

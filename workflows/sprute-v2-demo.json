@@ -1,8 +1,8 @@
 {
   "id": "60c51d83-46a3-4d30-b79e-2bbc05a7b930",
   "revision": 0,
-  "last_node_id": 659,
-  "last_link_id": 967,
+  "last_node_id": 661,
+  "last_link_id": 968,
   "nodes": [
     {
       "id": 114,
@@ -839,7 +839,6 @@
           ]
         }
       ],
-      "title": "Animate",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.37.0",
@@ -869,14 +868,14 @@
       "widgets_values": [
         42,
         "",
-        "sprute-v2-run-81.webp",
+        "sprute-v2-idle-walk-run-center-arrows.webp",
         "image",
         ""
       ],
       "widgets_values_named": {
         "seed": 42,
         "text": "",
-        "image": "sprute-v2-run-81.webp",
+        "image": "sprute-v2-idle-walk-run-center-arrows.webp",
         "upload": "image",
         "text_1": ""
       }
@@ -1090,8 +1089,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 4,
-          "lastNodeId": 659,
-          "lastLinkId": 967,
+          "lastNodeId": 661,
+          "lastLinkId": 968,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -2348,9 +2347,7 @@
               "cnr_id": "comfy-core",
               "ver": "0.37.0",
               "Node name for S&R": "PreviewImage"
-            },
-            "widgets_values": [],
-            "widgets_values_named": {}
+            }
           },
           {
             "id": 17,
@@ -2435,9 +2432,7 @@
               "cnr_id": "comfy-core",
               "ver": "0.37.0",
               "Node name for S&R": "PreviewImage"
-            },
-            "widgets_values": [],
-            "widgets_values_named": {}
+            }
           },
           {
             "id": 203,
@@ -2807,8 +2802,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 4,
-          "lastNodeId": 659,
-          "lastLinkId": 967,
+          "lastNodeId": 661,
+          "lastLinkId": 968,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -4439,8 +4434,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 4,
-          "lastNodeId": 659,
-          "lastLinkId": 967,
+          "lastNodeId": 661,
+          "lastLinkId": 968,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -5024,9 +5019,7 @@
               "cnr_id": "comfy-core",
               "ver": "0.33.1",
               "Node name for S&R": "PreviewImage"
-            },
-            "widgets_values": [],
-            "widgets_values_named": {}
+            }
           },
           {
             "id": 581,
@@ -5731,9 +5724,7 @@
               "cnr_id": "comfy-core",
               "ver": "0.33.1",
               "Node name for S&R": "PreviewImage"
-            },
-            "widgets_values": [],
-            "widgets_values_named": {}
+            }
           },
           {
             "id": 563,
@@ -5967,9 +5958,7 @@
               "cnr_id": "comfy-core",
               "ver": "0.33.1",
               "Node name for S&R": "PreviewImage"
-            },
-            "widgets_values": [],
-            "widgets_values_named": {}
+            }
           },
           {
             "id": 587,
@@ -6432,7 +6421,7 @@
               }
             ],
             "outputs": [],
-            "title": "Preview Animation 81x768x768",
+            "title": "Preview Animation 82x768x768",
             "properties": {
               "cnr_id": "comfyui-kjnodes",
               "ver": "1.4.4",
@@ -6779,7 +6768,7 @@
               }
             ],
             "outputs": [],
-            "title": "Preview Animation 81x768x768",
+            "title": "Preview Animation 82x768x768",
             "properties": {
               "cnr_id": "comfyui-kjnodes",
               "ver": "1.4.4",
@@ -6804,7 +6793,7 @@
               80
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 38,
             "mode": 0,
@@ -6914,7 +6903,7 @@
             ],
             "size": [
               280,
-              200
+              220
             ],
             "flags": {
               "collapsed": true
@@ -7792,8 +7781,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 4,
-          "lastNodeId": 659,
-          "lastLinkId": 967,
+          "lastNodeId": 661,
+          "lastLinkId": 968,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -8373,7 +8362,8 @@
                 "type": "IMAGE",
                 "links": [
                   649,
-                  666
+                  666,
+                  968
                 ]
               }
             ],
@@ -8387,15 +8377,15 @@
             "id": 617,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1620
+              1560,
+              1700
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 11,
             "mode": 0,
@@ -8423,10 +8413,10 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "5,4,3,6"
+              "3,4,5,2"
             ],
             "widgets_values_named": {
-              "indexes": "5,4,3,6"
+              "indexes": "3,4,5,2"
             }
           },
           {
@@ -8905,15 +8895,15 @@
             "id": 626,
             "type": "GetImagesFromBatchIndexed",
             "pos": [
-              1180,
-              1660
+              1540,
+              1980
             ],
             "size": [
               400,
               200
             ],
             "flags": {
-              "collapsed": true
+              "collapsed": false
             },
             "order": 20,
             "mode": 0,
@@ -8941,10 +8931,46 @@
               "Node name for S&R": "GetImagesFromBatchIndexed"
             },
             "widgets_values": [
-              "2,7,0,1"
+              "6,1,0,7"
             ],
             "widgets_values_named": {
-              "indexes": "2,7,0,1"
+              "indexes": "6,1,0,7"
+            }
+          },
+          {
+            "id": 661,
+            "type": "PreviewImage",
+            "pos": [
+              1580,
+              1460
+            ],
+            "size": [
+              140,
+              40
+            ],
+            "flags": {},
+            "order": 21,
+            "mode": 0,
+            "inputs": [
+              {
+                "localized_name": "images",
+                "name": "images",
+                "type": "IMAGE",
+                "link": 968
+              }
+            ],
+            "outputs": [
+              {
+                "localized_name": "images",
+                "name": "images",
+                "type": "IMAGE",
+                "links": null
+              }
+            ],
+            "properties": {
+              "cnr_id": "comfy-core",
+              "ver": "0.37.0",
+              "Node name for S&R": "PreviewImage"
             }
           }
         ],
@@ -9175,6 +9201,14 @@
             "type": "IMAGE"
           },
           {
+            "id": 968,
+            "origin_id": 616,
+            "origin_slot": 0,
+            "target_id": 661,
+            "target_slot": 0,
+            "type": "IMAGE"
+          },
+          {
             "id": 651,
             "origin_id": 617,
             "origin_slot": 0,
@@ -9222,8 +9256,8 @@
         "version": 1,
         "state": {
           "lastGroupId": 4,
-          "lastNodeId": 659,
-          "lastLinkId": 967,
+          "lastNodeId": 661,
+          "lastLinkId": 968,
           "lastRerouteId": 0
         },
         "revision": 0,
@@ -12154,10 +12188,10 @@
     "VHS_MetadataImage": true,
     "VHS_KeepIntermediate": true,
     "ds": {
-      "scale": 0.7326056571830428,
+      "scale": 1.38764896829167,
       "offset": [
-        1068.4021948707077,
-        -18.230571336139374
+        -13.057475147198051,
+        -933.6982148758514
       ]
     }
   },
