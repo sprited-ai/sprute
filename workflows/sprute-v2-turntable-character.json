@@ -1,8 +1,8 @@
 {
   "id": "a613ec97-7750-405c-9bf3-7312767345ec",
   "revision": 0,
-  "last_node_id": 23,
-  "last_link_id": 53,
+  "last_node_id": 35,
+  "last_link_id": 69,
   "nodes": [
     {
       "id": 2,
@@ -38,7 +38,11 @@
       "widgets_values": [
         "Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 3,
@@ -74,7 +78,11 @@
       "widgets_values": [
         "Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "unet_name": "Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+        "weight_dtype": "default"
+      }
     },
     {
       "id": 4,
@@ -112,7 +120,12 @@
         "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
         "wan",
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "type": "wan",
+        "device": "default"
+      }
     },
     {
       "id": 5,
@@ -148,7 +161,10 @@
       },
       "widgets_values": [
         "wan_2.1_vae.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "vae_name": "wan_2.1_vae.safetensors"
+      }
     },
     {
       "id": 18,
@@ -185,7 +201,11 @@
       "widgets_values": [
         42,
         "fixed"
-      ]
+      ],
+      "widgets_values_named": {
+        "seed": 42,
+        "fixed": "fixed"
+      }
     },
     {
       "id": 9,
@@ -226,7 +246,10 @@
       },
       "widgets_values": [
         5
-      ]
+      ],
+      "widgets_values_named": {
+        "shift": 5
+      }
     },
     {
       "id": 10,
@@ -267,7 +290,10 @@
       },
       "widgets_values": [
         5
-      ]
+      ],
+      "widgets_values_named": {
+        "shift": 5
+      }
     },
     {
       "id": 19,
@@ -313,8 +339,7 @@
         "cnr_id": "comfy-core",
         "ver": "0.33.1",
         "Node name for S&R": "GetImageSize"
-      },
-      "widgets_values": []
+      }
     },
     {
       "id": 1,
@@ -355,7 +380,11 @@
       "widgets_values": [
         "wan-turntable-lily-gray.png",
         "image"
-      ]
+      ],
+      "widgets_values_named": {
+        "image": "wan-turntable-lily-gray.png",
+        "upload": "image"
+      }
     },
     {
       "id": 6,
@@ -394,7 +423,10 @@
       },
       "widgets_values": [
         "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. A girl with long brown hair and a large blue patterned hair bow wears a sleeveless blue patterned top, blue shorts, white socks and white shoes. She stands upright with her arms resting beside her and rotates in place through one full turn. Preserve her reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
-      ]
+      ],
+      "widgets_values_named": {
+        "text": "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. A girl with long brown hair and a large blue patterned hair bow wears a sleeveless blue patterned top, blue shorts, white socks and white shoes. She stands upright with her arms resting beside her and rotates in place through one full turn. Preserve her reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
+      }
     },
     {
       "id": 20,
@@ -429,7 +461,10 @@
       },
       "widgets_values": [
         "clip_vision_h.safetensors"
-      ]
+      ],
+      "widgets_values_named": {
+        "clip_name": "clip_vision_h.safetensors"
+      }
     },
     {
       "id": 21,
@@ -475,7 +510,10 @@
       },
       "widgets_values": [
         "center"
-      ]
+      ],
+      "widgets_values_named": {
+        "crop": "center"
+      }
     },
     {
       "id": 8,
@@ -557,14 +595,20 @@
         256,
         81,
         1
-      ]
+      ],
+      "widgets_values_named": {
+        "width": 256,
+        "height": 256,
+        "length": 81,
+        "batch_size": 1
+      }
     },
     {
       "id": 13,
       "type": "VAEDecode",
       "pos": [
-        140,
-        760
+        -160,
+        800
       ],
       "size": [
         320,
@@ -600,8 +644,7 @@
         "cnr_id": "comfy-core",
         "ver": "0.33.1",
         "Node name for S&R": "VAEDecode"
-      },
-      "widgets_values": []
+      }
     },
     {
       "id": 12,
@@ -672,7 +715,19 @@
         3,
         8,
         "disable"
-      ]
+      ],
+      "widgets_values_named": {
+        "add_noise": "disable",
+        "noise_seed": 989394154198763,
+        "control_after_generate": "randomize",
+        "steps": 8,
+        "cfg": 1,
+        "sampler_name": "uni_pc",
+        "scheduler": "simple",
+        "start_at_step": 3,
+        "end_at_step": 8,
+        "return_with_leftover_noise": "disable"
+      }
     },
     {
       "id": 11,
@@ -743,14 +798,26 @@
         0,
         3,
         "enable"
-      ]
+      ],
+      "widgets_values_named": {
+        "add_noise": "enable",
+        "noise_seed": 722337956632917,
+        "control_after_generate": "randomize",
+        "steps": 8,
+        "cfg": 1,
+        "sampler_name": "uni_pc",
+        "scheduler": "simple",
+        "start_at_step": 0,
+        "end_at_step": 3,
+        "return_with_leftover_noise": "enable"
+      }
     },
     {
       "id": 23,
       "type": "BiRefNetRMBG",
       "pos": [
-        420,
-        780
+        -160,
+        840
       ],
       "size": [
         300,
@@ -773,7 +840,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            53
+            53,
+            62
           ]
         },
         {
@@ -787,6 +855,7 @@
           "links": null
         }
       ],
+      "title": "BiRefNet Remove (RMBG)",
       "properties": {
         "aux_id": "kndlt/ComfyUI-RMBG",
         "ver": "7f02fab3f33aee806002c9b349cc9ea763f4d2e7",
@@ -802,6 +871,16 @@
         "Alpha",
         "#808080"
       ],
+      "widgets_values_named": {
+        "model": "BiRefNet_toonout",
+        "process_resolution": 512,
+        "mask_blur": 0,
+        "mask_offset": 0,
+        "invert_output": false,
+        "refine_foreground": true,
+        "background": "Alpha",
+        "background_color": "#808080"
+      },
       "color": "#222e40",
       "bgcolor": "#364254"
     },
@@ -842,7 +921,10 @@
       },
       "widgets_values": [
         "3D, maya, render, blender, photorealistic, glossy plastic, sculpted figurine, dramatic lighting, gradients, walking, running, dancing, camera movement, zoom, cropped feet, outfit change, extra limbs, text, scene change, dithering, "
-      ]
+      ],
+      "widgets_values_named": {
+        "text": "3D, maya, render, blender, photorealistic, glossy plastic, sculpted figurine, dramatic lighting, gradients, walking, running, dancing, camera movement, zoom, cropped feet, outfit change, extra limbs, text, scene change, dithering, "
+      }
     },
     {
       "id": 17,
@@ -852,8 +934,8 @@
         20
       ],
       "size": [
-        560,
-        720
+        220,
+        380
       ],
       "flags": {},
       "order": 18,
@@ -883,7 +965,293 @@
         true,
         95,
         "default"
-      ]
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "ComfyUI",
+        "fps": 24,
+        "lossless": true,
+        "quality": 95,
+        "method": "default"
+      }
+    },
+    {
+      "id": 28,
+      "type": "SaveAnimatedWEBP",
+      "pos": [
+        960,
+        20
+      ],
+      "size": [
+        220,
+        380
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 60
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "SaveAnimatedWEBP"
+      },
+      "widgets_values": [
+        "ComfyUI",
+        1,
+        true,
+        95,
+        "default"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "ComfyUI",
+        "fps": 1,
+        "lossless": true,
+        "quality": 95,
+        "method": "default"
+      }
+    },
+    {
+      "id": 29,
+      "type": "GetImagesFromBatchIndexed",
+      "pos": [
+        140,
+        760
+      ],
+      "size": [
+        260,
+        100
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 62
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            60,
+            67
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "1.4.4",
+        "Node name for S&R": "GetImagesFromBatchIndexed"
+      },
+      "widgets_values": [
+        "0, 10, 20, 30, 40, 50, 60, 70"
+      ],
+      "widgets_values_named": {
+        "indexes": "0, 10, 20, 30, 40, 50, 60, 70"
+      }
+    },
+    {
+      "id": 30,
+      "type": "PreviewImage",
+      "pos": [
+        420,
+        860
+      ],
+      "size": [
+        280,
+        260
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 68
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 33,
+      "type": "ImageConcatFromBatch",
+      "pos": [
+        420,
+        820
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 69
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            66
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "1.4.4",
+        "Node name for S&R": "ImageConcatFromBatch"
+      },
+      "widgets_values": [
+        8,
+        false,
+        4096
+      ],
+      "widgets_values_named": {
+        "num_columns": 8,
+        "match_image_size": false,
+        "max_resolution": 4096
+      }
+    },
+    {
+      "id": 34,
+      "type": "SaveImage",
+      "pos": [
+        722.2869177768262,
+        442.62057376133123
+      ],
+      "size": [
+        460,
+        420
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 66
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "ComfyUI"
+      }
+    },
+    {
+      "id": 35,
+      "type": "AILab_ImageCrop",
+      "pos": [
+        420,
+        780
+      ],
+      "size": [
+        300,
+        200
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 67
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CROP",
+          "type": "IMAGE",
+          "links": [
+            68,
+            69
+          ]
+        },
+        {
+          "name": "REST",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "aux_id": "kndlt/ComfyUI-RMBG",
+        "ver": "7f02fab3f33aee806002c9b349cc9ea763f4d2e7",
+        "Node name for S&R": "AILab_ImageCrop"
+      },
+      "widgets_values": [
+        160,
+        256,
+        0,
+        0,
+        false,
+        "center"
+      ],
+      "widgets_values_named": {
+        "width": 160,
+        "height": 256,
+        "x_offset": 0,
+        "y_offset": 0,
+        "split": false,
+        "position": "center"
+      },
+      "color": "#2e3e57",
+      "bgcolor": "#4b5b73"
     }
   ],
   "links": [
@@ -1094,19 +1462,67 @@
       17,
       0,
       "IMAGE"
+    ],
+    [
+      60,
+      29,
+      0,
+      28,
+      0,
+      "IMAGE"
+    ],
+    [
+      62,
+      23,
+      0,
+      29,
+      0,
+      "IMAGE"
+    ],
+    [
+      66,
+      33,
+      0,
+      34,
+      0,
+      "IMAGE"
+    ],
+    [
+      67,
+      29,
+      0,
+      35,
+      0,
+      "IMAGE"
+    ],
+    [
+      68,
+      35,
+      0,
+      30,
+      0,
+      "IMAGE"
+    ],
+    [
+      69,
+      35,
+      0,
+      33,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.660353641213399,
+      "scale": 1.1698567569816516,
       "offset": [
-        507.7316948010233,
-        219.79437995056992
+        559.091571759129,
+        135.29240111683268
       ]
     },
-    "frontendVersion": "1.48.7",
+    "frontendVersion": "1.53.6",
     "VHS_latentpreview": false,
     "VHS_latentpreviewrate": 0,
     "VHS_MetadataImage": true,
