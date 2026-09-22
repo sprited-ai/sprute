@@ -1,0 +1,36 @@
+{
+  "fps": 24,
+  "frames": 112,
+  "duration_ms": 4667,
+  "size": [
+    768,
+    768
+  ],
+  "segments": [
+    {
+      "state": "idle",
+      "start_frame": 0,
+      "end_frame_exclusive": 60,
+      "frames": 60,
+      "source": "sprute-v2-idle-81.webp",
+      "source_sha256": "995cc3ac2264317333a580b4a6714f630f51077149ee905b66fa645150cf6fe2"
+    },
+    {
+      "state": "walk",
+      "start_frame": 60,
+      "end_frame_exclusive": 92,
+      "frames": 32,
+      "source": "sprute-v2-walk-81.webp",
+      "source_sha256": "bf7c6b1f721e03a7545f208751035e60fc5757e5aaa66b3de33bc873d12e799b"
+    },
+    {
+      "state": "run",
+      "start_frame": 92,
+      "end_frame_exclusive": 112,
+      "frames": 20,
+      "source": "sprute-v2-run-81.webp",
+      "source_sha256": "4ea1e0ca63cc2fb5e0cdbb9ecf04aa55bbc5f15a1c98bffa61e842b015b19e9b"
+    }
+  ],
+  "transition_frames": 0
+}
