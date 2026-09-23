@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 import sys
 import unittest
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'scripts'))
 
 
 class NativeLoadingTests(unittest.TestCase):
@@ -17,7 +19,7 @@ from pathlib import Path
 from safetensors.torch import save_file
 sys.path.insert(0, sys.argv[1])
 import wan.image2video as module
-from sprute_loading import linked_anisora
+from sprute_lib.loading import linked_anisora
 original=module.WanModel
 reference=original(dim=32,ffn_dim=64,freq_dim=16,num_heads=4,num_layers=1)
 with tempfile.TemporaryDirectory() as tmp:
@@ -53,7 +55,7 @@ with tempfile.TemporaryDirectory() as tmp:
     assert module.WanModel is original
 '''
         subprocess.run([sys.executable, '-c', script, str(source)],
-                       cwd=Path(__file__).resolve().parent, check=True)
+                       cwd=Path(__file__).resolve().parents[1]/'scripts', check=True)
 
     def test_meta_load_assigns_bf16_without_initial_fp32_parameters(self):
         source = Path(__file__).resolve().parents[1]/'models/_sources/scail2'
@@ -63,7 +65,7 @@ with tempfile.TemporaryDirectory() as tmp:
 import json, sys, torch
 sys.path.insert(0, sys.argv[1])
 import wan.scail as module
-from sprute_loading import low_memory_scail
+from sprute_lib.loading import low_memory_scail
 cfg=json.load(open(sys.argv[1]+'/configs/config-14b.json'))
 cfg.update(dim=32,ffn_dim=64,freq_dim=16,num_heads=4,num_layers=1)
 original=module.SCAIL2Model
@@ -79,7 +81,7 @@ with low_memory_scail(module):
 assert module.SCAIL2Model is original
 '''
         subprocess.run([sys.executable, '-c', script, str(source)],
-                       cwd=Path(__file__).resolve().parent, check=True)
+                       cwd=Path(__file__).resolve().parents[1]/'scripts', check=True)
 
 if __name__ == '__main__':
     unittest.main()

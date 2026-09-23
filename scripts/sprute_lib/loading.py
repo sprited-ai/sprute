@@ -51,7 +51,7 @@ def linked_anisora(module, enabled, precision='bf16'):
                     state[name] = value
             model.load_state_dict(state, strict=True, assign=True)
             if precision == 'fp8':
-                from sprute_fp8 import FP8Linear
+                from sprute_lib.fp8 import FP8Linear
                 for name, scale in quantized_layers.items():
                     layer = model.get_submodule(name)
                     parent_name, _, child = name.rpartition('.')

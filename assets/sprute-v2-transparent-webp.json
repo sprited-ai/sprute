@@ -1,6 +1,6 @@
 {
   "idle": {
-    "source": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-idle-81.mp4",
+    "source": "/Users/jin/dev/sprute-2/assets/sprute-v2-idle-81.mp4",
     "original_rgba": "/Users/jin/Downloads/white-mannequin-drivers/idle/cells",
     "frame_indices": [
       0,
@@ -86,14 +86,14 @@
       20
     ],
     "matching_mse_max": 4.064769744873047,
-    "output": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-idle-81.webp",
+    "output": "/Users/jin/dev/sprute-2/assets/sprute-v2-idle-81.webp",
     "bytes": 2954960,
     "decoded_frames": 81,
     "duration_ms": 3375,
     "source_sha256": "1776cbcb60241980e8d037450738c94f5b05289fedde16e4eab4733bc386d96b"
   },
   "walk": {
-    "source": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-walk-81.mp4",
+    "source": "/Users/jin/dev/sprute-2/assets/sprute-v2-walk-81.mp4",
     "original_rgba": "/Users/jin/Downloads/white-mannequin-drivers/walk/cells",
     "frame_indices": [
       0,
@@ -179,14 +179,14 @@
       16
     ],
     "matching_mse_max": 4.137758731842041,
-    "output": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-walk-81.webp",
+    "output": "/Users/jin/dev/sprute-2/assets/sprute-v2-walk-81.webp",
     "bytes": 2890678,
     "decoded_frames": 81,
     "duration_ms": 3375,
     "source_sha256": "53d87d50ff78268c9136bf3fb0b5be552ab3593442fc5285676dacfbe96d4b27"
   },
   "run": {
-    "source": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-run-81.mp4",
+    "source": "/Users/jin/dev/sprute-2/assets/sprute-v2-run-81.mp4",
     "original_rgba": "/Users/jin/dev/sprute/experiments/477-white-driver/render-white/cells",
     "frame_indices": [
       0,
@@ -272,7 +272,7 @@
       0
     ],
     "matching_mse_max": 4.127685546875,
-    "output": "/Users/jin/dev/sprute-2/workflows/assets/sprute-v2-run-81.webp",
+    "output": "/Users/jin/dev/sprute-2/assets/sprute-v2-run-81.webp",
     "bytes": 2799486,
     "decoded_frames": 81,
     "duration_ms": 3375,

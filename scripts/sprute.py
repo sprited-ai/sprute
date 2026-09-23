@@ -8,12 +8,14 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import shutil
+import tempfile
 
-import sprute_models as models
-from sprute_media import prepare_animation
+from sprute_lib import models
+from sprute_lib.media import ORDER, prepare_animation, validate_animation_request
 
 HERE = Path(__file__).resolve().parent
-ASSETS = HERE.parent/'workflows/assets'
+ASSETS = HERE.parent/'assets'
 TURN_PROMPT = ('A 360-degree turning and circling video of a 2D RPG game character. '
     'Pixel Art. Game Sprite. Full-body long shot with a plain gray background. '
     'The character stands upright with arms resting beside the body and rotates in place '
@@ -26,14 +28,43 @@ NEGATIVE = ('3D, maya, render, blender, photorealistic, glossy plastic, sculpted
     'cropped feet, outfit change, extra limbs, text, scene change, dithering')
 
 
-def record_file(path):
+def fingerprint_input(path):
+    """Fingerprint a file or an ordered PNG sequence for resume validation."""
     path = Path(path).resolve(strict=True)
     if path.is_dir():
         files = sorted(path.glob('*.png'))
         if not files:
             raise ValueError(f'No PNG frames in {path}')
-        return [record_file(p) for p in files]
-    return dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+        return [fingerprint_input(p) for p in files]
+    digest = hashlib.sha256()
+    with path.open('rb') as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return dict(path=str(path), sha256=digest.hexdigest())
+
+
+def verify_outputs(stage, out, job):
+    """A completion marker alone is not proof that the usable outputs remain."""
+    out = Path(out)
+    if stage == 'generate':
+        expected = ['reference.png']
+    elif stage == 'turntable':
+        expected = ['standing.png', 'turntable.webp', *[f'{d}.png' for d in ORDER]]
+    elif stage == 'animate':
+        info = json.loads((Path(job['prepared'])/'segments.json').read_text())
+        expected = ['animation-rgb.webp', *[f'frames/{i:05d}.png' for i in range(info['frames'])]]
+    else:
+        info = json.loads(Path(job['segments']).read_text())
+        expected = ['animation.json']
+        for segment in info['segments']:
+            state = segment['state']
+            expected.extend(f'{state}/{d}.webp' for d in [*ORDER, 'horizontal'])
+            expected.extend(f'{state}/{d}/{i:05d}.png'
+                            for d in ORDER for i in range(segment['count']))
+    for name in expected:
+        path = out/name
+        if not path.is_file() or path.stat().st_size == 0:
+            raise FileNotFoundError(f'Output missing or empty: {path}; use a new --out')
 
 
 def run_worker(args, stage, out, **settings):
@@ -44,15 +75,15 @@ def run_worker(args, stage, out, **settings):
     job['model_paths'] = {n: str((args.models/n).resolve()) for n in models.STAGES[key]}
     job['source_revisions'] = models.SOURCES
     job['implementation_sha256'] = {
-        name: hashlib.sha256((HERE/name).read_bytes()).hexdigest()
-        for name in ('sprute_inference.py', 'sprute_media.py', 'sprute_attention.py', 'sprute_loading.py', 'sprute_fp8.py')}
-    for name in ('template', 'image', 'video', 'segments'):
-        if name in job:
+        name: hashlib.sha256((HERE/'sprute_lib'/name).read_bytes()).hexdigest()
+        for name in ('inference.py', 'media.py', 'attention.py', 'loading.py', 'fp8.py', 'umt5.py')}
+    for name in ('template', 'image', 'video', 'segments', 'text_encoder_fp8'):
+        if job.get(name) is not None:
             job[name] = str(Path(job[name]).resolve(strict=True))
-            job[name+'_record'] = record_file(job[name])
+            job[name+'_record'] = fingerprint_input(job[name])
     if 'prepared' in job:
         job['prepared'] = str(Path(job['prepared']).resolve(strict=True))
-        job['prepared_record'] = {p.name: record_file(p) for p in sorted(Path(job['prepared']).iterdir())}
+        job['prepared_record'] = {p.name: fingerprint_input(p) for p in sorted(Path(job['prepared']).iterdir())}
     job = json.loads(json.dumps(job))
     dest = out/'job.json'
     if out.exists() and any(out.iterdir()):
@@ -61,10 +92,7 @@ def run_worker(args, stage, out, **settings):
         if not dest.exists() or json.loads(dest.read_text()) != job:
             raise ValueError(f'{out}: settings/inputs changed; use a new output directory')
         if (out/'complete.json').exists():
-            expected = {'generate': 'reference.png', 'turntable': 'standing.png',
-                        'animate': 'frames/00000.png', 'export': 'animation.json'}[stage]
-            if not (out/expected).exists():
-                raise FileNotFoundError(f'Completion marker exists but {expected} is missing; use a new --out')
+            verify_outputs(stage, out, job)
             print(f'Already complete: {out}')
             return out
     models.require(args.models, key)
@@ -75,7 +103,9 @@ def run_worker(args, stage, out, **settings):
         return out
     env = dict(os.environ, HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
     # No shell interpolation; preserve prompts and paths verbatim.
-    subprocess.run([sys.executable, str(HERE/'sprute_inference.py'), str(dest)], check=True, env=env)
+    subprocess.run([sys.executable, '-m', 'sprute_lib.inference', str(dest)],
+                   cwd=HERE, check=True, env=env)
+    verify_outputs(stage, out, job)
     (out/'complete.json').write_text(json.dumps(dict(completed=datetime.now(timezone.utc).isoformat())))
     return out
 
@@ -94,32 +124,67 @@ def turntable(args):
 
 def animate(args):
     states = [s.strip() for s in args.states.split(',')]
+    validate_animation_request(args.manifest, states, args.size)
     output = args.out.resolve()
     # Bind prepared artifacts to inputs; never silently reuse masks from another standing strip.
     prepared = output/'prepared'
-    preparation = dict(standing=record_file(args.standing), driver=record_file(args.driver),
-        manifest=record_file(args.manifest), states=states, size=args.size, replacement=args.replace)
+    preparation = dict(standing=fingerprint_input(args.standing), driver=fingerprint_input(args.driver),
+        manifest=fingerprint_input(args.manifest), states=states, size=args.size, replacement=args.replace)
     lock = output/'inputs.json'
     if output.exists() and any(output.iterdir()):
         if not args.resume or not lock.exists() or json.loads(lock.read_text()) != preparation:
             raise ValueError('Animation output already exists or inputs changed; choose a new --out')
-    output.mkdir(parents=True, exist_ok=True)
-    lock.write_text(json.dumps(preparation, indent=2))
     if not (prepared/'segments.json').exists():
         prepare_animation(args.standing, args.driver, args.manifest, states,
                           prepared, args.size, args.replace)
+    lock.write_text(json.dumps(preparation, indent=2))
     if args.prepare_only:
         print(prepared)
         return
     run_worker(args, 'animate', output/'inference', prepared=str(prepared),
-               prompt=args.prompt, steps=args.steps, seed=args.seed)
+               prompt=args.prompt, steps=args.steps, seed=args.seed,
+               precision=args.precision,
+               text_encoder_fp8=str(args.text_encoder_fp8) if args.text_encoder_fp8 else None)
     if not args.dry_run:
         run_worker(args, 'export', output/'animations', video=str(output/'inference/frames'),
                    segments=str(prepared/'segments.json'), quality=args.quality)
 
 
 def run(args):
-    """One command, still separate processes and resumable stage directories."""
+    """Keep implementation artifacts outside the user's final output by default."""
+    validate_animation_request(args.manifest, [s.strip() for s in args.states.split(',')], args.size)
+    if args.keep_intermediates or args.dry_run:
+        return run_pipeline(args)
+    if args.resume:
+        raise ValueError('--resume requires --keep-intermediates; temporary runs do not retain checkpoints')
+    output = args.out.resolve()
+    if output.exists():
+        raise FileExistsError(f'{output} already exists; choose a new --out')
+    with tempfile.TemporaryDirectory(prefix='sprute-') as temp:
+        work = Path(temp)/'work'
+        run_pipeline(argparse.Namespace(**{**vars(args), 'out': work}))
+        final = Path(temp)/'final'
+        final.mkdir()
+        reference = Path(args.image) if args.image else work/'reference/reference.png'
+        shutil.copy2(reference, final/'reference.png')
+        shutil.copy2(work/'standing/standing.png', final/'standing.png')
+        animations = work/'motion/animations'
+        manifest = json.loads((animations/'animation.json').read_text())
+        for segment in manifest['segments']:
+            state = segment['state']
+            (final/state).mkdir()
+            for direction in [*ORDER, 'horizontal']:
+                shutil.copy2(animations/state/f'{direction}.webp', final/state/f'{direction}.webp')
+        manifest.update(seed=args.seed, prompt=args.prompt, turntable_size=args.turntable_size,
+                        turntable_precision=args.turntable_precision, steps=args.steps)
+        (final/'manifest.json').write_text(json.dumps(manifest, indent=2))
+        output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(final, output)
+    print(f'Saved character: {output}')
+
+
+def run_pipeline(args):
+    """Internal stages; also available persistently for debugging and resuming."""
     needed = ['turntable', 'animate'] + ([] if args.image else ['generate'])
     for stage in needed:
         models.require(args.models, stage)
@@ -181,6 +246,10 @@ def parser():
     t.add_argument('--size', type=int, choices=[256, 512, 640, 768], default=256)
     t.add_argument('--precision', choices=['bf16', 'fp8'], default='bf16')
     def motion_options(a):
+        a.add_argument('--precision', choices=['bf16', 'fp8'], default='bf16',
+                       help='SCAIL2 linear-layer precision (FP8 is experimental)')
+        a.add_argument('--text-encoder-fp8', type=Path,
+                       help='Existing scaled-FP8 UMT5 checkpoint for SCAIL2')
         a.add_argument('--states', default='idle,walk,run')
         a.add_argument('--driver', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.webp')
         a.add_argument('--manifest', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.json')
@@ -194,6 +263,8 @@ def parser():
     a.add_argument('--prompt', default='')
     a.add_argument('--prepare-only', action='store_true', help='Build driver/reference/masks without GPU or weights')
     r = execution('run', 'End-to-end: prompt/reference -> standing -> idle/walk/run')
+    r.add_argument('--keep-intermediates', action='store_true',
+                   help='Keep stage directories in --out for inspection and --resume')
     motion_options(r)
     r.add_argument('--image', type=Path, help='Already prepared full-body character; skips FLUX')
     r.add_argument('--prompt', default='pixelated retro pixel art cute NPC character')
@@ -240,7 +311,7 @@ def main():
             raise RuntimeError('CUDA is unavailable; preprocessing works on CPU, inference needs CUDA')
         models.require(args.models, args.stage)
         if args.stage in ('animate', 'turntable'):
-            from sprute_inference import import_wan
+            from sprute_lib.inference import import_wan
             import_wan(args.models, 'scail2' if args.stage == 'animate' else 'anisora')
         print('Dependencies and model paths present. This is not an inference/parity test.')
     elif args.command == 'export':

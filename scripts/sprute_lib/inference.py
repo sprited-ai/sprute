@@ -11,7 +11,7 @@ import time
 import logging
 
 from PIL import Image, ImageFilter, ImageOps
-from sprute_media import (ORDER, cut_grid, gray, pad, read_frames, save_frames, strip, webp)
+from sprute_lib.media import (ORDER, cut_grid, gray, pad, read_frames, save_frames, strip, webp)
 
 
 def tensor_frames(video):
@@ -122,16 +122,21 @@ def import_wan(models, name):
         source = source/'anisoraV3.2'
     sys.path.insert(0, str(source))
     import wan
-    from sprute_attention import install_if_needed
+    from sprute_lib.attention import install_if_needed
     print('Attention backend:', install_if_needed(), flush=True)
     return wan, source
 
 
 def turntable(job, models, out):
     import torch
+    if job.get('precision') == 'fp8':
+        from sprute_lib.fp8 import check_fp8_backend
+        check_fp8_backend('cuda')
+        if not (models/'anisora/scaled-fp8.json').is_file():
+            raise ValueError('FP8 turntable requires the linked scaled-FP8 AniSora layout')
     wan, _ = import_wan(models, 'anisora')
     cfg = copy.deepcopy(wan.configs.WAN_CONFIGS['i2v-A14B'])
-    from sprute_loading import linked_anisora
+    from sprute_lib.loading import linked_anisora
     with linked_anisora(sys.modules[wan.WanI2V.__module__],
                         (models/'anisora/scaled-fp8.json').is_file(),
                         precision=job.get('precision', 'bf16')):
@@ -180,15 +185,25 @@ def animate(job, models, out):
     cfg.vae_checkpoint = str(aux/'Wan2.1_VAE.pth')
     cfg.clip_checkpoint = str(aux/'models_clip_open-clip-xlm-roberta-large-vit-huge-14-onlyvisual.pth')
     cfg.clip_tokenizer = str(models/'xlm_tokenizer')
-    from sprute_loading import low_memory_scail
+    from sprute_lib.loading import low_memory_scail
+    from sprute_lib.umt5 import linked_text_encoder
     import wan.scail as scail_module
+    text_checkpoint = job.get('text_encoder_fp8')
+    if text_checkpoint:
+        from sprute_lib.fp8 import check_fp8_backend
+        check_fp8_backend('cuda')
     logging.info('Loading native SCAIL2: T5, VAE, CLIP, then diffusion weights')
-    with low_memory_scail(scail_module):
+    with low_memory_scail(scail_module), linked_text_encoder(scail_module, text_checkpoint):
         pipe = wan.SCAIL2Pipeline(config=cfg, checkpoint_dir=str(aux),
             scail_safetensors_path=str(models/'scail_model'),
-            scail_config_path=str(source/'configs/config-14b.json'), t5_cpu=True,
+            scail_config_path=str(source/'configs/config-14b.json'), t5_cpu=not bool(text_checkpoint),
             lora_path=str(models/'dpo'), lora_alpha=1.0)
     pipe.fuse_lora(str(models/'lightx2v'), 0.8)
+    if job.get('precision') == 'fp8':
+        from sprute_lib.fp8 import check_fp8_backend, quantize_linears
+        check_fp8_backend('cuda')
+        count = quantize_linears(pipe.model)
+        logging.info('SCAIL2: quantized %d linear layers to FP8 after LoRA fusion', count)
     def tensor(image):
         return torch.from_numpy(np.array(image.convert('RGB')).copy()).permute(2,0,1).float()/127.5-1
     prepared = Path(job['prepared'])

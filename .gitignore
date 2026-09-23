@@ -13,3 +13,4 @@ outdated/
 /deleted
 /models/*
 !/models/README.md
+*.scratch.*

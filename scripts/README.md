@@ -4,6 +4,17 @@ These scripts implement the demo's recipe **without ComfyUI installed or running
 They do not import Comfy nodes or call its HTTP API. Keep using Comfy for recipe
 experiments; these scripts are a separate native execution path.
 
+## Source layout
+
+`scripts/sprute.py` is the CLI entry point. Internal modules live in
+`scripts/sprute_lib/`; tests live in the project-level `tests/` directory.
+Shared templates and driving videos live in `assets/`. Run tests with
+`python -m unittest discover -s tests` from the project root.
+
+Workers run as `python -m sprute_lib.inference` from the scripts directory;
+the CLI sets this working directory itself, so callers can launch the CLI
+from any directory using an absolute script path.
+
 ## Install (uv, Python 3.12; Linux + NVIDIA CUDA for inference)
 
 ```bash
@@ -47,6 +58,14 @@ A freeform portrait is not automatically converted to a correct full-body refere
 
 ## Individual stages
 
+For the linked KJ AniSora FP8 checkpoints, add `--precision fp8` to `turntable`
+or `--turntable-precision fp8` to `run`. This uses actual FP8 linear kernels;
+BF16 remains the default. The backend probes kernel support before loading models.
+On gin, the same 256×256, 81-frame, seed-42 turntable completed in 68s with
+17.1 GiB peak PyTorch allocated memory, compared with 86s / 29.6 GiB for the
+BF16-expanded checkpoint. This includes loading and ToonOut/export, and is one
+run per setting, not a general speed guarantee. It does not change SCAIL2 precision.
+
 ```bash
 python scripts/sprute.py generate \
   --prompt "pixel art NPC, a knight with a green cape" --out out/hero-reference
@@ -60,12 +79,12 @@ python scripts/sprute.py animate \
 
 # Inspect all driver/reference/mask inputs without GPU inference:
 python scripts/sprute.py animate \
-  --standing workflows/assets/sprute-v2-standing-example.png \
+  --standing assets/sprute-v2-standing-example.png \
   --out out/inspect --prepare-only
 
 # Continue prepared or interrupted jobs with unchanged inputs:
 python scripts/sprute.py animate \
-  --standing workflows/assets/sprute-v2-standing-example.png \
+  --standing assets/sprute-v2-standing-example.png \
   --out out/inspect --resume
 ```
 
@@ -123,7 +142,7 @@ python scripts/sprute.py export \
 ## Validation and known differences
 
 - CPU checks cover direction mapping, state boundaries, temporal padding, mask
-  polarity, and SDPA ignoring padded keys. Run `python -m unittest discover -s scripts`.
+  polarity, and SDPA ignoring padded keys. Run `python -m unittest discover -s tests`.
 - Native ToonOut and 768×768 SCAIL2 idle/walk/run export completed on gin.
   That animation run took 366 seconds including loading/export, with a sampled
   device peak of 49.0 GiB. These measurements are for the RTX PRO 6000 test host.

@@ -80,30 +80,38 @@ def colored_mask(rgba, replacement=False, reference=False):
     out.paste((0, 0, 255), mask=alpha)
     return out
 
-def prepare_animation(standing, driver, manifest_path, states, out, size=768, replacement=False):
+def validate_animation_request(manifest_path, states, size):
     if size <= 0 or size % 96:
         raise ValueError('Grid resolution must divide by 32 (SCAIL) and 3 (equal cells), e.g. 480 or 768')
     manifest = json.loads(Path(manifest_path).read_text())
-    source = read_frames(driver)
-    if len(source) != manifest['frames']:
-        raise ValueError(f'Driver has {len(source)} frames, manifest says {manifest["frames"]}')
     if len(states) != len(set(states)) or not states:
         raise ValueError('Choose distinct states')
     segments = {s['state']: s for s in manifest['segments']}
-    selected, boundaries = [], []
     for state in states:
         if state not in segments:
-            raise ValueError(f'Unknown state: {state}')
+            raise ValueError(f'Unknown state: {state!r}; choose from {", ".join(segments)}')
+        segment = segments[state]
+        if not 0 <= segment['start_frame'] < segment['end_frame_exclusive'] <= manifest['frames']:
+            raise ValueError('Invalid driver segment bounds')
+    return manifest
+
+
+def prepare_animation(standing, driver, manifest_path, states, out, size=768, replacement=False):
+    manifest = validate_animation_request(manifest_path, states, size)
+    source = read_frames(driver)
+    if len(source) != manifest['frames']:
+        raise ValueError(f'Driver has {len(source)} frames, manifest says {manifest["frames"]}')
+    segments = {s['state']: s for s in manifest['segments']}
+    selected, boundaries = [], []
+    for state in states:
         s = segments[state]
         a, b = s['start_frame'], s['end_frame_exclusive']
-        if not 0 <= a < b <= len(source):
-            raise ValueError('Invalid driver segment bounds')
         start = len(selected)
         selected.extend(source[a:b])
         boundaries.append(dict(state=state, start=start, count=b-a))
     out = Path(out)
-    out.mkdir(parents=True, exist_ok=True)
     ref = reference_grid(standing, size)
+    out.mkdir(parents=True, exist_ok=True)
     gray(ref).save(out/'reference.png')
     colored_mask(ref, replacement, reference=True).save(out/'reference-mask.png')
     rgb, masks = [], []
