@@ -11,3 +11,5 @@ tmp/
 outputs/
 outdated/
 /deleted
+/models/*
+!/models/README.md
