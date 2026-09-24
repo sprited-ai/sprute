@@ -11,6 +11,7 @@ from importlib.metadata import PackageNotFoundError, version
 import json
 from tempfile import TemporaryDirectory
 from sprute.comfy import custom_nodes_path, run_workflow
+from sprute.models import download_model
 
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
