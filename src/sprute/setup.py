@@ -2,7 +2,7 @@ from pathlib import Path
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
-from time import sleep
+from time import perf_counter
 from collections import deque
 import shutil
 import subprocess
@@ -96,9 +96,7 @@ def setup(
     )
     if device != "cuda":
         nvidia_smi = shutil.which("nvidia-smi")
-        if nvidia_smi is None:
-            report("log", "nvidia-smi unavailable; NVIDIA GPU presence could not be checked.")
-        else:
+        if nvidia_smi is not None:
             try:
                 probe = subprocess.run(
                     [nvidia_smi, "--query-gpu=name", "--format=csv,noheader"],
@@ -126,18 +124,69 @@ def setup(
                     )
                 else:
                     report("log", "nvidia-smi returned no GPU names; no NVIDIA GPU confirmed.")
-    a = torch.ones((256, 256), device=device)
-    result = (a @ a).cpu()
-    torch.testing.assert_close(
-        result,
-        torch.full((256,256), 256.0),
-    )
     report(
         "completed",
         f"PyTorch {torch.__version__}",
     )
-    report("completed", f"Device: {device}")
-    report("completed", "Matrix multiplication passed")
+    if device == "cuda":
+        name = torch.cuda.get_device_name()
+        free, total = torch.cuda.mem_get_info()
+        report("completed", f"Device: cuda · {name}")
+        report(
+            "completed",
+            f"VRAM: {total / 1024**3:.1f} GiB total"
+            f" · {free / 1024**3:.1f} GiB free",
+        )
+    else:
+        report("completed", f"Device: {device}")
+    matrix_size = 2048
+    iterations = 20
+
+    def synchronize() -> None:
+        if device == "cuda":
+            torch.cuda.synchronize()
+        elif device == "mps":
+            torch.mps.synchronize()
+
+    for label, dtype in (
+        ("FP32", torch.float32),
+        ("FP16", torch.float16),
+        ("BF16", torch.bfloat16),
+    ):
+        report("started", f"Testing {label} matrix multiplication")
+        try:
+            a = torch.ones((matrix_size, matrix_size), device=device, dtype=dtype)
+            for _ in range(5):
+                result = a @ a
+            synchronize()
+
+            started = perf_counter()
+            for _ in range(iterations):
+                result = a @ a
+            synchronize()
+            average_ms = (perf_counter() - started) * 1000 / iterations
+        except (RuntimeError, TypeError, NotImplementedError) as error:
+            # Unsupported dtype/backend combinations may be skipped; other
+            # failures (including out-of-memory) must remain setup errors.
+            message = str(error).lower()
+            if not any(term in message for term in (
+                "not implemented", "not supported", "does not support", "unsupported",
+            )):
+                raise
+            report("warning", f"{label} unavailable on {device}: {error}")
+            continue
+
+        # The same all-ones input has an exact, representable result in all
+        # three dtypes. assert_close uses dtype-specific default tolerances.
+        torch.testing.assert_close(
+            result.cpu(),
+            torch.full((matrix_size, matrix_size), float(matrix_size), dtype=dtype),
+        )
+        report(
+            "completed",
+            f"Matrix Multiplication ({label}): {average_ms:.2f} ms",
+        )
+        del a, result
     # 3. Try to run ComfyUI
     report("started", "Testing ComfyUI workflow")
     workflow = {
