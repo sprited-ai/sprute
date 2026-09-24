@@ -11,7 +11,6 @@ from importlib.metadata import PackageNotFoundError, version
 import json
 from tempfile import TemporaryDirectory
 from sprute.comfy import custom_nodes_path, run_workflow
-from sprute.models import download_model
 
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
@@ -43,6 +42,8 @@ class SetupEvent:
     state: Literal["started", "completed", "log", "warning"]
     message: str
 
+Reporter = Callable[[Literal["started", "completed", "log", "warning"], str], None]
+
 def setup(
     *,
     on_event: Callable[[SetupEvent], None] | None = None,
@@ -55,48 +56,14 @@ def setup(
         if on_event is not None:
             on_event(SetupEvent(state, message))
 
-    def run(
-        command: list[str],
-        *,
-        cwd: Path | None = None
-    ) -> None:
-        recent_logs: deque[str] = deque(maxlen=20)
-        with subprocess.Popen(
-            command,
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            bufsize=1,
-        ) as process:
-            assert process.stdout is not None
-            try:
-                for line in process.stdout:
-                    message = line.rstrip("\r\n")
-                    recent_logs.append(message)
-                    report("log", message)
-
-                returncode = process.wait()
-            except BaseException:
-                process.terminate()
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait()
-                raise
-
-        if returncode != 0:
-            raise RuntimeError(
-                f"{command[0]} failed ({returncode}):\n"
-                + "\n".join(recent_logs)
-            )
-    # 0. Python
     report("completed", f"Python {sys.version.split()[0]}")
+    setup_comfy(report=report, reinstall=reinstall)
+    setup_custom_nodes(report=report, reinstall=reinstall)
+    check_torch(report=report)
+    check_comfy_workflow(report=report)
 
-    # 1. Setup ComfyUI
+
+def setup_comfy(*, report: Reporter, reinstall: bool = False) -> None:
     if is_installed("comfyui") and not reinstall:
         report("completed", f"ComfyUI {version('comfyui')}")
     else:
@@ -141,11 +108,12 @@ def setup(
             raise RuntimeError(f"ComfyUI installation failed:\n{details}")
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
 
+
+def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
     node_directory = custom_nodes_path()
     node_directory.mkdir(parents=True, exist_ok=True)
     report("log", f"Custom nodes: {node_directory}")
 
-    # 2. Custom Nodes
     report("started", "Installing ComfyUI custom nodes")
     for name, node in CUSTOM_NODES.items():
         destination = node_directory / name
@@ -172,10 +140,11 @@ def setup(
 
         report("log", f"Preparing {name}")
         if not destination.exists():
-            run(["git", "init", str(destination)])
+            run(["git", "init", str(destination)], report=report)
             run(
                 ["git", "remote", "add", "origin", node["repository"]],
                 cwd=destination,
+                report=report,
             )
         elif not (destination / ".git").is_dir():
             raise RuntimeError(
@@ -188,10 +157,12 @@ def setup(
             run(
                 ["git", "fetch", "--depth", "1", "origin", revision],
                 cwd=destination,
+                report=report,
             )
             run(
                 ["git", "checkout", "--detach", revision],
                 cwd=destination,
+                report=report,
             )
         requirements = destination / "requirements.txt"
         if requirements.is_file():
@@ -202,11 +173,14 @@ def setup(
                     "--progress-bar", "off", "-r", str(requirements),
                 ],
                 cwd=destination,
+                report=report,
             )
         installed.write_text(revision + "\n")
         report("log", f"{name} installed")
     report("completed", "ComfyUI custom nodes installed")
-    # 2. Test Torch and GPU
+
+
+def check_torch(*, report: Reporter) -> None:
     report("started", "Testing PyTorch and GPU")
     import warnings
     warnings.filterwarnings(
@@ -326,7 +300,9 @@ def setup(
             f"Matrix Multiplication ({label}): {average_ms:.2f} ms",
         )
         del a, result
-    # 3. Try to run ComfyUI
+
+
+def check_comfy_workflow(*, report: Reporter) -> None:
     report("started", "Testing ComfyUI workflow")
     workflow = {
         "1": {
@@ -377,6 +353,47 @@ def setup(
                     "expected PNG (128, 64)"
                 )
     report("completed", "ComfyUI workflow verified")
+
+
+def run(
+    command: list[str],
+    *,
+    report: Reporter,
+    cwd: Path | None = None
+) -> None:
+    recent_logs: deque[str] = deque(maxlen=20)
+    with subprocess.Popen(
+        command,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+    ) as process:
+        assert process.stdout is not None
+        try:
+            for line in process.stdout:
+                message = line.rstrip("\r\n")
+                recent_logs.append(message)
+                report("log", message)
+
+            returncode = process.wait()
+        except BaseException:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            raise
+
+    if returncode != 0:
+        raise RuntimeError(
+            f"{command[0]} failed ({returncode}):\n"
+            + "\n".join(recent_logs)
+        )
 
 def is_installed(package: str) -> bool:
     try:
