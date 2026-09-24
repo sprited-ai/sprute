@@ -11,6 +11,7 @@ from importlib.metadata import PackageNotFoundError, version
 import json
 from tempfile import TemporaryDirectory
 from sprute.comfy import custom_nodes_path, run_workflow
+from sprute.models import MODELS, check_download_space, download_model, find_local_model, plan_model_downloads
 
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
@@ -39,14 +40,14 @@ CUSTOM_NODES = {
 
 @dataclass(frozen=True)
 class SetupEvent:
-    state: Literal["started", "completed", "log", "warning"]
+    state: Literal["started", "completed", "progress", "log", "warning"]
     message: str
     timed: bool = False
 
 class Reporter(Protocol):
     def __call__(
         self,
-        state: Literal["started", "completed", "log", "warning"],
+        state: Literal["started", "completed", "progress", "log", "warning"],
         message: str,
         *,
         timed: bool = False,
@@ -56,9 +57,14 @@ def setup(
     *,
     on_event: Callable[[SetupEvent], None] | None = None,
     reinstall: bool = False,
+    model_dirs: tuple[Path, ...] = (),
 ) -> None:
+    model_dirs = tuple(path.expanduser().resolve() for path in model_dirs)
+    for path in model_dirs:
+        if path.exists() and not path.is_dir():
+            raise NotADirectoryError(f"Model directory is not a directory: {path}")
     def report(
-        state: Literal["started", "completed", "log", "warning"],
+        state: Literal["started", "completed", "progress", "log", "warning"],
         message: str,
         *,
         timed: bool = False,
@@ -69,8 +75,64 @@ def setup(
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)
     setup_custom_nodes(report=report, reinstall=reinstall)
+    setup_models(report=report, models_dir=model_dirs[0] if model_dirs else Path("models"), search_dirs=model_dirs)
     check_torch(report=report)
     check_comfy_workflow(report=report)
+
+
+def setup_models(*, report: Reporter, models_dir: Path = Path("models"), search_dirs: tuple[Path, ...] = ()) -> None:
+    report("started", "Downloading models · checking estimated size", timed=True)
+    search_dirs = search_dirs or (models_dir,)
+    plan = plan_model_downloads(MODELS)
+    sizes = {name: info.file_size for name, info in plan.items()}
+    local = {
+        name: find_local_model(MODELS[name], search_dirs, size)
+        for name, size in sizes.items() if size is not None
+    }
+    remaining = sum(size for name, size in sizes.items() if not local[name] and size is not None)
+    check_download_space(remaining, models_dir)
+    report(
+        "progress",
+        f"Downloading models · 0/{len(MODELS)} files ready"
+        f" · {remaining / 1_000_000_000:.2f} GB remaining",
+    )
+    for index, (name, model) in enumerate(MODELS.items(), start=1):
+        size = sizes[name]
+        assert size is not None  # Validated by plan_model_downloads.
+        def on_progress(received: int) -> None:
+            pending = remaining - min(size, max(0, received)) if not local[name] else remaining
+            report(
+                "progress",
+                f"Downloading models · {index - 1}/{len(MODELS)} files ready"
+                f" · {pending / 1_000_000_000:.2f} GB remaining",
+            )
+        report(
+            "log",
+            f"[{index}/{len(MODELS)}] Preparing {name} · {size / 1_000_000:.1f} MB",
+        )
+        try:
+            if local[name]:
+                destination = local[name]
+                report("log", f"Reusing {name}: {local[name]}")
+            else:
+                destination = download_model(
+                    repo_id=model["repo_id"],
+                    filename=model["filename"],
+                    revision=model["revision"],
+                    destination=models_dir / model["destination"],
+                    on_progress=on_progress,
+                )
+        except Exception as error:
+            raise RuntimeError(f"Could not prepare model {name}: {error}") from error
+        report("log", f"{name} ready: {destination}")
+        if not local[name]:
+            remaining -= size
+        report(
+            "progress",
+            f"Downloading models · {index}/{len(MODELS)} files ready"
+            f" · {remaining / 1_000_000_000:.2f} GB remaining",
+        )
+    report("completed", f"Models ready ({len(MODELS)} files)")
 
 def setup_comfy(*, report: Reporter, reinstall: bool = False) -> None:
     if is_installed("comfyui") and not reinstall:

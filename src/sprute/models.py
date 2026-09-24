@@ -1,5 +1,9 @@
 from pathlib import Path
-from huggingface_hub import hf_hub_download
+from collections.abc import Callable
+import shutil
+from time import monotonic
+from huggingface_hub import DryRunFileInfo, hf_hub_download
+from huggingface_hub.utils import tqdm
 
 MODELS = {
     # Generate: FLUX
@@ -115,29 +119,102 @@ MODELS = {
     },
 }
 
+def plan_model_downloads(
+    models: dict[str, dict[str, str]],
+) -> dict[str, DryRunFileInfo]:
+    """Ask HF for file sizes and cache status without downloading weights."""
+    plan = {}
+    for name, model in models.items():
+        try:
+            info = hf_hub_download(
+                repo_id=model["repo_id"],
+                filename=model["filename"],
+                revision=model["revision"],
+                dry_run=True,
+            )
+        except Exception as error:
+            raise RuntimeError(f"Could not check model {name}: {error}") from error
+        if not isinstance(info, DryRunFileInfo) or info.file_size is None:
+            raise RuntimeError(f"File size unavailable for model {name}")
+        plan[name] = info
+    return plan
+
+
+def find_local_model(model: dict[str, str], directories: tuple[Path, ...], size: int) -> Path | None:
+    """Prefer exact Comfy paths; search nested weight folders by filename and size."""
+    relative = Path(model["destination"])
+    for directory in directories:
+        candidates = [directory / relative, directory / relative.name]
+        # Don't match unrelated config.json or Python files in other model folders.
+        if relative.suffix == ".safetensors":
+            candidates.extend(sorted(directory.rglob(relative.name)))
+        for candidate in candidates:
+            if candidate.is_file() and candidate.stat().st_size == size:
+                return candidate.resolve()
+    return None
+
+
+def check_download_space(required: int, directory: Path) -> None:
+    """Check the destination disk, leaving at least 1 GB or 5% headroom."""
+    if required == 0:
+        return
+    cache = directory.expanduser().resolve()
+    existing = cache
+    while not existing.exists():
+        existing = existing.parent
+    available = shutil.disk_usage(existing).free
+    reserve = max(1_000_000_000, required // 20)
+    if available < required + reserve:
+        raise RuntimeError(
+            f"Insufficient disk space for model directory ({cache}): "
+            f"{required / 1e9:.2f} GB required + {reserve / 1e9:.2f} GB reserve "
+            f"· {available / 1e9:.2f} GB available"
+        )
+
+
 def download_model(
     repo_id: str,
     filename: str,
     *,
     revision: str,
     destination: Path,
+    on_progress: Callable[[int], None] | None = None,
 ) -> Path:
+    class DownloadProgress(tqdm):
+        def __init__(self, *args, **kwargs):
+            kwargs["disable"] = True
+            super().__init__(*args, **kwargs)
+            self.received = kwargs.get("initial", 0)
+            self.last_report = 0.0
+
+        def update(self, n=1):
+            self.received += n
+            now = monotonic()
+            if on_progress and now - self.last_report >= 0.25:
+                on_progress(self.received)
+                self.last_report = now
+
+        def update_transfer(self, n):
+            # Xet transfer bytes may differ from reconstructed file bytes.
+            pass
+
+    destination = destination.expanduser().absolute()
+    # Check before downloading: never overwrite a user's regular file.
+    if destination.exists() and not destination.is_symlink():
+        raise FileExistsError(f"Model file already exists: {destination}")
+
+    # HF preserves repository paths, so stage on the destination filesystem
+    # before moving into the Comfy category layout. Partial downloads can resume.
+    staging = destination.parent / ".downloads"
     cached = Path(
         hf_hub_download(
             repo_id=repo_id,
             filename=filename,
-            revision=revision
+            revision=revision,
+            tqdm_class=DownloadProgress if on_progress else None,
+            local_dir=staging,
         )
-    ).resolve()
-    destination = destination.expanduser().absolute()
+    ).resolve(strict=True)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.is_symlink():
-        if destination.resolve() == cached:
-            return destination
-        destination.unlink()
-    elif destination.exists():
-        raise FileExistsError(
-            f"Model file already exists: {destination}"
-        )
-    destination.symlink_to(cached)
+    cached.replace(destination)
     return destination

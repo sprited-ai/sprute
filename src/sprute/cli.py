@@ -23,6 +23,10 @@ def main():
 
 @app.command()
 def setup(
+    models_dir: list[Path] = typer.Option(
+        [], "--models-dir", file_okay=False,
+        help="Model directories to search. Downloads go to the first; default: ./models. Can be repeated.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     reinstall: bool = typer.Option(
         False, "--reinstall", help="Reinstall ComfyUI and its dependencies."
@@ -68,7 +72,7 @@ def setup(
                 message.append(f" · {elapsed}", style="dim")
             console.print(message, highlight=False)
         try:
-            _setup(on_event=print_event, reinstall=reinstall)
+            _setup(on_event=print_event, reinstall=reinstall, model_dirs=tuple(models_dir))
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
@@ -136,12 +140,14 @@ def setup(
                 event_duration(event)
                 current = event.message
                 recent_logs.clear()
+            elif event.state == "progress":
+                current = event.message
             else:
                 completed.append((event.message, event_duration(event)))
                 current = ""
             live.update(render())
         try:
-            _setup(on_event=on_event, reinstall=reinstall)
+            _setup(on_event=on_event, reinstall=reinstall, model_dirs=tuple(models_dir))
         except Exception as error:
             current = ""
             failure = str(error)
