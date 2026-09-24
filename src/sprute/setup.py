@@ -14,6 +14,28 @@ from sprute.comfy import custom_nodes_path, run_workflow
 
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
+CUSTOM_NODES = {
+    "ComfyUI-KJNodes": {
+        "repository": "https://github.com/kijai/ComfyUI-KJNodes.git",
+        "revision": "d3cfe21625e5170126ce06fbfcfe1d88108688c3",
+    },
+    "ComfyUI-RMBG": {
+        "repository": "https://github.com/kndlt/ComfyUI-RMBG.git",
+        "revision": "7f02fab3f33aee806002c9b349cc9ea763f4d2e7",
+    },
+    "comfyui-fitsize": {
+        "repository": "https://github.com/bronkula/comfyui-fitsize.git",
+        "revision": "dff0221df4859a6de4a7ef26d5a3900a153818e1",
+    },
+    "ComfyUI-Custom-Scripts": {
+        "repository": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git",
+        "revision": "609f3afaa74b2f88ef9ce8d939626065e3247469",
+    },
+    "ComfyUI-VideoHelperSuite": {
+        "repository": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git",
+        "revision": "4d907bee61e92c2e65af3bd6383a4e4d356126d1",
+    },
+}
 
 @dataclass(frozen=True)
 class SetupEvent:
@@ -32,6 +54,45 @@ def setup(
         if on_event is not None:
             on_event(SetupEvent(state, message))
 
+    def run(
+        command: list[str],
+        *,
+        cwd: Path | None = None
+    ) -> None:
+        recent_logs: deque[str] = deque(maxlen=20)
+        with subprocess.Popen(
+            command,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        ) as process:
+            assert process.stdout is not None
+            try:
+                for line in process.stdout:
+                    message = line.rstrip("\r\n")
+                    recent_logs.append(message)
+                    report("log", message)
+
+                returncode = process.wait()
+            except BaseException:
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                raise
+
+        if returncode != 0:
+            raise RuntimeError(
+                f"{command[0]} failed ({returncode}):\n"
+                + "\n".join(recent_logs)
+            )
+    # 0. Python
     report("completed", f"Python {sys.version.split()[0]}")
 
     # 1. Setup ComfyUI
@@ -83,6 +144,33 @@ def setup(
     node_directory.mkdir(parents=True, exist_ok=True)
     report("log", f"Custom nodes: {node_directory}")
 
+    # 2. Custom Nodes
+    report("started", "Installing ComfyUI custom nodes")
+    for name, node in CUSTOM_NODES.items():
+        report("log", f"Preparing {name}")
+        destination = node_directory / name
+        revision = node["revision"]
+        if not destination.exists():
+            run(["git", "init", str(destination)])
+            run(
+                ["git", "remote", "add", "origin", node["repository"]],
+                cwd=destination,
+            )
+        elif not (destination / ".git").is_dir():
+            raise RuntimeError(
+                f"{destination} exists but is not a Git checkout"
+            )
+
+        run(
+            ["git", "fetch", "--depth", "1", "origin", revision],
+            cwd=destination,
+        )
+        run(
+            ["git", "checkout", "--detach", revision],
+            cwd=destination,
+        )
+        report("log", f"{name} checkout ready")
+    report("completed", "ComfyUI custom nodes installed")
     # 2. Test Torch and GPU
     report("started", "Testing PyTorch and GPU")
     import warnings
