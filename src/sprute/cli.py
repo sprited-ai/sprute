@@ -30,7 +30,26 @@ def setup(
 ):
     """Install and check Sprute dependencies."""
     recent_logs: deque[str] = deque(maxlen=1)
-    started_at = monotonic()
+    setup_started_at = monotonic()
+    started_at = setup_started_at
+
+    def duration(seconds: float) -> str:
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        minutes, seconds = divmod(int(seconds), 60)
+        return f"{minutes}m {seconds:02d}s"
+
+    def event_duration(event: SetupEvent) -> str:
+        nonlocal started_at
+        if event.state == "started":
+            started_at = monotonic()
+        elif event.state == "completed":
+            now = monotonic()
+            elapsed = duration(now - started_at)
+            started_at = now
+            return elapsed
+        return ""
+
     def print_log(message: str) -> None:
         console.print(
             Text.from_ansi(message),
@@ -43,27 +62,31 @@ def setup(
             if event.state == "warning":
                 console.print(Text(f"Warning: {event.message}", style="yellow"))
                 return
-            print_log(event.message)
+            elapsed = event_duration(event)
+            message = Text.from_ansi(event.message)
+            if elapsed:
+                message.append(f" · {elapsed}", style="dim")
+            console.print(message, highlight=False)
         try:
             _setup(on_event=print_event, reinstall=reinstall)
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
+        console.print(f"Setup completed in {duration(monotonic() - setup_started_at)}", style="dim")
         return
 
-    completed: list[str] = []
+    completed: list[tuple[str, str]] = []
     warnings: list[str] = []
     current = ""
     failure: str | None = None
     spinner = Spinner("dots", style="cyan")
     def render () -> Panel:
-        content = Text()
-        for message in completed:
-            if content.plain:
-                content.append("\n")
-            content.append("✓ ", style="green")
-            content.append(message)
-        parts: list[RenderableType] = [content] if completed else []
+        parts: list[RenderableType] = []
+        for message, elapsed in completed:
+            label = Text("✓ ", style="green")
+            label.append(message, style="default")
+            label.append(f" · {elapsed}", style="dim")
+            parts.append(label)
         for message in warnings:
             parts.append(Text(f"⚠ {message}", style="yellow"))
         if failure is not None:
@@ -71,11 +94,10 @@ def setup(
             error_text.append(failure, style="default")
             parts.append(error_text)
         elif current:
-            elapsed = int(monotonic() - started_at)
-            minutes, seconds = divmod(elapsed, 60)
-            spinner.update(
-                text=Text(f"{current} · {minutes:02d}:{seconds:02d}")
-            )
+            elapsed = duration(monotonic() - started_at)
+            label = Text(current)
+            label.append(f" · {elapsed}", style="dim")
+            spinner.update(text=label)
             parts.append(spinner)
             for message in recent_logs:
                 parts.append(
@@ -111,10 +133,11 @@ def setup(
                     recent_logs.append(message)
                 return
             if event.state == "started":
+                event_duration(event)
                 current = event.message
                 recent_logs.clear()
             else:
-                completed.append(event.message)
+                completed.append((event.message, event_duration(event)))
                 current = ""
             live.update(render())
         try:
@@ -125,6 +148,7 @@ def setup(
             live.update(render(), refresh=True)
     if failure is not None:
         raise typer.Exit(code=1)
+    console.print(f"Setup completed in {duration(monotonic() - setup_started_at)}", style="dim")
 
 @app.command()
 def generate(

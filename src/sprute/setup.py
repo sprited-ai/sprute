@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Protocol
 from time import perf_counter
 from collections import deque
 import shutil
@@ -41,8 +41,16 @@ CUSTOM_NODES = {
 class SetupEvent:
     state: Literal["started", "completed", "log", "warning"]
     message: str
+    timed: bool = False
 
-Reporter = Callable[[Literal["started", "completed", "log", "warning"], str], None]
+class Reporter(Protocol):
+    def __call__(
+        self,
+        state: Literal["started", "completed", "log", "warning"],
+        message: str,
+        *,
+        timed: bool = False,
+    ) -> None: ...
 
 def setup(
     *,
@@ -52,9 +60,11 @@ def setup(
     def report(
         state: Literal["started", "completed", "log", "warning"],
         message: str,
+        *,
+        timed: bool = False,
     ) -> None:
         if on_event is not None:
-            on_event(SetupEvent(state, message))
+            on_event(SetupEvent(state, message, timed=timed))
 
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)
@@ -62,22 +72,16 @@ def setup(
     check_torch(report=report)
     check_comfy_workflow(report=report)
 
-
 def setup_comfy(*, report: Reporter, reinstall: bool = False) -> None:
     if is_installed("comfyui") and not reinstall:
         report("completed", f"ComfyUI {version('comfyui')}")
     else:
         action = "Reinstalling" if reinstall else "Installing"
-        report("started", f"{action} headless ComfyUI {COMFY_VERSION}")
-        command = [
-            sys.executable, "-u", "-m", "pip",
-            "install",
-            "--progress-bar", "off",
+        report("started", f"{action} headless ComfyUI {COMFY_VERSION}", timed=True)
+        command = pip_install_command(reinstall=reinstall) + [
             "--extra-index-url", COMFY_INDEX_URL,
             f"comfyui=={COMFY_VERSION}",
         ]
-        if reinstall:
-            command.append("--force-reinstall")
         recent_logs: deque[str] = deque(maxlen=20)
         with subprocess.Popen(
             command,
@@ -108,13 +112,11 @@ def setup_comfy(*, report: Reporter, reinstall: bool = False) -> None:
             raise RuntimeError(f"ComfyUI installation failed:\n{details}")
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
 
-
 def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
     node_directory = custom_nodes_path()
     node_directory.mkdir(parents=True, exist_ok=True)
     report("log", f"Custom nodes: {node_directory}")
-
-    report("started", "Installing ComfyUI custom nodes")
+    report("started", "Installing ComfyUI custom nodes", timed=True)
     for name, node in CUSTOM_NODES.items():
         destination = node_directory / name
         revision = node["revision"]
@@ -137,7 +139,6 @@ def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
         ):
             report("log", f"{name} already installed")
             continue
-
         report("log", f"Preparing {name}")
         if not destination.exists():
             run(["git", "init", str(destination)], report=report)
@@ -150,7 +151,6 @@ def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
             raise RuntimeError(
                 f"{destination} exists but is not a Git checkout"
             )
-
         # A failed install must be retried on the next setup run.
         installed.unlink(missing_ok=True)
         if current_revision != revision or reinstall:
@@ -168,17 +168,13 @@ def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
         if requirements.is_file():
             report("log", f"Installing {name} dependencies")
             run(
-                [
-                    sys.executable, "-u", "-m", "pip", "install",
-                    "--progress-bar", "off", "-r", str(requirements),
-                ],
+                pip_install_command() + ["-r", str(requirements)],
                 cwd=destination,
                 report=report,
             )
         installed.write_text(revision + "\n")
         report("log", f"{name} installed")
     report("completed", "ComfyUI custom nodes installed")
-
 
 def check_torch(*, report: Reporter) -> None:
     report("started", "Testing PyTorch and GPU")
@@ -301,9 +297,8 @@ def check_torch(*, report: Reporter) -> None:
         )
         del a, result
 
-
 def check_comfy_workflow(*, report: Reporter) -> None:
-    report("started", "Testing ComfyUI workflow")
+    report("started", "Testing ComfyUI workflow", timed=True)
     workflow = {
         "1": {
             "class_type": "EmptyImage",
@@ -354,7 +349,6 @@ def check_comfy_workflow(*, report: Reporter) -> None:
                 )
     report("completed", "ComfyUI workflow verified")
 
-
 def run(
     command: list[str],
     *,
@@ -401,3 +395,42 @@ def is_installed(package: str) -> bool:
         return True
     except PackageNotFoundError:
         return False
+
+def is_uv_venv() -> bool:
+    config = Path(sys.prefix) / "pyvenv.cfg"
+    return config.is_file() and any(
+        line.partition("=")[0].strip() == "uv"
+        for line in config.read_text().splitlines()
+    )
+
+def pip_install_command(*, reinstall: bool = False) -> list[str]:
+    """Always install into the Python environment running Sprute."""
+    if is_uv_venv():
+        uv = shutil.which("uv")
+        if uv is None:
+            raise RuntimeError(
+                "This environment was created with uv, but uv is not on PATH. "
+                "Make uv available, then run sprute setup again."
+            )
+        command = [uv, "pip", "install", "--python", sys.executable, "--no-progress"]
+        if reinstall:
+            command.append("--reinstall")
+        return command
+
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "--version"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        details = result.stderr.strip() or result.stdout.strip()
+        raise RuntimeError(
+            f"pip is unavailable in this Python environment: {sys.executable}\n"
+            f"{details}\n"
+            "Install pip in this environment, then run sprute setup again:\n"
+            f'uv pip install --python "{sys.executable}" pip'
+        )
+    command = [sys.executable, "-u", "-m", "pip", "install", "--progress-bar", "off"]
+    if reinstall:
+        command.append("--force-reinstall")
+    return command

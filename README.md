@@ -64,6 +64,14 @@ npx sprute animate character --character ./output/hero --preset idle
 <tr><td align="center"><code>run</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset run</code><br /><img src="docs/resources/elise-run.webp"></td></tr>
 </table>
 
+## Setting up local development environment
+
+```
+uv venv
+source .venv/bin/activate
+uv pip install -e .
+```
+
 ## Why?
 
 Making sprite animations is hard. Hard enough that creators often stop themselves from adding more animation states, more characters, more NPCs, or more enemies simply because of the amount of work involved.
