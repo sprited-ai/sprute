@@ -32,9 +32,11 @@ def setup(
         if on_event is not None:
             on_event(SetupEvent(state, message))
 
+    report("completed", f"Python {sys.version.split()[0]}")
+
     # 1. Setup ComfyUI
     if is_installed("comfyui") and not reinstall:
-        report("completed", f"ComfyUI {version('comfyui')} already installed")
+        report("completed", f"ComfyUI {version('comfyui')}")
     else:
         action = "Reinstalling" if reinstall else "Installing"
         report("started", f"{action} headless ComfyUI {COMFY_VERSION}")
@@ -132,8 +134,10 @@ def setup(
     )
     report(
         "completed",
-        f"PyTorch {torch.__version__} · {device} · matrix multiplication passed",
+        f"PyTorch {torch.__version__}",
     )
+    report("completed", f"Device: {device}")
+    report("completed", "Matrix multiplication passed")
     # 3. Try to run ComfyUI
     report("started", "Testing ComfyUI workflow")
     workflow = {
