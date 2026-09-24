@@ -1,7 +1,9 @@
 import typer
 from pathlib import Path
 from sprute.setup import setup as _setup
-from sprute.setup import SetupEvent
+from sprute.events import Event
+from sprute.generate import generate as _generate
+from collections.abc import Callable
 from rich.panel import Panel
 from rich.text import Text
 from rich.live import Live
@@ -33,9 +35,24 @@ def setup(
     ),
 ):
     """Install and check Sprute dependencies."""
+    run_with_panel(
+        "Setup",
+        lambda on_event: _setup(
+            on_event=on_event, reinstall=reinstall, model_dirs=tuple(models_dir)
+        ),
+        verbose=verbose,
+    )
+
+
+def run_with_panel(
+    title: str,
+    action: Callable[[Callable[[Event], None]], object],
+    *,
+    verbose: bool = False,
+) -> None:
     recent_logs: deque[str] = deque(maxlen=1)
-    setup_started_at = monotonic()
-    started_at = setup_started_at
+    command_started_at = monotonic()
+    started_at = command_started_at
 
     def duration(seconds: float) -> str:
         if seconds < 60:
@@ -43,7 +60,7 @@ def setup(
         minutes, seconds = divmod(int(seconds), 60)
         return f"{minutes}m {seconds:02d}s"
 
-    def event_duration(event: SetupEvent) -> str:
+    def event_duration(event: Event) -> str:
         nonlocal started_at
         if event.state == "started":
             started_at = monotonic()
@@ -59,8 +76,10 @@ def setup(
             Text.from_ansi(message),
             highlight=False,
         )
-    if not console.is_interactive:
-        def print_event(event: SetupEvent) -> None:
+    if verbose or not console.is_interactive:
+        def print_event(event: Event) -> None:
+            if event.state == "progress":
+                return
             if event.state == "log" and not verbose:
                 return
             if event.state == "warning":
@@ -72,11 +91,11 @@ def setup(
                 message.append(f" · {elapsed}", style="dim")
             console.print(message, highlight=False)
         try:
-            _setup(on_event=print_event, reinstall=reinstall, model_dirs=tuple(models_dir))
+            action(print_event)
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
-        console.print(f"Setup completed in {duration(monotonic() - setup_started_at)}", style="dim")
+        console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
         return
 
     completed: list[tuple[str, str]] = []
@@ -94,7 +113,7 @@ def setup(
         for message in warnings:
             parts.append(Text(f"⚠ {message}", style="yellow"))
         if failure is not None:
-            error_text = Text("✗ Setup failed\n", style="red")
+            error_text = Text(f"✗ {title} failed\n", style="red")
             error_text.append(failure, style="default")
             parts.append(error_text)
         elif current:
@@ -114,7 +133,7 @@ def setup(
                 )
         return Panel(
             Group(*parts), 
-            title="Setup", 
+            title=title,
             title_align="left",
         )        
 
@@ -123,7 +142,7 @@ def setup(
         console=console,
         refresh_per_second=4
     ) as live:
-        def on_event(event: SetupEvent) -> None:
+        def on_event(event: Event) -> None:
             nonlocal current
             if event.state == "warning":
                 warnings.append(event.message)
@@ -147,23 +166,32 @@ def setup(
                 current = ""
             live.update(render())
         try:
-            _setup(on_event=on_event, reinstall=reinstall, model_dirs=tuple(models_dir))
+            action(on_event)
         except Exception as error:
             current = ""
             failure = str(error)
             live.update(render(), refresh=True)
     if failure is not None:
         raise typer.Exit(code=1)
-    console.print(f"Setup completed in {duration(monotonic() - setup_started_at)}", style="dim")
+    console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
 
 @app.command()
 def generate(
-    prompt: str = "", 
-    seed: int = 42, 
+    prompt: str = "",
+    seed: int = 42,
     out: Path = Path("outputs"),
+    models_dir: list[Path] = typer.Option(
+        [], "--models-dir", exists=True, file_okay=False,
+        help="Model directories to search. Default: ./models. Can be repeated.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):
     """Generate a character from a text prompt."""
-    # TODO: Implement this
-    print(f"Prompt: {prompt}")
-    print(f"Seed: {seed}")
-    print(f"Output: {out}")
+    run_with_panel(
+        "Generate",
+        lambda on_event: _generate(
+            prompt, seed=seed, out=out,
+            model_dirs=tuple(models_dir), on_event=on_event,
+        ),
+        verbose=verbose,
+    )

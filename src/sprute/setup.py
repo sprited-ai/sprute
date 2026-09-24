@@ -1,6 +1,5 @@
 from pathlib import Path
 from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Literal, Protocol
 from time import perf_counter
 from collections import deque
@@ -11,6 +10,7 @@ from importlib.metadata import PackageNotFoundError, version
 import json
 from tempfile import TemporaryDirectory
 from sprute.comfy import custom_nodes_path, run_workflow
+from sprute.events import Event
 from sprute.models import MODELS, check_download_space, download_model, find_local_model, plan_model_downloads
 
 COMFY_VERSION = "0.37.0.1"
@@ -38,11 +38,6 @@ CUSTOM_NODES = {
     },
 }
 
-@dataclass(frozen=True)
-class SetupEvent:
-    state: Literal["started", "completed", "progress", "log", "warning"]
-    message: str
-    timed: bool = False
 
 class Reporter(Protocol):
     def __call__(
@@ -55,7 +50,7 @@ class Reporter(Protocol):
 
 def setup(
     *,
-    on_event: Callable[[SetupEvent], None] | None = None,
+    on_event: Callable[[Event], None] | None = None,
     reinstall: bool = False,
     model_dirs: tuple[Path, ...] = (),
 ) -> None:
@@ -70,7 +65,7 @@ def setup(
         timed: bool = False,
     ) -> None:
         if on_event is not None:
-            on_event(SetupEvent(state, message, timed=timed))
+            on_event(Event(state, message, timed=timed))
 
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)

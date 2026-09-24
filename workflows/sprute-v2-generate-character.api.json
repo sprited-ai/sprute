@@ -1,0 +1,388 @@
+{
+  "17": {
+    "inputs": {
+      "image": "sprute-v2-fill.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "47": {
+    "inputs": {
+      "width": [
+        "78",
+        0
+      ],
+      "height": [
+        "82",
+        0
+      ],
+      "x": [
+        "87",
+        0
+      ],
+      "y": [
+        "91",
+        0
+      ],
+      "image": [
+        "99",
+        0
+      ]
+    },
+    "class_type": "ImageCrop",
+    "_meta": {
+      "title": "Crop Image (DEPRECATED)"
+    }
+  },
+  "78": {
+    "inputs": {
+      "expression": "a/b",
+      "a": [
+        "98",
+        0
+      ],
+      "b": [
+        "101",
+        0
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "82": {
+    "inputs": {
+      "expression": "a/b",
+      "a": [
+        "98",
+        1
+      ],
+      "b": [
+        "102",
+        0
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "87": {
+    "inputs": {
+      "expression": "(a%b)*c",
+      "a": [
+        "110",
+        0
+      ],
+      "b": [
+        "101",
+        0
+      ],
+      "c": [
+        "78",
+        0
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "91": {
+    "inputs": {
+      "expression": "floor(a/b)*c",
+      "a": [
+        "110",
+        0
+      ],
+      "b": [
+        "101",
+        0
+      ],
+      "c": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Math Expression 🐍"
+    }
+  },
+  "98": {
+    "inputs": {
+      "image": [
+        "99",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "99": {
+    "inputs": {
+      "samples": [
+        "207",
+        0
+      ],
+      "vae": [
+        "202",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "101": {
+    "inputs": {
+      "value": 4
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "102": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "110": {
+    "inputs": {
+      "value": 6
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "113": {
+    "inputs": {
+      "model": "BiRefNet_toonout",
+      "process_resolution": 1024,
+      "mask_blur": 2,
+      "mask_offset": -1,
+      "invert_output": false,
+      "refine_foreground": true,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "image": [
+        "115",
+        0
+      ]
+    },
+    "class_type": "BiRefNetRMBG",
+    "_meta": {
+      "title": "BiRefNet Remove Background"
+    }
+  },
+  "114": {
+    "inputs": {
+      "filename_prefix": "sprite-dx/local-fill/transparent",
+      "images": [
+        "119",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "115": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "width": 1024,
+      "height": 1024,
+      "crop": "disabled",
+      "image": [
+        "47",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "119": {
+    "inputs": {
+      "target_width": 640,
+      "target_height": 640,
+      "padding_color": "white",
+      "interpolation": "lanczos",
+      "image": [
+        "113",
+        0
+      ]
+    },
+    "class_type": "ResizeAndPadImage",
+    "_meta": {
+      "title": "Resize And Pad Image"
+    }
+  },
+  "200": {
+    "inputs": {
+      "unet_name": "flux1-fill-dev.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "201": {
+    "inputs": {
+      "clip_name1": "clip_l.safetensors",
+      "clip_name2": "t5xxl_fp16.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "Load CLIP (Dual)"
+    }
+  },
+  "202": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "203": {
+    "inputs": {
+      "text": "pixelated retro pixel art cute NPC characters\n\n",
+      "clip": [
+        "201",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "204": {
+    "inputs": {
+      "guidance": 20,
+      "conditioning": [
+        "203",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "205": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "201",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "206": {
+    "inputs": {
+      "noise_mask": true,
+      "positive": [
+        "204",
+        0
+      ],
+      "negative": [
+        "205",
+        0
+      ],
+      "vae": [
+        "202",
+        0
+      ],
+      "pixels": [
+        "17",
+        0
+      ],
+      "mask": [
+        "17",
+        1
+      ]
+    },
+    "class_type": "InpaintModelConditioning",
+    "_meta": {
+      "title": "InpaintModelConditioning"
+    }
+  },
+  "207": {
+    "inputs": {
+      "seed": 267634844215911,
+      "steps": 50,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "200",
+        0
+      ],
+      "positive": [
+        "206",
+        0
+      ],
+      "negative": [
+        "206",
+        1
+      ],
+      "latent_image": [
+        "206",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "208": {
+    "inputs": {
+      "images": [
+        "99",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "209": {
+    "inputs": {
+      "images": [
+        "47",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  }
+}
