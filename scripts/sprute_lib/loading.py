@@ -94,6 +94,14 @@ def low_memory_scail(module):
         def load_state_dict(self, state_dict, strict=True, assign=False):
             if any(p.is_meta for p in self.parameters()):
                 logging.info('Binding SCAIL2 checkpoint in BF16')
+                # Comfy scaled-FP8 checkpoints store one multiplier per weight.
+                state_dict.pop('scaled_fp8', None)
+                for name in [k for k in state_dict if k.endswith('.scale_weight')]:
+                    weight = name.removesuffix('.scale_weight') + '.weight'
+                    scale = state_dict.pop(name)
+                    if weight not in state_dict or scale.numel() != 1:
+                        raise ValueError(f'Invalid SCAIL2 weight scale: {name}')
+                    state_dict[weight] = state_dict[weight].to(torch.bfloat16) * scale.to(torch.bfloat16)
                 # Replace each mapped tensor as we go, not a second full dictionary.
                 for name in list(state_dict):
                     value = state_dict[name]

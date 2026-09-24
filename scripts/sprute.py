@@ -49,7 +49,8 @@ def verify_outputs(stage, out, job):
     if stage == 'generate':
         expected = ['reference.png']
     elif stage == 'turntable':
-        expected = ['standing.png', 'turntable.webp', *[f'{d}.png' for d in ORDER]]
+        expected = ['standing.png', 'turntable.webp', 'selection.json',
+                    *[f'{d}.png' for d in ORDER]]
     elif stage == 'animate':
         info = json.loads((Path(job['prepared'])/'segments.json').read_text())
         expected = ['animation-rgb.webp', *[f'frames/{i:05d}.png' for i in range(info['frames'])]]
@@ -70,6 +71,8 @@ def verify_outputs(stage, out, job):
 def run_worker(args, stage, out, **settings):
     out = Path(out).resolve()
     job = dict(stage=stage, models=str(args.models.resolve()), out=str(out), **settings)
+    if getattr(args, 'vram_limit_gib', None) is not None:
+        job['vram_limit_gib'] = args.vram_limit_gib
     # Record actual source/model locations as well as settings. Linking a new model invalidates resume.
     key = 'matte' if stage == 'export' else stage
     job['model_paths'] = {n: str((args.models/n).resolve()) for n in models.STAGES[key]}
@@ -103,10 +106,12 @@ def run_worker(args, stage, out, **settings):
         return out
     env = dict(os.environ, HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1')
     # No shell interpolation; preserve prompts and paths verbatim.
+    print(f'[{stage}] Starting', flush=True)
     subprocess.run([sys.executable, '-m', 'sprute_lib.inference', str(dest)],
                    cwd=HERE, check=True, env=env)
     verify_outputs(stage, out, job)
     (out/'complete.json').write_text(json.dumps(dict(completed=datetime.now(timezone.utc).isoformat())))
+    print(f'[{stage}] Complete', flush=True)
     return out
 
 
@@ -124,35 +129,65 @@ def turntable(args):
 
 def animate(args):
     states = [s.strip() for s in args.states.split(',')]
-    validate_animation_request(args.manifest, states, args.size)
+    validate_animation_request(args.manifest, states, args.size, args.cell_width)
     output = args.out.resolve()
     # Bind prepared artifacts to inputs; never silently reuse masks from another standing strip.
     prepared = output/'prepared'
     preparation = dict(standing=fingerprint_input(args.standing), driver=fingerprint_input(args.driver),
-        manifest=fingerprint_input(args.manifest), states=states, size=args.size, replacement=args.replace)
+        manifest=fingerprint_input(args.manifest), states=states, size=args.size, replacement=args.replace,
+        inference_mode="per-state")
+    if args.cell_width is not None:
+        preparation['cell_width'] = args.cell_width
     lock = output/'inputs.json'
     if output.exists() and any(output.iterdir()):
         if not args.resume or not lock.exists() or json.loads(lock.read_text()) != preparation:
             raise ValueError('Animation output already exists or inputs changed; choose a new --out')
-    if not (prepared/'segments.json').exists():
-        prepare_animation(args.standing, args.driver, args.manifest, states,
-                          prepared, args.size, args.replace)
+    output.mkdir(parents=True, exist_ok=True)
     lock.write_text(json.dumps(preparation, indent=2))
+    records = []
+    for state in states:
+        state_prepared = prepared/state
+        if not (state_prepared/'segments.json').exists():
+            prepare_animation(args.standing, args.driver, args.manifest, [state],
+                              state_prepared, args.size, args.replace, args.cell_width)
+        records.append(json.loads((state_prepared/'segments.json').read_text()))
+    # Keep a combined export timeline, but never feed it to the diffusion model.
+    info = {**records[0], 'frames': sum(r['frames'] for r in records),
+            'inference_mode': 'per-state', 'segments': []}
+    info.pop('inference_frames', None)
+    offset = 0
+    for state, record in zip(states, records):
+        info['segments'].append(dict(state=state, start=offset, count=record['frames']))
+        offset += record['frames']
+    (prepared/'segments.json').write_text(json.dumps(info, indent=2))
     if args.prepare_only:
         print(prepared)
         return
-    run_worker(args, 'animate', output/'inference', prepared=str(prepared),
-               prompt=args.prompt, steps=args.steps, seed=args.seed,
-               precision=args.precision,
-               text_encoder_fp8=str(args.text_encoder_fp8) if args.text_encoder_fp8 else None)
+    for state in states:
+        run_worker(args, 'animate', output/'inference'/state, prepared=str(prepared/state),
+                   prompt=args.prompt, steps=args.steps, seed=args.seed,
+                   precision=args.precision,
+                   text_encoder_fp8=str(args.text_encoder_fp8) if args.text_encoder_fp8 else None)
     if not args.dry_run:
-        run_worker(args, 'export', output/'animations', video=str(output/'inference/frames'),
+        # Hard links provide export's ordered sequence without duplicating PNG data.
+        frames = output/'inference/frames'
+        frames.mkdir(parents=True, exist_ok=True)
+        for segment in info['segments']:
+            for i in range(segment['count']):
+                source = output/'inference'/segment['state']/'frames'/f'{i:05d}.png'
+                target = frames/f"{segment['start']+i:05d}.png"
+                if target.exists():
+                    if not target.samefile(source):
+                        raise ValueError(f'{target}: unexpected frame; use a new --out')
+                else:
+                    os.link(source, target)
+        run_worker(args, 'export', output/'animations', video=str(frames),
                    segments=str(prepared/'segments.json'), quality=args.quality)
 
 
 def run(args):
     """Keep implementation artifacts outside the user's final output by default."""
-    validate_animation_request(args.manifest, [s.strip() for s in args.states.split(',')], args.size)
+    validate_animation_request(args.manifest, [s.strip() for s in args.states.split(',')], args.size, args.cell_width)
     if args.keep_intermediates or args.dry_run:
         return run_pipeline(args)
     if args.resume:
@@ -160,7 +195,9 @@ def run(args):
     output = args.out.resolve()
     if output.exists():
         raise FileExistsError(f'{output} already exists; choose a new --out')
-    with tempfile.TemporaryDirectory(prefix='sprute-') as temp:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    # Same filesystem permits publishing the completed directory with one rename.
+    with tempfile.TemporaryDirectory(prefix='.sprute-', dir=output.parent) as temp:
         work = Path(temp)/'work'
         run_pipeline(argparse.Namespace(**{**vars(args), 'out': work}))
         final = Path(temp)/'final'
@@ -170,26 +207,41 @@ def run(args):
         shutil.copy2(work/'standing/standing.png', final/'standing.png')
         animations = work/'motion/animations'
         manifest = json.loads((animations/'animation.json').read_text())
+        manifest['standing_selection'] = json.loads((work/'standing/selection.json').read_text())
         for segment in manifest['segments']:
             state = segment['state']
             (final/state).mkdir()
             for direction in [*ORDER, 'horizontal']:
                 shutil.copy2(animations/state/f'{direction}.webp', final/state/f'{direction}.webp')
         manifest.update(seed=args.seed, prompt=args.prompt, turntable_size=args.turntable_size,
-                        turntable_precision=args.turntable_precision, steps=args.steps)
+                        turntable_precision=args.turntable_precision, steps=args.steps,
+                        turntable_prompt=args.turntable_prompt, animation_prompt='',
+                        precision=args.precision, size=args.size, replacement=args.replace,
+                        quality=args.quality, fill_steps=args.fill_steps,
+                        vram_limit_gib=args.vram_limit_gib,
+                        text_encoder_fp8=(str(args.text_encoder_fp8.resolve())
+                                          if args.text_encoder_fp8 else None))
         (final/'manifest.json').write_text(json.dumps(manifest, indent=2))
-        output.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(final, output)
+        if output.exists():
+            raise FileExistsError(f'{output} appeared during generation; refusing to replace it')
+        final.rename(output)
     print(f'Saved character: {output}')
 
 
 def run_pipeline(args):
     """Internal stages; also available persistently for debugging and resuming."""
-    needed = ['turntable', 'animate'] + ([] if args.image else ['generate'])
+    # Check later-stage input paths before spending GPU time on earlier stages.
+    for path in (args.image or args.template, args.driver, args.manifest,
+                 args.text_encoder_fp8):
+        if path is not None:
+            resolved = Path(path).resolve(strict=True)
+            if not resolved.is_file():
+                raise ValueError(f'Expected an input file, got a directory: {resolved}')
+    needed = ([] if args.image else ['generate']) + ['turntable', 'animate']
     for stage in needed:
         models.require(args.models, stage)
     if args.dry_run:
-        print(json.dumps(dict(stages=needed, out=str(args.out.resolve()),
+        print(json.dumps(dict(stages=[*needed, 'export'], out=str(args.out.resolve()),
                               states=args.states, seed=args.seed), indent=2))
         return
     root = args.out.resolve()
@@ -231,6 +283,8 @@ def parser():
         q = sub.add_parser(name, help=help)
         q.add_argument('--out', type=Path, required=True)
         q.add_argument('--seed', type=int, default=42)
+        q.add_argument('--vram-limit-gib', type=float,
+                       help='Limit each worker\'s PyTorch allocator; excludes other CUDA allocations')
         q.add_argument('--resume', action='store_true')
         q.add_argument('--dry-run', action='store_true', help='Validate and save job without loading weights')
         return q
@@ -254,6 +308,8 @@ def parser():
         a.add_argument('--driver', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.webp')
         a.add_argument('--manifest', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.json')
         a.add_argument('--size', type=int, default=768)
+        a.add_argument('--cell-width', type=int,
+                       help='Tile width without rescaling (default: 192, capped at --size / 3)')
         a.add_argument('--steps', type=int, default=8)
         a.add_argument('--replace', action='store_true', help='Replacement mode; default animation mode')
         a.add_argument('--quality', type=int, choices=range(1, 101), default=90, metavar='1..100')
@@ -283,6 +339,12 @@ def parser():
 def main():
     args = parser().parse_args()
     args.models = args.models.expanduser().resolve()
+    if getattr(args, 'vram_limit_gib', None) is not None and not 0 < args.vram_limit_gib < float('inf'):
+        raise ValueError('--vram-limit-gib must be a finite positive number')
+    if hasattr(args, 'cell_width') and args.cell_width is None:
+        args.cell_width = min(192, args.size // 3)
+    if hasattr(args, 'seed') and not 0 <= args.seed < 2**64:
+        raise ValueError('--seed must be between 0 and 18446744073709551615; negative seeds randomize upstream stages independently')
     if hasattr(args, 'steps') and args.steps < 1:
         raise ValueError('--steps must be positive')
     if hasattr(args, 'fill_steps') and args.fill_steps < 1:
@@ -323,6 +385,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+    except KeyboardInterrupt:
+        print('sprute: Interrupted.', file=sys.stderr)
+        sys.exit(130)
     except (ValueError, FileNotFoundError, FileExistsError, RuntimeError, subprocess.CalledProcessError) as exc:
         print(f'sprute: {exc}', file=sys.stderr)
         sys.exit(1)

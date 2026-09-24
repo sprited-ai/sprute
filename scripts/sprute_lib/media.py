@@ -9,13 +9,17 @@ GRID = ('NW', 'N', 'NE', 'W', None, 'E', 'SW', 'S', 'SE')
 def read_frames(path):
     path = Path(path)
     if path.is_dir():
-        return [Image.open(p).convert('RGBA') for p in sorted(path.glob('*.png'))]
-    if path.suffix.lower() in ('.webp', '.gif', '.png'):
-        im = Image.open(path)
         result = []
-        for i in range(getattr(im, 'n_frames', 1)):
-            im.seek(i)
-            result.append(im.convert('RGBA').copy())
+        for frame_path in sorted(path.glob('*.png')):
+            with Image.open(frame_path) as im:
+                result.append(im.convert('RGBA'))
+        return result
+    if path.suffix.lower() in ('.webp', '.gif', '.png'):
+        result = []
+        with Image.open(path) as im:
+            for i in range(getattr(im, 'n_frames', 1)):
+                im.seek(i)
+                result.append(im.convert('RGBA'))
         return result
     import imageio.v3 as iio
     return [Image.fromarray(a).convert('RGBA') for a in iio.imiter(path)]
@@ -66,6 +70,8 @@ def reference_grid(path, size):
             continue
         source = ORDER.index(direction)
         tile = im.crop((source*cell, 0, (source+1)*cell, im.height))
+        if tile.getchannel('A').getextrema()[1] < 128:
+            raise ValueError(f'Standing strip {direction} has no foreground pixels for its mask')
         x, y = index % 3, index // 3
         left, top, right, bottom = (round(x*size/3), round(y*size/3),
                                     round((x+1)*size/3), round((y+1)*size/3))
@@ -80,10 +86,32 @@ def colored_mask(rgba, replacement=False, reference=False):
     out.paste((0, 0, 255), mask=alpha)
     return out
 
-def validate_animation_request(manifest_path, states, size):
+def narrow_grid(image, cell_width):
+    """Remove equal side margins from each tile, without rescaling characters."""
+    if cell_width is None:
+        return image
+    cell = image.width // 3
+    left = (cell-cell_width)//2
+    result = Image.new('RGBA', (cell_width*3, image.height))
+    for i, direction in enumerate(GRID):
+        x, y = i % 3, i // 3
+        tile = image.crop((x*cell, y*cell, (x+1)*cell, (y+1)*cell))
+        bounds = tile.getchannel('A').getbbox()
+        if direction and bounds and (bounds[0] < left or bounds[2] > left+cell_width):
+            raise ValueError(f'--cell-width {cell_width} would clip {direction}; use a wider cell')
+        result.paste(tile.crop((left, 0, left+cell_width, cell)), (x*cell_width, y*cell))
+    return result
+
+
+def validate_animation_request(manifest_path, states, size, cell_width=None):
     if size <= 0 or size % 96:
         raise ValueError('Grid resolution must divide by 32 (SCAIL) and 3 (equal cells), e.g. 480 or 768')
-    manifest = json.loads(Path(manifest_path).read_text())
+    if cell_width is not None and (cell_width <= 0 or cell_width % 32 or cell_width > size//3):
+        raise ValueError('--cell-width must be a positive multiple of 32, no wider than --size / 3')
+    manifest_path = Path(manifest_path).resolve(strict=True)
+    if not manifest_path.is_file():
+        raise ValueError(f'Expected an input file, got a directory: {manifest_path}')
+    manifest = json.loads(manifest_path.read_text())
     if len(states) != len(set(states)) or not states:
         raise ValueError('Choose distinct states')
     segments = {s['state']: s for s in manifest['segments']}
@@ -96,8 +124,8 @@ def validate_animation_request(manifest_path, states, size):
     return manifest
 
 
-def prepare_animation(standing, driver, manifest_path, states, out, size=768, replacement=False):
-    manifest = validate_animation_request(manifest_path, states, size)
+def prepare_animation(standing, driver, manifest_path, states, out, size=768, replacement=False, cell_width=None):
+    manifest = validate_animation_request(manifest_path, states, size, cell_width)
     source = read_frames(driver)
     if len(source) != manifest['frames']:
         raise ValueError(f'Driver has {len(source)} frames, manifest says {manifest["frames"]}')
@@ -110,29 +138,32 @@ def prepare_animation(standing, driver, manifest_path, states, out, size=768, re
         selected.extend(source[a:b])
         boundaries.append(dict(state=state, start=start, count=b-a))
     out = Path(out)
-    ref = reference_grid(standing, size)
-    out.mkdir(parents=True, exist_ok=True)
-    gray(ref).save(out/'reference.png')
-    colored_mask(ref, replacement, reference=True).save(out/'reference-mask.png')
+    ref = narrow_grid(reference_grid(standing, size), cell_width)
     rgb, masks = [], []
     for frame in selected:
-        frame = frame.resize((size, size), Image.Resampling.LANCZOS)
+        frame = narrow_grid(frame.resize((size, size), Image.Resampling.LANCZOS), cell_width)
         rgb.append(gray(frame))
         mask = colored_mask(frame, replacement)
         # Decorative arrows are not a ninth character.
         fill = 'white' if replacement else 'black'
-        mask.paste(fill, (round(size/3), round(size/3), round(2*size/3), round(2*size/3)))
+        width = frame.width
+        mask.paste(fill, (width//3, size//3, 2*width//3, 2*size//3))
         masks.append(mask)
     # Wan's temporal VAE needs 4n+1. Pad only the tail, never truncate a state.
     n = len(rgb)
     padded = ((n-1+3)//4)*4+1
     rgb.extend([rgb[-1]]*(padded-n))
     masks.extend([masks[-1]]*(padded-n))
+    out.mkdir(parents=True, exist_ok=True)
+    gray(ref).save(out/'reference.png')
+    colored_mask(ref, replacement, reference=True).save(out/'reference-mask.png')
     save_frames(rgb, out/'driver')
     save_frames(masks, out/'driver-mask')
     record = dict(fps=manifest['fps'], frames=n, inference_frames=padded,
                   size=size, segments=boundaries, replacement=replacement,
                   grid=list(GRID), order=list(ORDER))
+    if cell_width is not None:
+        record.update(width=cell_width*3, height=size, cell_width=cell_width)
     (out/'segments.json').write_text(json.dumps(record, indent=2))
     return record
 
@@ -140,9 +171,11 @@ def cut_grid(frames):
     out = {d: [] for d in ORDER}
     for frame in frames:
         w, h = frame.size
+        if w % 3 or h % 3:
+            raise ValueError(f'Grid dimensions must divide into 3 equal rows and columns, got {w}x{h}')
+        w, h = w // 3, h // 3
         for i, d in enumerate(GRID):
             if d is not None:
                 x, y = i % 3, i // 3
-                out[d].append(frame.crop((round(x*w/3), round(y*h/3),
-                                         round((x+1)*w/3), round((y+1)*h/3))))
+                out[d].append(frame.crop((x*w, y*h, (x+1)*w, (y+1)*h)))
     return out

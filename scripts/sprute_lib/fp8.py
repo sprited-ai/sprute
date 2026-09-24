@@ -64,7 +64,8 @@ class FP8Linear(nn.Module):
         shape = x.shape
         flat = x.reshape(-1, shape[-1])
         scale = flat.abs().amax().float().clamp_min(1e-12) / 448.0
-        quantized = (flat.float() / scale).clamp(-448, 448).to(torch.float8_e4m3fn)
+        # Division owns fresh storage; clamp it in place to avoid another FP32 copy.
+        quantized = (flat.float() / scale).clamp_(-448, 448).to(torch.float8_e4m3fn)
         # cuBLAS FP8 requires row counts aligned to 16.
         rows = flat.shape[0]
         if rows % 16:

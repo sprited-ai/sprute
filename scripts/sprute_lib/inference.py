@@ -176,6 +176,17 @@ def turntable(job, models, out):
 def animate(job, models, out):
     import torch
     import numpy as np
+    phases = {}
+    torch.cuda.synchronize()
+    phase_start = time.monotonic()
+
+    def finish_phase(name):
+        nonlocal phase_start
+        torch.cuda.synchronize()
+        now = time.monotonic()
+        phases[name] = now - phase_start
+        phase_start = now
+
     wan, source = import_wan(models, 'scail2')
     cfg = copy.deepcopy(wan.configs.SCAIL_CONFIGS['SCAIL-14B'])
     # Set absolute paths; all files are supplied locally by the model manager.
@@ -189,7 +200,7 @@ def animate(job, models, out):
     from sprute_lib.umt5 import linked_text_encoder
     import wan.scail as scail_module
     text_checkpoint = job.get('text_encoder_fp8')
-    if text_checkpoint:
+    if text_checkpoint or job.get('precision') == 'fp8':
         from sprute_lib.fp8 import check_fp8_backend
         check_fp8_backend('cuda')
     logging.info('Loading native SCAIL2: T5, VAE, CLIP, then diffusion weights')
@@ -198,34 +209,44 @@ def animate(job, models, out):
             scail_safetensors_path=str(models/'scail_model'),
             scail_config_path=str(source/'configs/config-14b.json'), t5_cpu=not bool(text_checkpoint),
             lora_path=str(models/'dpo'), lora_alpha=1.0)
+    finish_phase('load_models_and_dpo')
     pipe.fuse_lora(str(models/'lightx2v'), 0.8)
+    finish_phase('fuse_lightx2v')
     if job.get('precision') == 'fp8':
-        from sprute_lib.fp8 import check_fp8_backend, quantize_linears
-        check_fp8_backend('cuda')
+        from sprute_lib.fp8 import quantize_linears
         count = quantize_linears(pipe.model)
         logging.info('SCAIL2: quantized %d linear layers to FP8 after LoRA fusion', count)
+    finish_phase('quantize')
     def tensor(image):
         return torch.from_numpy(np.array(image.convert('RGB')).copy()).permute(2,0,1).float()/127.5-1
     prepared = Path(job['prepared'])
     info = json.loads((prepared/'segments.json').read_text())
     pose = torch.stack([tensor(f) for f in read_frames(prepared/'driver')]).to('cuda')
     masks = torch.stack([tensor(f) for f in read_frames(prepared/'driver-mask')], dim=1).to('cuda')
+    finish_phase('prepare_input_tensors')
     result = pipe.generate(job['prompt'], tensor(Image.open(prepared/'reference.png')).to('cuda'),
         ref_mask_img=tensor(Image.open(prepared/'reference-mask.png')).to('cuda'),
         pose_video=pose, driving_mask_video=masks, replace_flag=info['replacement'],
         segment_len=info['inference_frames'], segment_overlap=5, shift=5,
         sample_solver='unipc', sampling_steps=job['steps'], guide_scale=1.0,
         n_prompt='', seed=job['seed'], offload_model=True)
+    finish_phase('generate_including_encoding_sampling_decoding')
     frames = tensor_frames(result)
     if len(frames) < info['frames']:
         raise ValueError('SCAIL produced fewer frames than the state manifest requires')
     frames = frames[:info['frames']]
     save_frames(frames, out/'frames')
     webp(frames, out/'animation-rgb.webp', fps=info['fps'])
+    finish_phase('save_rgb_outputs')
+    return {'phase_seconds': phases}
 
 
 def export(job, models, out):
     info = json.loads(Path(job['segments']).read_text())
+    for state in info['segments']:
+        start, count = state['start'], state['count']
+        if start < 0 or count <= 0 or start + count > info['frames']:
+            raise ValueError(f'Invalid export segment bounds: {state["state"]}')
     frames = read_frames(job['video'])
     if len(frames) < info['frames']:
         raise ValueError('Output sequence is shorter than the state manifest')
@@ -254,17 +275,35 @@ def main():
     if not torch.cuda.is_available():
         raise RuntimeError('Native inference currently requires an NVIDIA CUDA GPU')
     models, out = Path(job['models']), Path(job['out'])
+    limit = job.get('vram_limit_gib')
+    if limit is not None:
+        total = torch.cuda.get_device_properties(0).total_memory
+        if not 0 < limit * 1024**3 <= total:
+            raise ValueError('--vram-limit-gib must be positive and no larger than device memory')
+        torch.cuda.set_per_process_memory_fraction(limit * 1024**3 / total, 0)
+        logging.info('PyTorch allocator limit: %.2f GiB (excludes other CUDA allocations)', limit)
     torch.cuda.reset_peak_memory_stats()
     start = time.monotonic()
+    details = {}
+    success = False
     try:
         with torch.inference_mode():
-            globals()[job['stage']](job, models, out)
+            details = globals()[job['stage']](job, models, out) or {}
+        success = True
     finally:
         (out/'performance.json').write_text(json.dumps(dict(
             seconds=time.monotonic()-start,
+            success=success,
+            torch_version=str(torch.__version__),
+            cuda_version=torch.version.cuda,
+            gpu_name=torch.cuda.get_device_name(),
+            vram_limit_gib=limit,
             peak_torch_allocated_bytes=torch.cuda.max_memory_allocated(),
             peak_torch_reserved_bytes=torch.cuda.max_memory_reserved(),
-            scope='This worker process only; not whole-device peak VRAM'), indent=2))
+            scope='This worker process only; not whole-device peak VRAM', **details), indent=2))
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(130)

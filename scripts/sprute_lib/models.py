@@ -2,6 +2,7 @@
 from pathlib import Path
 import json
 import subprocess
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MODELS = ROOT / 'models'
@@ -76,11 +77,15 @@ def setup_sources(root):
     for name, (url, revision) in SOURCES.items():
         dest = root / '_sources' / name
         if not dest.exists():
-            dest.mkdir(parents=True)
-            subprocess.run(['git', 'init', str(dest)], check=True)
-            subprocess.run(['git', '-C', str(dest), 'remote', 'add', 'origin', url], check=True)
-            subprocess.run(['git', '-C', str(dest), 'fetch', '--depth', '1', 'origin', revision], check=True)
-            subprocess.run(['git', '-C', str(dest), 'checkout', '--detach', 'FETCH_HEAD'], check=True)
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            # Publish only a complete checkout, so a failed fetch can be retried.
+            with tempfile.TemporaryDirectory(prefix=f'.{name}-', dir=dest.parent) as temp:
+                checkout = Path(temp)/'source'
+                subprocess.run(['git', 'init', str(checkout)], check=True)
+                subprocess.run(['git', '-C', str(checkout), 'remote', 'add', 'origin', url], check=True)
+                subprocess.run(['git', '-C', str(checkout), 'fetch', '--depth', '1', 'origin', revision], check=True)
+                subprocess.run(['git', '-C', str(checkout), 'checkout', '--detach', 'FETCH_HEAD'], check=True)
+                checkout.rename(dest)
         actual = subprocess.check_output(['git', '-C', str(dest), 'rev-parse', 'HEAD'], text=True).strip()
         if actual != revision:
             raise ValueError(f'{dest}: expected {revision}, got {actual}; not modifying existing source')
@@ -105,11 +110,14 @@ def require(root, stage):
     for name in STAGES[stage]:
         path = root/name
         if name in REQUIRED_FILES:
-            absent = [f for f in REQUIRED_FILES[name] if not (path/f).is_file()]
+            absent = [f for f in REQUIRED_FILES[name]
+                      if not (path/f).is_file() or (path/f).stat().st_size == 0]
             if absent:
                 raise FileNotFoundError(f'{path} has the wrong layout or is incomplete: {absent}')
         elif not path.is_file():
             raise ValueError(f'{path} must point to a weight file, not a directory')
+        elif path.stat().st_size == 0:
+            raise ValueError(f'{path} is an empty weight file')
     if stage in ('turntable', 'animate'):
         name = 'anisora' if stage == 'turntable' else 'scail2'
         path = root / '_sources' / name
