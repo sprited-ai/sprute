@@ -147,9 +147,20 @@ def setup(
     # 2. Custom Nodes
     report("started", "Installing ComfyUI custom nodes")
     for name, node in CUSTOM_NODES.items():
-        report("log", f"Preparing {name}")
         destination = node_directory / name
         revision = node["revision"]
+        if (destination / ".git").exists() and not reinstall:
+            current = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=destination,
+                capture_output=True,
+                text=True,
+            )
+            if current.returncode == 0 and current.stdout.strip() == revision:
+                report("log", f"{name} already installed")
+                continue
+
+        report("log", f"Preparing {name}")
         if not destination.exists():
             run(["git", "init", str(destination)])
             run(
@@ -282,8 +293,6 @@ def setup(
             report("warning", f"{label} unavailable on {device}: {error}")
             continue
 
-        # The same all-ones input has an exact, representable result in all
-        # three dtypes. assert_close uses dtype-specific default tolerances.
         torch.testing.assert_close(
             result.cpu(),
             torch.full((matrix_size, matrix_size), float(matrix_size), dtype=dtype),
