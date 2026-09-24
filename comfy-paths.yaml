@@ -1,0 +1,9 @@
+# Relative paths are resolved from this file's directory, not the shell's cwd.
+sprute:
+  base_path: .
+  checkpoints: models/checkpoints
+  diffusion_models: models/diffusion_models
+  text_encoders: models/text_encoders
+  clip_vision: models/clip_vision
+  vae: models/vae
+  loras: models/loras

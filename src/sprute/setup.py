@@ -10,7 +10,7 @@ import sys
 from importlib.metadata import PackageNotFoundError, version
 import json
 from tempfile import TemporaryDirectory
-from sprute.comfy import run_workflow
+from sprute.comfy import custom_nodes_path, run_workflow
 
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
@@ -78,6 +78,10 @@ def setup(
             details = "\n".join(recent_logs)
             raise RuntimeError(f"ComfyUI installation failed:\n{details}")
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
+
+    node_directory = custom_nodes_path()
+    node_directory.mkdir(parents=True, exist_ok=True)
+    report("log", f"Custom nodes: {node_directory}")
 
     # 2. Test Torch and GPU
     report("started", "Testing PyTorch and GPU")
@@ -234,8 +238,6 @@ def setup(
             on_log=lambda message: report("log", message),
             extra_args=(
                 "--disable-all-custom-nodes",
-                "--base-directory",
-                str(temporary),
             )
         )
         image_path = Path(result["2"]["images"][0]["abs_path"])
