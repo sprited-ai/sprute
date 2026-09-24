@@ -79,6 +79,24 @@ with low_memory_scail(module):
     for key,value in model.state_dict().items():
         torch.testing.assert_close(value,state[key],rtol=0,atol=0)
 assert module.SCAIL2Model is original
+scaled={k:v.to(torch.float16) for k,v in reference.state_dict().items()}
+key=next(k for k,v in scaled.items() if k.endswith('.weight') and v.ndim==2)
+scaled[key]=scaled[key].to(torch.float8_e4m3fn)
+expected=scaled[key].to(torch.bfloat16)*0.5
+scaled[key.removesuffix('.weight')+'.scale_weight']=torch.tensor(0.5)
+scaled['scaled_fp8']=torch.tensor(0.,dtype=torch.float8_e4m3fn)
+with low_memory_scail(module):
+    model=module.SCAIL2Model.from_config(cfg)
+    model.load_state_dict(scaled)
+    torch.testing.assert_close(model.state_dict()[key],expected,rtol=0,atol=0)
+    from wan.utils.lora import fuse_lora_with_diff_b
+    prefix=key.removesuffix('.weight')
+    down=torch.full((2,expected.shape[1]),0.125,dtype=torch.bfloat16)
+    up=torch.full((expected.shape[0],2),0.25,dtype=torch.bfloat16)
+    fuse_lora_with_diff_b(model,{prefix+'.lora_down.weight':down,
+                               prefix+'.lora_up.weight':up},alpha=0.8)
+    torch.testing.assert_close(model.state_dict()[key],expected+0.8*(up@down),rtol=0,atol=0)
+assert module.SCAIL2Model is original
 '''
         subprocess.run([sys.executable, '-c', script, str(source)],
                        cwd=Path(__file__).resolve().parents[1]/'scripts', check=True)

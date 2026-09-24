@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sprute"
+version = "2.0.0.dev0"
+description = "Generate animated, 8-directional character sprites."
+requires-python = ">=3.12"
+dependencies = ["typer", "rich", "uv"]
+
+[project.scripts]
+sprute = "sprute.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
