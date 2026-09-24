@@ -24,10 +24,13 @@ def main():
 @app.command()
 def setup(
     workspace: Path = Path("workspace"),
-    verbose: bool = typer.Option(False, "--verbose", "-v")
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    reinstall: bool = typer.Option(
+        False, "--reinstall", help="Reinstall ComfyUI and its dependencies."
+    ),
 ):
     """Prepare the Sprute workspace"""
-    recent_logs: deque[str] = deque(maxlen=5)
+    recent_logs: deque[str] = deque(maxlen=1)
     started_at = monotonic()
     def print_log(message: str) -> None:
         console.print(
@@ -40,7 +43,7 @@ def setup(
                 return
             print_log(event.message)
         try:
-            _setup(workspace, on_event=print_event)
+            _setup(workspace, on_event=print_event, reinstall=reinstall)
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
@@ -50,6 +53,7 @@ def setup(
     completed: list[str] = []
     current = ""
     failure: str | None = None
+    spinner = Spinner("dots", style="cyan")
     def render () -> Panel:
         content = Text(f"Workspace: {location}\n")
         for message in completed:
@@ -63,13 +67,10 @@ def setup(
         elif current:
             elapsed = int(monotonic() - started_at)
             minutes, seconds = divmod(elapsed, 60)
-            parts.append(
-                Spinner(
-                    "dots",
-                    text=Text(f"{current} · {minutes:02d}:{seconds:02d}"),
-                    style="cyan",
-                )
+            spinner.update(
+                text=Text(f"{current} · {minutes:02d}:{seconds:02d}")
             )
+            parts.append(spinner)
             for message in recent_logs:
                 parts.append(
                     Text(
@@ -109,7 +110,7 @@ def setup(
         try:
             location = workspace.expanduser().resolve()
             live.update(render())
-            _setup(workspace, on_event=on_event)
+            _setup(workspace, on_event=on_event, reinstall=reinstall)
         except Exception as error:
             current = ""
             failure = str(error)

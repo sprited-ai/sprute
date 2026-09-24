@@ -24,6 +24,7 @@ def setup(
     workspace: Path,
     *,
     on_event: Callable[[SetupEvent], None] | None = None,
+    reinstall: bool = False,
 ) -> Path:
     def report(
         state: Literal["started", "completed", "log"],
@@ -39,10 +40,11 @@ def setup(
     report("completed", "Workspace ready")
 
     # 2. Setup ComfyUI
-    if is_installed("comfyui"):
+    if is_installed("comfyui") and not reinstall:
         report("completed", "ComfyUI already installed")
     else:
-        report("started", f"Installing headless ComfyUI {COMFY_VERSION}")
+        action = "Reinstalling" if reinstall else "Installing"
+        report("started", f"{action} headless ComfyUI {COMFY_VERSION}")
         command = [
             sys.executable, "-u", "-m", "pip",
             "install",
@@ -50,6 +52,8 @@ def setup(
             "--extra-index-url", COMFY_INDEX_URL,
             f"comfyui=={COMFY_VERSION}",
         ]
+        if reinstall:
+            command.append("--force-reinstall")
         recent_logs: deque[str] = deque(maxlen=20)
         with subprocess.Popen(
             command,
@@ -80,6 +84,8 @@ def setup(
             raise RuntimeError(f"ComfyUI installation failed:\n{details}")
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
 
+    # 3. Test Torch and GPU
+    
     # 4. Try to run ComfyUI
     report("started", "Testing ComfyUI workflow")
     workflow = {
