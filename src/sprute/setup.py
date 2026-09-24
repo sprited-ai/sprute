@@ -44,8 +44,9 @@ def setup(
     else:
         report("started", f"Installing headless ComfyUI {COMFY_VERSION}")
         command = [
-            sys.executable, "-m", "pip",
+            sys.executable, "-u", "-m", "pip",
             "install",
+            "--progress-bar", "off",
             "--extra-index-url", COMFY_INDEX_URL,
             f"comfyui=={COMFY_VERSION}",
         ]

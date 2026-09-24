@@ -7,6 +7,8 @@ from rich.text import Text
 from rich.live import Live
 from rich.spinner import Spinner
 from rich.console import Console, Group, RenderableType
+from time import monotonic
+from collections import deque
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -25,6 +27,8 @@ def setup(
     verbose: bool = typer.Option(False, "--verbose", "-v")
 ):
     """Prepare the Sprute workspace"""
+    recent_logs: deque[str] = deque(maxlen=5)
+    started_at = monotonic()
     def print_log(message: str) -> None:
         console.print(
             Text.from_ansi(message),
@@ -57,9 +61,24 @@ def setup(
             error_text.append(failure, style="default")
             parts.append(error_text)
         elif current:
+            elapsed = int(monotonic() - started_at)
+            minutes, seconds = divmod(elapsed, 60)
             parts.append(
-                Spinner("dots", text=Text(current), style="cyan")
+                Spinner(
+                    "dots",
+                    text=Text(f"{current} · {minutes:02d}:{seconds:02d}"),
+                    style="cyan",
+                )
             )
+            for message in recent_logs:
+                parts.append(
+                    Text(
+                        f"  {message}",
+                        style="dim",
+                        no_wrap=True,
+                        overflow="ellipsis",
+                    )
+                )
         return Panel(
             Group(*parts), 
             title="Setup", 
@@ -67,18 +86,22 @@ def setup(
         )        
 
     with Live(
-        render(), 
+        get_renderable=render, 
         console=console,
-        refresh_per_second=10
+        refresh_per_second=4
     ) as live:
         def on_event(event: SetupEvent) -> None:
             nonlocal current
             if event.state == "log":
                 if verbose:
                     print_log(event.message)
+                message = Text.from_ansi(event.message).plain.strip()
+                if message:
+                    recent_logs.append(message)
                 return
             if event.state == "started":
                 current = event.message
+                recent_logs.clear()
             else:
                 completed.append(event.message)
                 current = ""
