@@ -17,7 +17,7 @@ COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
 
 @dataclass(frozen=True)
 class SetupEvent:
-    state: Literal["started", "completed", "log"]
+    state: Literal["started", "completed", "log", "warning"]
     message: str
 
 def setup(
@@ -26,7 +26,7 @@ def setup(
     reinstall: bool = False,
 ) -> None:
     def report(
-        state: Literal["started", "completed", "log"],
+        state: Literal["started", "completed", "log", "warning"],
         message: str,
     ) -> None:
         if on_event is not None:
@@ -34,7 +34,7 @@ def setup(
 
     # 1. Setup ComfyUI
     if is_installed("comfyui") and not reinstall:
-        report("completed", "ComfyUI already installed")
+        report("completed", f"ComfyUI {version('comfyui')} already installed")
     else:
         action = "Reinstalling" if reinstall else "Installing"
         report("started", f"{action} headless ComfyUI {COMFY_VERSION}")
@@ -79,12 +79,51 @@ def setup(
 
     # 2. Test Torch and GPU
     report("started", "Testing PyTorch and GPU")
+    import warnings
+    warnings.filterwarnings(
+        "ignore",
+        message=r"(?s)Warning only once for all operators.*Overriding.*dispatch key: MPS",
+        category=UserWarning,
+        module=r"torch\.library",
+    )
     import torch
     device = (
         "cuda" if torch.cuda.is_available()
         else "mps" if torch.backends.mps.is_available()
         else "cpu"
     )
+    if device != "cuda":
+        nvidia_smi = shutil.which("nvidia-smi")
+        if nvidia_smi is None:
+            report("log", "nvidia-smi unavailable; NVIDIA GPU presence could not be checked.")
+        else:
+            try:
+                probe = subprocess.run(
+                    [nvidia_smi, "--query-gpu=name", "--format=csv,noheader"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+            except (OSError, subprocess.TimeoutExpired) as error:
+                report("warning", f"NVIDIA GPU detection unavailable: {error}")
+            else:
+                if probe.returncode != 0:
+                    details = probe.stderr.strip() or probe.stdout.strip()
+                    report("warning", f"NVIDIA GPU detection failed: {details or probe.returncode}")
+                elif probe.stdout.strip():
+                    names = ", ".join(probe.stdout.strip().splitlines())
+                    reason = (
+                        "This PyTorch build has no CUDA support."
+                        if torch.version.cuda is None
+                        else "Check the NVIDIA driver, device permissions, and CUDA_VISIBLE_DEVICES."
+                    )
+                    report(
+                        "warning",
+                        f"NVIDIA GPU detected ({names}), but PyTorch cannot use CUDA. "
+                        f"{reason} Selected device: {device}.",
+                    )
+                else:
+                    report("log", "nvidia-smi returned no GPU names; no NVIDIA GPU confirmed.")
     a = torch.ones((256, 256), device=device)
     result = (a @ a).cpu()
     torch.testing.assert_close(

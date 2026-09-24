@@ -40,6 +40,9 @@ def setup(
         def print_event(event: SetupEvent) -> None:
             if event.state == "log" and not verbose:
                 return
+            if event.state == "warning":
+                console.print(Text(f"Warning: {event.message}", style="yellow"))
+                return
             print_log(event.message)
         try:
             _setup(on_event=print_event, reinstall=reinstall)
@@ -49,6 +52,7 @@ def setup(
         return
 
     completed: list[str] = []
+    warnings: list[str] = []
     current = ""
     failure: str | None = None
     spinner = Spinner("dots", style="cyan")
@@ -60,6 +64,8 @@ def setup(
             content.append("✓ ", style="green")
             content.append(message)
         parts: list[RenderableType] = [content] if completed else []
+        for message in warnings:
+            parts.append(Text(f"⚠ {message}", style="yellow"))
         if failure is not None:
             error_text = Text("✗ Setup failed\n", style="red")
             error_text.append(failure, style="default")
@@ -93,6 +99,10 @@ def setup(
     ) as live:
         def on_event(event: SetupEvent) -> None:
             nonlocal current
+            if event.state == "warning":
+                warnings.append(event.message)
+                live.update(render())
+                return
             if event.state == "log":
                 if verbose:
                     print_log(event.message)
