@@ -7,7 +7,7 @@ name = "sprute"
 version = "2.0.0.dev0"
 description = "Generate animated, 8-directional character sprites."
 requires-python = ">=3.12"
-dependencies = ["typer", "rich", "uv"]
+dependencies = ["typer", "rich", "pillow"]
 
 [project.scripts]
 sprute = "sprute.cli:app"
