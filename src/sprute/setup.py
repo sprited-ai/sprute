@@ -149,16 +149,25 @@ def setup(
     for name, node in CUSTOM_NODES.items():
         destination = node_directory / name
         revision = node["revision"]
-        if (destination / ".git").exists() and not reinstall:
+        installed = destination / ".git" / "sprute-installed-revision"
+        current_revision = None
+        if (destination / ".git").is_dir():
             current = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 cwd=destination,
                 capture_output=True,
                 text=True,
             )
-            if current.returncode == 0 and current.stdout.strip() == revision:
-                report("log", f"{name} already installed")
-                continue
+            if current.returncode == 0:
+                current_revision = current.stdout.strip()
+        if (
+            not reinstall
+            and current_revision == revision
+            and installed.is_file()
+            and installed.read_text().strip() == revision
+        ):
+            report("log", f"{name} already installed")
+            continue
 
         report("log", f"Preparing {name}")
         if not destination.exists():
@@ -172,15 +181,29 @@ def setup(
                 f"{destination} exists but is not a Git checkout"
             )
 
-        run(
-            ["git", "fetch", "--depth", "1", "origin", revision],
-            cwd=destination,
-        )
-        run(
-            ["git", "checkout", "--detach", revision],
-            cwd=destination,
-        )
-        report("log", f"{name} checkout ready")
+        # A failed install must be retried on the next setup run.
+        installed.unlink(missing_ok=True)
+        if current_revision != revision or reinstall:
+            run(
+                ["git", "fetch", "--depth", "1", "origin", revision],
+                cwd=destination,
+            )
+            run(
+                ["git", "checkout", "--detach", revision],
+                cwd=destination,
+            )
+        requirements = destination / "requirements.txt"
+        if requirements.is_file():
+            report("log", f"Installing {name} dependencies")
+            run(
+                [
+                    sys.executable, "-u", "-m", "pip", "install",
+                    "--progress-bar", "off", "-r", str(requirements),
+                ],
+                cwd=destination,
+            )
+        installed.write_text(revision + "\n")
+        report("log", f"{name} installed")
     report("completed", "ComfyUI custom nodes installed")
     # 2. Test Torch and GPU
     report("started", "Testing PyTorch and GPU")
