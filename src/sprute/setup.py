@@ -333,14 +333,23 @@ def setup(
             "inputs": {
                 "width": 64,
                 "height": 64,
-                "batch_size": 1,
+                "batch_size": 2,
                 "color": 0,
             },
         },
         "2": {
-            "class_type": "SaveImage",
+            "class_type": "ImageConcatFromBatch",
             "inputs": {
                 "images": ["1", 0],
+                "num_columns": 2,
+                "match_image_size": False,
+                "max_resolution": 4096,
+            },
+        },
+        "3": {
+            "class_type": "SaveImage",
+            "inputs": {
+                "images": ["2", 0],
                 "filename_prefix": "sprute-setup-test",
             },
         },
@@ -355,17 +364,17 @@ def setup(
         result = run_workflow(
             workflow_path,
             output=temporary / "output",
-            on_log=lambda message: report("log", message),
-            extra_args=(
-                "--disable-all-custom-nodes",
-            )
+            on_log=lambda message: report("log", message)
         )
-        image_path = Path(result["2"]["images"][0]["abs_path"])
+        image_path = Path(result["3"]["images"][0]["abs_path"])
         from PIL import Image
         with Image.open(image_path) as image:
             image.load()
-            if image.format != "PNG" or image.size != (64, 64):
-                raise RuntimeError("Unexpected ComfyUI test image")
+            if image.format != "PNG" or image.size != (128, 64):
+                raise RuntimeError(
+                    f"Unexpected ComfyUI test image: {image.format} {image.size}; "
+                    "expected PNG (128, 64)"
+                )
     report("completed", "ComfyUI workflow verified")
 
 def is_installed(package: str) -> bool:
