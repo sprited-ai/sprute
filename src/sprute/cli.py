@@ -1,8 +1,12 @@
 import typer
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 from sprute.setup import setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
+from sprute.config import model_directories
 from collections.abc import Callable
 from rich.panel import Panel
 from rich.text import Text
@@ -27,7 +31,7 @@ def main():
 def setup(
     models_dir: list[Path] = typer.Option(
         [], "--models-dir", file_okay=False,
-        help="Model directories to search. Downloads go to the first; default: ./models. Can be repeated.",
+        help="Override config model directories. Downloads go to the first. Can be repeated.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     reinstall: bool = typer.Option(
@@ -38,18 +42,19 @@ def setup(
     run_with_panel(
         "Setup",
         lambda on_event: _setup(
-            on_event=on_event, reinstall=reinstall, model_dirs=tuple(models_dir)
+            on_event=on_event, reinstall=reinstall, model_dirs=model_directories(models_dir)
         ),
         verbose=verbose,
     )
 
 
-def run_with_panel(
+def run_with_panel[T](
     title: str,
-    action: Callable[[Callable[[Event], None]], object],
+    action: Callable[[Callable[[Event], None]], T],
     *,
     verbose: bool = False,
-) -> None:
+    prompt: str | None = None,
+) -> T:
     recent_logs: deque[str] = deque(maxlen=1)
     command_started_at = monotonic()
     started_at = command_started_at
@@ -77,7 +82,12 @@ def run_with_panel(
             highlight=False,
         )
     if verbose or not console.is_interactive:
+        if prompt is not None:
+            console.print(Text(f"Prompt: {prompt}"))
         def print_event(event: Event) -> None:
+            if event.state == "image":
+                show_sprite(Path(event.message))
+                return
             if event.state == "progress":
                 return
             if event.state == "log" and not verbose:
@@ -91,12 +101,12 @@ def run_with_panel(
                 message.append(f" · {elapsed}", style="dim")
             console.print(message, highlight=False)
         try:
-            action(print_event)
+            result = action(print_event)
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
         console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
-        return
+        return result
 
     completed: list[tuple[str, str]] = []
     warnings: list[str] = []
@@ -105,6 +115,10 @@ def run_with_panel(
     spinner = Spinner("dots", style="cyan")
     def render () -> Panel:
         parts: list[RenderableType] = []
+        if prompt is not None:
+            label = Text("Prompt: ", style="dim")
+            label.append(prompt, style="default")
+            parts.extend([label, Text("")])
         for message, elapsed in completed:
             label = Text("✓ ", style="green")
             label.append(message, style="default")
@@ -137,13 +151,29 @@ def run_with_panel(
             title_align="left",
         )        
 
-    with Live(
-        get_renderable=render, 
-        console=console,
-        refresh_per_second=4
-    ) as live:
+    def create_live() -> Live:
+        return Live(
+            get_renderable=render,
+            console=console,
+            refresh_per_second=4,
+            transient=True,
+        )
+
+    live = create_live()
+    live.start(refresh=True)
+    try:
         def on_event(event: Event) -> None:
-            nonlocal current
+            nonlocal current, live
+            if event.state == "image":
+                # Clear and stop refresh before imgcat changes the cursor position.
+                live.stop()
+                try:
+                    show_sprite(Path(event.message))
+                finally:
+                    # A fresh Live has no previous panel height to rewind over the image.
+                    live = create_live()
+                    live.start(refresh=True)
+                return
             if event.state == "warning":
                 warnings.append(event.message)
                 live.update(render())
@@ -166,32 +196,71 @@ def run_with_panel(
                 current = ""
             live.update(render())
         try:
-            action(on_event)
+            result = action(on_event)
         except Exception as error:
             current = ""
             failure = str(error)
             live.update(render(), refresh=True)
+    finally:
+        live.stop()
+    console.print(render())
     if failure is not None:
         raise typer.Exit(code=1)
     console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
+    return result
 
 @app.command()
 def generate(
     prompt: str = "",
-    seed: int = 42,
-    out: Path = Path("outputs"),
+    name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
+    seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    out: Path = Path("output"),
+    batch: int = typer.Option(1, min=1, help="Number of characters to generate sequentially."),
     models_dir: list[Path] = typer.Option(
         [], "--models-dir", exists=True, file_okay=False,
-        help="Model directories to search. Default: ./models. Can be repeated.",
+        help="Override config model directories. Can be repeated. Default: config or ./models.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview", help="Show the sprite with imgcat in an interactive terminal."),
 ):
     """Generate a character from a text prompt."""
-    run_with_panel(
-        "Generate",
-        lambda on_event: _generate(
-            prompt, seed=seed, out=out,
-            model_dirs=tuple(models_dir), on_event=on_event,
-        ),
-        verbose=verbose,
-    )
+    def generate_batch(on_event: Callable[[Event], None]) -> None:
+        directories = model_directories(models_dir)
+        for index in range(batch):
+            character_name = (
+                f"{name}-{index + 1:04d}" if name is not None and batch > 1 else name
+            )
+            character_seed = (seed + index) % (2**32) if seed is not None and batch > 1 else seed
+
+            def report(event: Event) -> None:
+                if batch > 1 and event.state == "started" and event.message == "Generating character":
+                    event = Event(
+                        event.state, f"[{index + 1}/{batch}] {event.message}", event.timed
+                    )
+                on_event(event)
+
+            image = _generate(
+                prompt, seed=character_seed, out=out, name=character_name,
+                model_dirs=directories, on_event=report,
+            )
+            if preview:
+                on_event(Event("image", str(image)))
+
+    run_with_panel("Generate", generate_batch, verbose=verbose, prompt=prompt)
+
+
+def show_sprite(image: Path) -> None:
+    """Display while Live is stopped; never send image escapes into redirected output."""
+    if not sys.stdout.isatty():
+        return
+    imgcat = shutil.which("imgcat")
+    if imgcat is None:
+        return
+    try:
+        subprocess.run(
+            [imgcat, "-W", "320px", str(image)],
+            check=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        console.print(f"Image saved, but terminal preview failed: {error}", style="yellow", markup=False)
