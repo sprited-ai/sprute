@@ -21,11 +21,10 @@ class SetupEvent:
     message: str
 
 def setup(
-    workspace: Path,
     *,
     on_event: Callable[[SetupEvent], None] | None = None,
     reinstall: bool = False,
-) -> Path:
+) -> None:
     def report(
         state: Literal["started", "completed", "log"],
         message: str,
@@ -33,13 +32,7 @@ def setup(
         if on_event is not None:
             on_event(SetupEvent(state, message))
 
-    # 1. Ensure Workspace
-    report("started", "Preparing workspace")
-    workspace = workspace.expanduser().resolve()
-    workspace.mkdir(parents=True, exist_ok=True)
-    report("completed", "Workspace ready")
-
-    # 2. Setup ComfyUI
+    # 1. Setup ComfyUI
     if is_installed("comfyui") and not reinstall:
         report("completed", "ComfyUI already installed")
     else:
@@ -84,7 +77,7 @@ def setup(
             raise RuntimeError(f"ComfyUI installation failed:\n{details}")
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
 
-    # 3. Test Torch and GPU
+    # 2. Test Torch and GPU
     report("started", "Testing PyTorch and GPU")
     import torch
     device = (
@@ -102,7 +95,7 @@ def setup(
         "completed",
         f"PyTorch {torch.__version__} · {device} · matrix multiplication passed",
     )
-    # 4. Try to run ComfyUI
+    # 3. Try to run ComfyUI
     report("started", "Testing ComfyUI workflow")
     workflow = {
         "1": {
@@ -146,8 +139,6 @@ def setup(
             if image.format != "PNG" or image.size != (64, 64):
                 raise RuntimeError("Unexpected ComfyUI test image")
     report("completed", "ComfyUI workflow verified")
-
-    return workspace
 
 def is_installed(package: str) -> bool:
     try:

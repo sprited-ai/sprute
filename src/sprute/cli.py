@@ -23,13 +23,12 @@ def main():
 
 @app.command()
 def setup(
-    workspace: Path = Path("workspace"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     reinstall: bool = typer.Option(
         False, "--reinstall", help="Reinstall ComfyUI and its dependencies."
     ),
 ):
-    """Prepare the Sprute workspace"""
+    """Install and check Sprute dependencies."""
     recent_logs: deque[str] = deque(maxlen=1)
     started_at = monotonic()
     def print_log(message: str) -> None:
@@ -43,23 +42,24 @@ def setup(
                 return
             print_log(event.message)
         try:
-            _setup(workspace, on_event=print_event, reinstall=reinstall)
+            _setup(on_event=print_event, reinstall=reinstall)
         except Exception as error:
             console.print(str(error), markup=False, highlight=False)
             raise typer.Exit(code=1) from error
         return
 
-    location = workspace
     completed: list[str] = []
     current = ""
     failure: str | None = None
     spinner = Spinner("dots", style="cyan")
     def render () -> Panel:
-        content = Text(f"Workspace: {location}\n")
+        content = Text()
         for message in completed:
-            content.append("\n✓ ", style="green")
+            if content.plain:
+                content.append("\n")
+            content.append("✓ ", style="green")
             content.append(message)
-        parts: list[RenderableType] = [content]
+        parts: list[RenderableType] = [content] if completed else []
         if failure is not None:
             error_text = Text("✗ Setup failed\n", style="red")
             error_text.append(failure, style="default")
@@ -108,9 +108,7 @@ def setup(
                 current = ""
             live.update(render())
         try:
-            location = workspace.expanduser().resolve()
-            live.update(render())
-            _setup(workspace, on_event=on_event, reinstall=reinstall)
+            _setup(on_event=on_event, reinstall=reinstall)
         except Exception as error:
             current = ""
             failure = str(error)
