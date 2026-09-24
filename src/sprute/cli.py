@@ -9,15 +9,39 @@ from rich.spinner import Spinner
 from rich.console import Console, Group, RenderableType
 
 app = typer.Typer(no_args_is_help=True)
-console = Console(stderr=True)
+
+console = Console(
+    stderr=True,
+    # force_interactive=False if verbose else None,
+)
 
 @app.callback()
 def main():
     """Sprute — character sprite tools."""
 
 @app.command()
-def setup(workspace: Path = Path("workspace")):
+def setup(
+    workspace: Path = Path("workspace"),
+    verbose: bool = typer.Option(False, "--verbose", "-v")
+):
     """Prepare the Sprute workspace"""
+    def print_log(message: str) -> None:
+        console.print(
+            Text.from_ansi(message),
+            highlight=False,
+        )
+    if not console.is_interactive:
+        def print_event(event: SetupEvent) -> None:
+            if event.state == "log" and not verbose:
+                return
+            print_log(event.message)
+        try:
+            _setup(workspace, on_event=print_event)
+        except Exception as error:
+            console.print(str(error), markup=False, highlight=False)
+            raise typer.Exit(code=1) from error
+        return
+
     location = workspace
     completed: list[str] = []
     current = ""
@@ -49,6 +73,10 @@ def setup(workspace: Path = Path("workspace")):
     ) as live:
         def on_event(event: SetupEvent) -> None:
             nonlocal current
+            if event.state == "log":
+                if verbose:
+                    print_log(event.message)
+                return
             if event.state == "started":
                 current = event.message
             else:
