@@ -85,7 +85,23 @@ def setup(
         report("completed", f"ComfyUI {COMFY_VERSION} installed")
 
     # 3. Test Torch and GPU
-    
+    report("started", "Testing PyTorch and GPU")
+    import torch
+    device = (
+        "cuda" if torch.cuda.is_available()
+        else "mps" if torch.backends.mps.is_available()
+        else "cpu"
+    )
+    a = torch.ones((256, 256), device=device)
+    result = (a @ a).cpu()
+    torch.testing.assert_close(
+        result,
+        torch.full((256,256), 256.0),
+    )
+    report(
+        "completed",
+        f"PyTorch {torch.__version__} · {device} · matrix multiplication passed",
+    )
     # 4. Try to run ComfyUI
     report("started", "Testing ComfyUI workflow")
     workflow = {
