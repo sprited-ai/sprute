@@ -15,49 +15,46 @@ def custom_nodes_path() -> Path:
     return Path(distribution("comfyui").locate_file("comfy/custom_nodes")).resolve()
 
 def run_workflow(
-    graph: dict,
+    workflow: dict,
     *,
-    outputs: tuple[str, ...],
+    input_files: tuple[Path, ...] = (),
+    output_node_ids: tuple[str, ...],
     on_log: Callable[[str], None],
-    inputs: tuple[Path, ...] = (),
-    models: bool = True,
 ) -> dict[str, bytes]:
-    """Run a workflow and return the first saved image of each requested node."""
+    """Run an API workflow and return the first saved image of each output node, by node id."""
     executable = Path(sysconfig.get_path("scripts")) / (
         "comfyui.exe" if os.name == "nt" else "comfyui"
     )
-    # models=False is used by the model-free setup check.
-    if models:
-        models_directory = get_models_directory().resolve(strict=True)
-        if not models_directory.is_dir():
-            raise NotADirectoryError(f"Not a models directory: {models_directory}")
+    models_directory = get_models_directory().resolve(strict=True)
+    if not models_directory.is_dir():
+        raise NotADirectoryError(f"Not a models directory: {models_directory}")
     with (
         TemporaryDirectory(prefix="sprute-comfy-") as workspace,
         TemporaryFile(mode="w+", encoding="utf-8") as result,
     ):
-        workflow = Path(workspace) / "workflow.json"
-        output = Path(workspace) / "output"
-        input = Path(workspace) / "input"
-        input.mkdir()
-        # The graph refers to inputs by file name.
-        for path in inputs:
-            target = input / path.name
+        workflow_path = Path(workspace) / "workflow.json"
+        output_directory = Path(workspace) / "output"
+        input_directory = Path(workspace) / "input"
+        input_directory.mkdir()
+        # The workflow refers to input files by file name.
+        for path in input_files:
+            target = input_directory / path.name
             if target.exists():
                 raise ValueError(f"Duplicate input file name: {path.name}")
             shutil.copyfile(path, target)
-        workflow.write_text(json.dumps(graph), encoding="utf-8")
+        workflow_path.write_text(json.dumps(workflow), encoding="utf-8")
         command = [
             str(executable),
             "run-workflow",
-            str(workflow),
+            str(workflow_path),
             "--input-directory",
-            str(input),
+            str(input_directory),
             "--output-directory",
-            str(output),
+            str(output_directory),
+            "--models-directory",
+            str(models_directory),
             "--disable-progress",
         ]
-        if models:
-            command.extend(["--models-directory", str(models_directory)])
         command.extend(["--base-directory", workspace])
         command.extend(["--base-paths", str(custom_nodes_path().parent)])
         recent_logs: deque[str] = deque(maxlen=20)
@@ -111,18 +108,18 @@ def run_workflow(
         if saved is None:
             raise RuntimeError("ComfyUI exited successfully but returned no JSON result.")
         return {
-            node_id: _output_path(saved, node_id, output=output).read_bytes()
-            for node_id in outputs
+            node_id: _output_path(saved, node_id, output_directory=output_directory).read_bytes()
+            for node_id in output_node_ids
         }
 
 
-def _output_path(result: dict, node_id: str, *, output: Path) -> Path:
+def _output_path(result: dict, node_id: str, *, output_directory: Path) -> Path:
     """Resolve the first saved image, including animated WebP outputs."""
     saved = result[node_id]["images"][0]
     path = (
         Path(saved["abs_path"])
         if saved.get("abs_path")
-        else output / saved.get("subfolder", "") / saved["filename"]
+        else output_directory / saved.get("subfolder", "") / saved["filename"]
     )
     if not path.is_file():
         raise FileNotFoundError(f"ComfyUI output not found: {path}")

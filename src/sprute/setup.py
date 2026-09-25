@@ -381,8 +381,7 @@ def check_comfy_workflow(*, report: Reporter) -> None:
     }
     data = run_workflow(
         workflow,
-        outputs=("3",),
-        models=False,
+        output_node_ids=("3",),
         on_log=lambda message: report("log", message)
     )["3"]
     from PIL import Image

@@ -42,8 +42,8 @@ def turntable(
     report("started", f"Generating turntable · seed {seed}", timed=True)
     sources = run_workflow(
         graph,
-        outputs=tuple(destinations),
-        inputs=(image,),
+        input_files=(image,),
+        output_node_ids=tuple(destinations),
         on_log=lambda message: report("log", message),
     )
     created = []

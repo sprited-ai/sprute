@@ -38,8 +38,8 @@ def generate(
             raise FileExistsError(f"Character already exists: {named_output}")
     data = run_workflow(
         graph,
-        outputs=("114",),
-        inputs=(template,),
+        input_files=(template,),
+        output_node_ids=("114",),
         on_log=lambda message: report("log", message),
     )["114"]
     index = 1
