@@ -233,9 +233,11 @@ def generate(
             character_seed = (seed + index) % (2**32) if seed is not None and batch > 1 else seed
 
             def report(event: Event) -> None:
-                if batch > 1 and event.state == "started" and event.message == "Generating character":
+                if batch > 1 and event.state == "started":
                     event = Event(
-                        event.state, f"[{index + 1}/{batch}] {event.message}", event.timed
+                        event.state,
+                        event.message.replace("Generating character", f"Generating character {index + 1} of {batch}", 1),
+                        event.timed,
                     )
                 on_event(event)
 

@@ -21,9 +21,9 @@ def generate(
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
-    report("started", "Preparing generation", timed=True)
     if seed is None:
         seed = secrets.randbits(32)
+    report("started", f"Generating character · seed {seed}", timed=True)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["203"]["inputs"]["text"] = prompt
     graph["207"]["inputs"]["seed"] = seed
@@ -45,8 +45,6 @@ def generate(
     for directory in model_dirs:
         if not directory.is_dir():
             raise NotADirectoryError(f"Not a model directory: {directory}")
-    report("completed", f"Generation prepared · seed {seed}")
-    report("started", "Generating character", timed=True)
     with TemporaryDirectory(prefix="sprute-generate-") as temporary:
         workflow_path = Path(temporary) / "workflow.json"
         workflow_path.write_text(json.dumps(graph), encoding="utf-8")
@@ -97,5 +95,5 @@ def generate(
                 destination.unlink()
                 raise
             break
-    report("completed", f"Character saved: {destination}")
+    report("completed", f"Character saved: {destination} · seed {seed}")
     return destination
