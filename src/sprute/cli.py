@@ -30,9 +30,9 @@ def main():
 
 @app.command()
 def setup(
-    models_dir: list[Path] = typer.Option(
-        [], "--models-dir", file_okay=False,
-        help="Override config model directories. Downloads go to the first. Can be repeated.",
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", file_okay=False,
+        help="Override the config models directory. Downloads go here.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     reinstall: bool = typer.Option(
@@ -43,7 +43,7 @@ def setup(
     run_with_panel(
         "Setup",
         lambda on_event: _setup(
-            on_event=on_event, reinstall=reinstall, model_dirs=model_directories(models_dir)
+            on_event=on_event, reinstall=reinstall, model_dirs=model_directories(models_directory)
         ),
         verbose=verbose,
     )
@@ -215,16 +215,16 @@ def generate(
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
     batch: int = typer.Option(1, min=1, help="Number of characters to generate sequentially."),
-    models_dir: list[Path] = typer.Option(
-        [], "--models-dir", exists=True, file_okay=False,
-        help="Override config model directories. Can be repeated. Default: config or ./models.",
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", exists=True, file_okay=False,
+        help="Override the config models directory. Default: config or ./models.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     preview: bool = typer.Option(True, "--preview/--no-preview", help="Show the sprite with imgcat in an interactive terminal."),
 ):
     """Generate a character from a text prompt."""
     def generate_batch(on_event: Callable[[Event], None]) -> None:
-        directories = model_directories(models_dir)
+        directories = model_directories(models_directory)
         for index in range(batch):
             character_name = (
                 f"{name}-{index + 1:04d}" if name is not None and batch > 1 else name
@@ -273,9 +273,9 @@ def turntable(
     image: Path = typer.Option(..., exists=True, dir_okay=False, help="Character reference image."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
-    models_dir: list[Path] = typer.Option(
-        [], "--models-dir", exists=True, file_okay=False,
-        help="Override config model directories. Can be repeated. Default: config or ./models.",
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", exists=True, file_okay=False,
+        help="Override the config models directory. Default: config or ./models.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     preview: bool = typer.Option(True, "--preview/--no-preview"),
@@ -284,7 +284,7 @@ def turntable(
     def run(on_event: Callable[[Event], None]) -> Path:
         strip = _turntable(
             image, seed=seed, out=out,
-            model_dirs=model_directories(models_dir), on_event=on_event,
+            model_dirs=model_directories(models_directory), on_event=on_event,
         )
         if preview:
             on_event(Event("image", str(strip)))

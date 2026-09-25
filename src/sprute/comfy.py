@@ -50,13 +50,7 @@ def run_workflow(
             *extra_args,
         ]
         if model_dirs:
-            # RMBG reads this root directly, bypassing extra model paths.
-            models_root = next(
-                (root for root in model_dirs
-                 if (root / "RMBG/BiRefNet/BiRefNet_toonout.safetensors").is_file()),
-                model_dirs[0],
-            )
-            command.extend(["--models-directory", str(models_root)])
+            command.extend(["--models-directory", str(model_dirs[0])])
         if model_dirs and len(model_dirs) > 1:
             # Additional roots use the same folder structure; no files are moved.
             categories = ("checkpoints", "diffusion_models", "text_encoders", "clip_vision", "vae", "loras")

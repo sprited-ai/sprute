@@ -1,12 +1,11 @@
 import json
 from pathlib import Path
-from collections.abc import Sequence
 
 
-def model_directories(overrides: Sequence[Path] = ()) -> tuple[Path, ...]:
-    """Resolve CLI overrides, working-directory config, or ./models."""
-    if overrides:
-        return tuple(path.expanduser().resolve() for path in overrides)
+def model_directories(override: Path | None = None) -> tuple[Path, ...]:
+    """Resolve the CLI override, working-directory config, or ./models."""
+    if override is not None:
+        return (override.expanduser().resolve(),)
 
     config = Path.cwd() / "sprute.config.json"
     if not config.exists():
