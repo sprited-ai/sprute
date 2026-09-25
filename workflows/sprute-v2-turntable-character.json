@@ -422,10 +422,10 @@
         "Node name for S&R": "CLIPTextEncode"
       },
       "widgets_values": [
-        "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. A girl with long brown hair and a large blue patterned hair bow wears a sleeveless blue patterned top, blue shorts, white socks and white shoes. She stands upright with her arms resting beside her and rotates in place through one full turn. Preserve her reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
+        "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. Preserve character's reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
       ],
       "widgets_values_named": {
-        "text": "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. A girl with long brown hair and a large blue patterned hair bow wears a sleeveless blue patterned top, blue shorts, white socks and white shoes. She stands upright with her arms resting beside her and rotates in place through one full turn. Preserve her reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
+        "text": "A 360-degree turning and circling video of a 2D RPG game character. Pixel Art. Game Sprite. This is a full-body long shot with a plain gray background. Preserve character's reference proportions, clothes and hairstyle. Clear readable silhouette, clean contours, flat local colors with restrained cel shading. Fixed camera, constant character size, feet on the same spot. aesthetic score: 5.5. motion score: 3.0. There is no text in the video."
       }
     },
     {

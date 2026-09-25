@@ -6,6 +6,7 @@ from pathlib import Path
 from sprute.setup import setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
+from sprute.turntable import turntable as _turntable
 from sprute.config import model_directories
 from collections.abc import Callable
 from rich.panel import Panel
@@ -200,12 +201,10 @@ def run_with_panel[T](
         except Exception as error:
             current = ""
             failure = str(error)
-            live.update(render(), refresh=True)
+            raise typer.Exit(code=1) from error
     finally:
         live.stop()
-    console.print(render())
-    if failure is not None:
-        raise typer.Exit(code=1)
+        console.print(render())
     console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
     return result
 
@@ -266,3 +265,29 @@ def show_sprite(image: Path) -> None:
         )
     except (OSError, subprocess.SubprocessError) as error:
         console.print(f"Image saved, but terminal preview failed: {error}", style="yellow", markup=False)
+
+
+
+@app.command()
+def turntable(
+    image: Path = typer.Option(..., exists=True, dir_okay=False, help="Character reference image."),
+    seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    out: Path = Path("output"),
+    models_dir: list[Path] = typer.Option(
+        [], "--models-dir", exists=True, file_okay=False,
+        help="Override config model directories. Can be repeated. Default: config or ./models.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview"),
+):
+    """Generate a turntable and extract eight directional views."""
+    def run(on_event: Callable[[Event], None]) -> Path:
+        strip = _turntable(
+            image, seed=seed, out=out,
+            model_dirs=model_directories(models_dir), on_event=on_event,
+        )
+        if preview:
+            on_event(Event("image", str(strip)))
+        return strip
+
+    run_with_panel("Turntable", run, verbose=verbose)

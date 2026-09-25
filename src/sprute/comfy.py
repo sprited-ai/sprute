@@ -18,6 +18,7 @@ def run_workflow(
     output: Path,
     on_log: Callable[[str], None],
     paths_config: Path | None = None,
+    model_dirs: tuple[Path, ...] = (),
     extra_args: tuple[str, ...] = (),
 ) -> dict:
     executable = Path(sysconfig.get_path("scripts")) / (
@@ -28,6 +29,7 @@ def run_workflow(
         local_config = Path("comfy-paths.yaml")
         if local_config.is_file():
             paths_config = local_config
+    model_dirs = tuple(path.expanduser().resolve(strict=True) for path in model_dirs)
     command = [
         str(executable),
         "run-workflow",
@@ -46,6 +48,26 @@ def run_workflow(
         TemporaryDirectory(prefix="sprute-comfy-") as workspace,
         TemporaryFile(mode="w+", encoding="utf-8") as result,
     ):
+        if model_dirs:
+            # RMBG reads this root directly, bypassing extra model paths.
+            models_root = next(
+                (root for root in model_dirs
+                 if (root / "RMBG/BiRefNet/BiRefNet_toonout.safetensors").is_file()),
+                model_dirs[0],
+            )
+            command.extend(["--models-directory", str(models_root)])
+        if len(model_dirs) > 1:
+            # Additional roots use the same folder structure; no files are moved.
+            categories = ("checkpoints", "diffusion_models", "text_encoders", "clip_vision", "vae", "loras")
+            extra_paths = Path(workspace) / "model-paths.yaml"
+            extra_paths.write_text(json.dumps({
+                f"sprute_{index}": {
+                    "base_path": str(root),
+                    **{category: category for category in categories},
+                }
+                for index, root in enumerate(model_dirs)
+            }), encoding="utf-8")
+            command.extend(["--extra-model-paths-config", str(extra_paths)])
         command.extend(["--base-directory", workspace])
         command.extend(["--base-paths", str(custom_nodes_path().parent)])
         recent_logs: deque[str] = deque(maxlen=20)

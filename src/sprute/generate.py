@@ -48,28 +48,11 @@ def generate(
     with TemporaryDirectory(prefix="sprute-generate-") as temporary:
         workflow_path = Path(temporary) / "workflow.json"
         workflow_path.write_text(json.dumps(graph), encoding="utf-8")
-        # JSON is valid YAML, as expected by Comfy's extra model paths loader.
-        paths_config = Path(temporary) / "model-paths.yaml"
-        categories = ("checkpoints", "diffusion_models", "text_encoders", "clip_vision", "vae", "loras")
-        paths_config.write_text(json.dumps({
-            f"sprute_{index}": {
-                "base_path": str(directory),
-                **{category: category for category in categories},
-            }
-            for index, directory in enumerate(model_dirs)
-        }), encoding="utf-8")
-        # RMBG reads models_directory directly instead of extra model paths.
-        rmbg_root = next(
-            (directory for directory in model_dirs
-             if (directory / "RMBG/BiRefNet/BiRefNet_toonout.safetensors").is_file()),
-            model_dirs[0],
-        )
         result = run_workflow(
             workflow_path,
             output=Path(temporary) / "output",
-            paths_config=paths_config,
+            model_dirs=model_dirs,
             extra_args=(
-                "--models-directory", str(rmbg_root),
                 "--input-directory", str(template.parent),
             ),
             on_log=lambda message: report("log", message),
