@@ -12,7 +12,6 @@ def turntable(
     *,
     seed: int | None = None,
     out: Path = Path("output"),
-    model_dirs: tuple[Path, ...] = (),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
     def report(state, message, *, timed=False):
@@ -44,10 +43,7 @@ def turntable(
     sources = run_workflow(
         graph,
         outputs=tuple(destinations),
-        model_dirs=model_dirs,
-        extra_args=(
-            "--input-directory", str(image.parent),
-        ),
+        inputs=(image,),
         on_log=lambda message: report("log", message),
     )
     created = []

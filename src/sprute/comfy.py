@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sysconfig
 from collections import deque
@@ -7,6 +8,7 @@ from importlib.metadata import distribution
 from collections.abc import Callable
 from pathlib import Path
 from tempfile import TemporaryDirectory, TemporaryFile
+from sprute.config import get_models_directory
 
 def custom_nodes_path() -> Path:
     """Locate the node checkout directory without importing ComfyUI."""
@@ -17,52 +19,45 @@ def run_workflow(
     *,
     outputs: tuple[str, ...],
     on_log: Callable[[str], None],
-    model_dirs: tuple[Path, ...] | None = None,
-    extra_args: tuple[str, ...] = (),
+    inputs: tuple[Path, ...] = (),
+    models: bool = True,
 ) -> dict[str, bytes]:
     """Run a workflow and return the first saved image of each requested node."""
     executable = Path(sysconfig.get_path("scripts")) / (
         "comfyui.exe" if os.name == "nt" else "comfyui"
     )
-    # None is used by the model-free setup check; an empty tuple selects ./models.
-    if model_dirs is not None:
-        model_dirs = tuple(
-            path.expanduser().resolve(strict=True)
-            for path in (model_dirs or (Path("models"),))
-        )
-        for path in model_dirs:
-            if not path.is_dir():
-                raise NotADirectoryError(f"Not a model directory: {path}")
+    # models=False is used by the model-free setup check.
+    if models:
+        models_directory = get_models_directory().resolve(strict=True)
+        if not models_directory.is_dir():
+            raise NotADirectoryError(f"Not a models directory: {models_directory}")
     with (
         TemporaryDirectory(prefix="sprute-comfy-") as workspace,
         TemporaryFile(mode="w+", encoding="utf-8") as result,
     ):
         workflow = Path(workspace) / "workflow.json"
         output = Path(workspace) / "output"
+        input = Path(workspace) / "input"
+        input.mkdir()
+        # The graph refers to inputs by file name.
+        for path in inputs:
+            target = input / path.name
+            if target.exists():
+                raise ValueError(f"Duplicate input file name: {path.name}")
+            shutil.copyfile(path, target)
         workflow.write_text(json.dumps(graph), encoding="utf-8")
         command = [
             str(executable),
             "run-workflow",
             str(workflow),
+            "--input-directory",
+            str(input),
             "--output-directory",
             str(output),
             "--disable-progress",
-            *extra_args,
         ]
-        if model_dirs:
-            command.extend(["--models-directory", str(model_dirs[0])])
-        if model_dirs and len(model_dirs) > 1:
-            # Additional roots use the same folder structure; no files are moved.
-            categories = ("checkpoints", "diffusion_models", "text_encoders", "clip_vision", "vae", "loras")
-            extra_paths = Path(workspace) / "model-paths.yaml"
-            extra_paths.write_text(json.dumps({
-                f"sprute_{index}": {
-                    "base_path": str(root),
-                    **{category: category for category in categories},
-                }
-                for index, root in enumerate(model_dirs)
-            }), encoding="utf-8")
-            command.extend(["--extra-model-paths-config", str(extra_paths)])
+        if models:
+            command.extend(["--models-directory", str(models_directory)])
         command.extend(["--base-directory", workspace])
         command.extend(["--base-paths", str(custom_nodes_path().parent)])
         recent_logs: deque[str] = deque(maxlen=20)

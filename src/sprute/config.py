@@ -2,14 +2,23 @@ import json
 from pathlib import Path
 
 
-def model_directories(override: Path | None = None) -> tuple[Path, ...]:
-    """Resolve the CLI override, working-directory config, or ./models."""
-    if override is not None:
-        return (override.expanduser().resolve(),)
+_models_directory: Path | None = None
+
+
+def set_models_directory(path: Path | None) -> None:
+    """Override the models directory for this process, e.g. from --models-directory."""
+    global _models_directory
+    _models_directory = None if path is None else path.expanduser().resolve()
+
+
+def get_models_directory() -> Path:
+    """The override, else working-directory config, else ./models."""
+    if _models_directory is not None:
+        return _models_directory
 
     config = Path.cwd() / "sprute.config.json"
     if not config.exists():
-        return (Path("models").resolve(),)
+        return Path("models").resolve()
 
     try:
         settings = json.loads(config.read_text(encoding="utf-8"))
@@ -18,10 +27,10 @@ def model_directories(override: Path | None = None) -> tuple[Path, ...]:
     if not isinstance(settings, dict):
         raise ValueError(f"{config}: expected a JSON object")
 
-    paths = settings.get("models_dirs", ["./models"])
-    if not isinstance(paths, list) or not paths or any(
-        not isinstance(path, str) or not path.strip() for path in paths
-    ):
-        raise ValueError(f"{config}: models_dirs must be a non-empty list of paths")
+    if "models_dirs" in settings:
+        raise ValueError(f"{config}: models_dirs was replaced by models_directory (a single path)")
+    path = settings.get("models_directory", "./models")
+    if not isinstance(path, str) or not path.strip():
+        raise ValueError(f"{config}: models_directory must be a path")
 
-    return tuple((config.parent / Path(path).expanduser()).resolve() for path in paths)
+    return (config.parent / Path(path).expanduser()).resolve()

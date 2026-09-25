@@ -14,7 +14,6 @@ def generate(
     seed: int | None = None,
     out: Path = Path("output"),
     name: str | None = None,
-    model_dirs: tuple[Path, ...] = (),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
     def report(state, message, *, timed=False):
@@ -40,10 +39,7 @@ def generate(
     data = run_workflow(
         graph,
         outputs=("114",),
-        model_dirs=model_dirs,
-        extra_args=(
-            "--input-directory", str(template.parent),
-        ),
+        inputs=(template,),
         on_log=lambda message: report("log", message),
     )["114"]
     index = 1

@@ -9,6 +9,7 @@ import sys
 from importlib.metadata import PackageNotFoundError, version
 import json
 from io import BytesIO
+from sprute.config import get_models_directory
 from sprute.comfy import custom_nodes_path, run_workflow
 from sprute.events import Event
 from sprute.models import MODELS, check_download_space, download_model, find_local_model, plan_model_downloads
@@ -52,12 +53,7 @@ def setup(
     *,
     on_event: Callable[[Event], None] | None = None,
     reinstall: bool = False,
-    model_dirs: tuple[Path, ...] = (),
 ) -> None:
-    model_dirs = tuple(path.expanduser().resolve() for path in model_dirs)
-    for path in model_dirs:
-        if path.exists() and not path.is_dir():
-            raise NotADirectoryError(f"Model directory is not a directory: {path}")
     def report(
         state: Literal["started", "completed", "progress", "log", "warning"],
         message: str,
@@ -70,22 +66,22 @@ def setup(
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)
     setup_custom_nodes(report=report, reinstall=reinstall)
-    setup_models(report=report, models_dir=model_dirs[0] if model_dirs else Path("models"), search_dirs=model_dirs)
+    setup_models(report=report)
     check_torch(report=report)
     check_comfy_workflow(report=report)
 
 
-def setup_models(*, report: Reporter, models_dir: Path = Path("models"), search_dirs: tuple[Path, ...] = ()) -> None:
+def setup_models(*, report: Reporter) -> None:
+    models_directory = get_models_directory()
     report("started", "Downloading models · checking estimated size", timed=True)
-    search_dirs = search_dirs or (models_dir,)
     plan = plan_model_downloads(MODELS)
     sizes = {name: info.file_size for name, info in plan.items()}
     local = {
-        name: find_local_model(MODELS[name], search_dirs, size)
+        name: find_local_model(MODELS[name], (models_directory,), size)
         for name, size in sizes.items() if size is not None
     }
     remaining = sum(size for name, size in sizes.items() if not local[name] and size is not None)
-    check_download_space(remaining, models_dir)
+    check_download_space(remaining, models_directory)
     report(
         "progress",
         f"Downloading models · 0/{len(MODELS)} files ready"
@@ -114,7 +110,7 @@ def setup_models(*, report: Reporter, models_dir: Path = Path("models"), search_
                     repo_id=model["repo_id"],
                     filename=model["filename"],
                     revision=model["revision"],
-                    destination=models_dir / model["destination"],
+                    destination=models_directory / model["destination"],
                     on_progress=on_progress,
                 )
         except Exception as error:
@@ -386,6 +382,7 @@ def check_comfy_workflow(*, report: Reporter) -> None:
     data = run_workflow(
         workflow,
         outputs=("3",),
+        models=False,
         on_log=lambda message: report("log", message)
     )["3"]
     from PIL import Image

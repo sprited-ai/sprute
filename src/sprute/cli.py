@@ -7,7 +7,7 @@ from sprute.setup import setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.config import model_directories
+from sprute.config import set_models_directory
 from collections.abc import Callable
 from rich.panel import Panel
 from rich.text import Text
@@ -40,10 +40,11 @@ def setup(
     ),
 ):
     """Install and check Sprute dependencies."""
+    set_models_directory(models_directory)
     run_with_panel(
         "Setup",
         lambda on_event: _setup(
-            on_event=on_event, reinstall=reinstall, model_dirs=model_directories(models_directory)
+            on_event=on_event, reinstall=reinstall
         ),
         verbose=verbose,
     )
@@ -223,8 +224,8 @@ def generate(
     preview: bool = typer.Option(True, "--preview/--no-preview", help="Show the sprite with imgcat in an interactive terminal."),
 ):
     """Generate a character from a text prompt."""
+    set_models_directory(models_directory)
     def generate_batch(on_event: Callable[[Event], None]) -> None:
-        directories = model_directories(models_directory)
         for index in range(batch):
             character_name = (
                 f"{name}-{index + 1:04d}" if name is not None and batch > 1 else name
@@ -242,7 +243,7 @@ def generate(
 
             image = _generate(
                 prompt, seed=character_seed, out=out, name=character_name,
-                model_dirs=directories, on_event=report,
+                on_event=report,
             )
             if preview:
                 on_event(Event("image", str(image)))
@@ -281,10 +282,11 @@ def turntable(
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Generate a turntable and extract eight directional views."""
+    set_models_directory(models_directory)
     def run(on_event: Callable[[Event], None]) -> Path:
         strip = _turntable(
             image, seed=seed, out=out,
-            model_dirs=model_directories(models_directory), on_event=on_event,
+            on_event=on_event,
         )
         if preview:
             on_event(Event("image", str(strip)))
