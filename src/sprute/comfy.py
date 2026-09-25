@@ -13,41 +13,42 @@ def custom_nodes_path() -> Path:
     return Path(distribution("comfyui").locate_file("comfy/custom_nodes")).resolve()
 
 def run_workflow(
-    workflow: Path,
+    graph: dict,
     *,
-    output: Path,
+    outputs: tuple[str, ...],
     on_log: Callable[[str], None],
-    paths_config: Path | None = None,
-    model_dirs: tuple[Path, ...] = (),
+    model_dirs: tuple[Path, ...] | None = None,
     extra_args: tuple[str, ...] = (),
-) -> dict:
+) -> dict[str, bytes]:
+    """Run a workflow and return the first saved image of each requested node."""
     executable = Path(sysconfig.get_path("scripts")) / (
         "comfyui.exe" if os.name == "nt" else "comfyui"
     )
-    # Use the checkout's config when present; callers elsewhere can pass a path.
-    if paths_config is None:
-        local_config = Path("comfy-paths.yaml")
-        if local_config.is_file():
-            paths_config = local_config
-    model_dirs = tuple(path.expanduser().resolve(strict=True) for path in model_dirs)
-    command = [
-        str(executable),
-        "run-workflow",
-        str(workflow.resolve()),
-        "--output-directory",
-        str(output.resolve()),
-        "--disable-progress",
-        *extra_args,
-    ]
-    if paths_config is not None:
-        command.extend([
-            "--extra-model-paths-config",
-            str(paths_config.resolve(strict=True)),
-        ])
+    # None is used by the model-free setup check; an empty tuple selects ./models.
+    if model_dirs is not None:
+        model_dirs = tuple(
+            path.expanduser().resolve(strict=True)
+            for path in (model_dirs or (Path("models"),))
+        )
+        for path in model_dirs:
+            if not path.is_dir():
+                raise NotADirectoryError(f"Not a model directory: {path}")
     with (
         TemporaryDirectory(prefix="sprute-comfy-") as workspace,
         TemporaryFile(mode="w+", encoding="utf-8") as result,
     ):
+        workflow = Path(workspace) / "workflow.json"
+        output = Path(workspace) / "output"
+        workflow.write_text(json.dumps(graph), encoding="utf-8")
+        command = [
+            str(executable),
+            "run-workflow",
+            str(workflow),
+            "--output-directory",
+            str(output),
+            "--disable-progress",
+            *extra_args,
+        ]
         if model_dirs:
             # RMBG reads this root directly, bypassing extra model paths.
             models_root = next(
@@ -56,7 +57,7 @@ def run_workflow(
                 model_dirs[0],
             )
             command.extend(["--models-directory", str(models_root)])
-        if len(model_dirs) > 1:
+        if model_dirs and len(model_dirs) > 1:
             # Additional roots use the same folder structure; no files are moved.
             categories = ("checkpoints", "diffusion_models", "text_encoders", "clip_vision", "vae", "loras")
             extra_paths = Path(workspace) / "model-paths.yaml"
@@ -107,7 +108,7 @@ def run_workflow(
             )
         result.seek(0)
         # Some custom nodes print to stdout before Comfy emits its JSON result.
-        outputs = None
+        saved = None
         for line in result:
             try:
                 value = json.loads(line)
@@ -115,10 +116,25 @@ def run_workflow(
                 on_log(line.rstrip("\r\n"))
                 continue
             if isinstance(value, dict):
-                outputs = value
+                saved = value
             else:
                 on_log(line.rstrip("\r\n"))
-        if outputs is None:
+        if saved is None:
             raise RuntimeError("ComfyUI exited successfully but returned no JSON result.")
-        return outputs
-    
+        return {
+            node_id: _output_path(saved, node_id, output=output).read_bytes()
+            for node_id in outputs
+        }
+
+
+def _output_path(result: dict, node_id: str, *, output: Path) -> Path:
+    """Resolve the first saved image, including animated WebP outputs."""
+    saved = result[node_id]["images"][0]
+    path = (
+        Path(saved["abs_path"])
+        if saved.get("abs_path")
+        else output / saved.get("subfolder", "") / saved["filename"]
+    )
+    if not path.is_file():
+        raise FileNotFoundError(f"ComfyUI output not found: {path}")
+    return path

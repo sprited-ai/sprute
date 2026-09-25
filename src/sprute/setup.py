@@ -8,7 +8,7 @@ import subprocess
 import sys
 from importlib.metadata import PackageNotFoundError, version
 import json
-from tempfile import TemporaryDirectory
+from io import BytesIO
 from sprute.comfy import custom_nodes_path, run_workflow
 from sprute.events import Event
 from sprute.models import MODELS, check_download_space, download_model, find_local_model, plan_model_downloads
@@ -383,27 +383,19 @@ def check_comfy_workflow(*, report: Reporter) -> None:
             },
         },
     }
-    with TemporaryDirectory(prefix="sprute-check-") as directory:
-        temporary = Path(directory)
-        workflow_path = temporary / "workflow.json"
-        workflow_path.write_text(
-            json.dumps(workflow),
-            encoding="utf-8",
-        )
-        result = run_workflow(
-            workflow_path,
-            output=temporary / "output",
-            on_log=lambda message: report("log", message)
-        )
-        image_path = Path(result["3"]["images"][0]["abs_path"])
-        from PIL import Image
-        with Image.open(image_path) as image:
-            image.load()
-            if image.format != "PNG" or image.size != (128, 64):
-                raise RuntimeError(
-                    f"Unexpected ComfyUI test image: {image.format} {image.size}; "
-                    "expected PNG (128, 64)"
-                )
+    data = run_workflow(
+        workflow,
+        outputs=("3",),
+        on_log=lambda message: report("log", message)
+    )["3"]
+    from PIL import Image
+    with Image.open(BytesIO(data)) as image:
+        image.load()
+        if image.format != "PNG" or image.size != (128, 64):
+            raise RuntimeError(
+                f"Unexpected ComfyUI test image: {image.format} {image.size}; "
+                "expected PNG (128, 64)"
+            )
     report("completed", "ComfyUI workflow verified")
 
 def run(
