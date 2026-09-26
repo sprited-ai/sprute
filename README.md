@@ -1,11 +1,11 @@
 
 # Sprute
 
-*Sprute* is an open-source CLI tool for generating animated, 8-directional character sprites from a single reference image using template-guided image and video models.
+*Sprute* is an open-source CLI tool that generates animated, 8-directional character sprites from a text prompt or a character image, running locally on your GPU.
 
 <img src="docs/resources/heroshot.png">
 
-Think of it as a Giga Press for character sprites: feed in one character image, and Sprute stamps out a complete set of animated directional sprites.
+Think of it as a Giga Press for character sprites: feed in a prompt, and Sprute stamps out the character in eight directions, animated idle, walk, and run.
 
 ## Example
 

@@ -13,3 +13,5 @@
 - [ ] Consider padding
 - [ ] On-demand retargeted driving video
 - [ ] Release 2.0
+- [ ] Image 2 Char flows
+- [ ] Cloud options
