@@ -10,7 +10,7 @@
   },
   "4": {
     "inputs": {
-      "image": "sprute-v2-run-81.webp"
+      "image": "sprute-v2-run-81.576.webp"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -315,7 +315,7 @@
     },
     "class_type": "ComfyMathExpression",
     "_meta": {
-      "title": "Math Expression"
+      "title": "H"
     }
   },
   "453": {
@@ -526,7 +526,7 @@
     },
     "class_type": "PreviewAnimation",
     "_meta": {
-      "title": "Preview Animation 81x768x768"
+      "title": "Preview Animation 81x576x768"
     }
   },
   "503": {
@@ -539,7 +539,7 @@
     },
     "class_type": "PreviewAnimation",
     "_meta": {
-      "title": "Preview Animation 81x768x768"
+      "title": "Preview Animation 81x576x768"
     }
   },
   "504": {
@@ -611,7 +611,7 @@
     },
     "class_type": "PreviewAnimation",
     "_meta": {
-      "title": "Preview Animation 81x768x768"
+      "title": "Preview Animation 81x576x768"
     }
   },
   "528": {
@@ -708,6 +708,19 @@
       "title": "Save Animated WEBP"
     }
   },
+  "581": {
+    "inputs": {
+      "expression": "a / 3",
+      "values.a": [
+        "439",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "W"
+    }
+  },
   "480:449": {
     "inputs": {
       "image": [
@@ -753,7 +766,7 @@
   "480:454": {
     "inputs": {
       "target_width": [
-        "448",
+        "581",
         1
       ],
       "target_height": [
@@ -799,7 +812,7 @@
   "480:464": {
     "inputs": {
       "target_width": [
-        "448",
+        "581",
         1
       ],
       "target_height": [
@@ -895,7 +908,7 @@
   "480:472": {
     "inputs": {
       "width": [
-        "448",
+        "581",
         1
       ],
       "height": [
@@ -913,7 +926,7 @@
   "480:473": {
     "inputs": {
       "width": [
-        "448",
+        "581",
         1
       ],
       "height": [
@@ -987,7 +1000,10 @@
   "480:445": {
     "inputs": {
       "resize_type": "scale height",
-      "resize_type.height": 256,
+      "resize_type.height": [
+        "448",
+        1
+      ],
       "scale_method": "lanczos",
       "input": [
         "3",

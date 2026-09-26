@@ -91,7 +91,7 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 sprute character-animate output/0001.directions.png --preset run
 ```
 
-Presets are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
+Presets are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (1536×256, 81 frames).
 
 As with turntable, the same `--seed` and input return the existing file instead of rerunning.
 

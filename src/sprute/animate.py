@@ -23,7 +23,7 @@ def animate(
     if preset not in PRESETS:
         raise ValueError(f"Unknown preset {preset!r}; choose one of: {', '.join(PRESETS)}")
     directions = directions.expanduser().resolve(strict=True)
-    motion = Path(f"assets/sprute-v2-{preset}-81.webp").resolve(strict=True)
+    motion = Path(f"assets/sprute-v2-{preset}-81.576.webp").resolve(strict=True)
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
     if seed is None:
