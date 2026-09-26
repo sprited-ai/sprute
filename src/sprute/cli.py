@@ -260,7 +260,8 @@ def show_sprite(image: Path) -> None:
         return
     try:
         subprocess.run(
-            [imgcat, "-W", "320px", str(image)],
+            # Fix the height so wide strips keep the same scale as single sprites.
+            [imgcat, "-H", "256px", str(image)],
             check=True,
             timeout=10,
         )
