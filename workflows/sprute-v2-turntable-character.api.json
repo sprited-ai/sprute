@@ -295,7 +295,7 @@
       "background": "Alpha",
       "background_color": "#808080",
       "image": [
-        "13",
+        "36",
         0
       ]
     },
@@ -390,6 +390,18 @@
     "class_type": "AILab_ImageCrop",
     "_meta": {
       "title": "Image Crop (RMBG) 🖼️"
+    }
+  },
+  "36": {
+    "inputs": {
+      "images": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "ReverseImageBatch",
+    "_meta": {
+      "title": "Reverse Image Batch"
     }
   }
 }
