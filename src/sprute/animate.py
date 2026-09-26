@@ -30,7 +30,6 @@ def animate(
         seed = secrets.randbits(32)
     name = directions.stem.removesuffix(".directions")
     destination = out / f"{name}.{preset}.webp"
-
     directions_name = input_name(directions)
     motion_name = input_name(motion)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
@@ -41,7 +40,6 @@ def animate(
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination
-
     report("started", f"Animating {preset} · seed {seed}", timed=True)
     data = run_workflow(
         graph,
