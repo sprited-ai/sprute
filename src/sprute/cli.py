@@ -10,7 +10,6 @@ from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
 from sprute.animate import PRESETS, animate as _animate
 from sprute.config import set_models_directory
-from sprute.comfy import saved_workflow
 from tempfile import TemporaryDirectory
 from PIL import Image, ImageSequence
 from collections.abc import Callable
@@ -314,8 +313,9 @@ def show_sprite(image: Path, *, fps: float | None = None) -> None:
             with Image.open(image) as opened:
                 if getattr(opened, "n_frames", 1) > 1 and opened.format != "GIF":
                     shown = Path(workspace) / f"{image.stem}.gif"
-                    duration = round(1000 / (fps or animation_fps(image)))
                     frames = [frame.convert("RGBA") for frame in ImageSequence.Iterator(opened)]
+                    # Keep the file's own timing unless --fps overrides it.
+                    duration = round(1000 / fps) if fps else (webp_frame_durations(image) or round(1000 / 24))
                     frames[0].save(shown, save_all=True, append_images=frames[1:],
                                    duration=duration, loop=0, disposal=2)
             subprocess.run(
@@ -328,14 +328,17 @@ def show_sprite(image: Path, *, fps: float | None = None) -> None:
         console.print(f"Terminal preview failed: {error}", style="yellow", markup=False)
 
 
-def animation_fps(image: Path) -> float:
-    """Read fps from the ComfyUI save node that wrote this file; WebP keeps no frame timing."""
-    kind = image.stem.rsplit(".", 1)[-1]
-    for node in (saved_workflow(image) or {}).values():
-        inputs = node.get("inputs", {})
-        if node.get("class_type") == "SaveAnimatedWEBP" and inputs.get("filename_prefix") == kind:
-            return float(inputs.get("fps") or 24)
-    return 24.0
+def webp_frame_durations(image: Path) -> list[int]:
+    """Per-frame durations (ms) from animated WebP ANMF chunks; Pillow does not expose them."""
+    data = image.read_bytes()
+    durations, offset = [], 12
+    while offset + 8 <= len(data):
+        tag = data[offset:offset + 4]
+        size = int.from_bytes(data[offset + 4:offset + 8], "little")
+        if tag == b"ANMF":
+            durations.append(int.from_bytes(data[offset + 20:offset + 23], "little"))
+        offset += 8 + size + (size & 1)
+    return durations
 
 
 
@@ -406,7 +409,7 @@ def require_setup() -> None:
 @app.command()
 def preview(
     image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF."),
-    fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default from the file's workflow, else 24."),
+    fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default is the file's own frame timing."),
 ):
     """Show an image in the terminal (iTerm2)."""
     if not sys.stdout.isatty():

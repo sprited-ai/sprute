@@ -7,6 +7,19 @@
 
 Think of it as a Giga Press for character sprites: feed in one character image, and Sprute stamps out a complete set of animated directional sprites.
 
+## Example
+
+One character, eight directions, three motions:
+
+`idle`<br>
+<img src="docs/resources/example-idle.webp" alt="idle">
+
+`walk`<br>
+<img src="docs/resources/example-walk.webp" alt="walk">
+
+`run`<br>
+<img src="docs/resources/example-run.webp" alt="run">
+
 ## Getting Started
 
 Requires Python 3.12+ and a GPU (tested on NVIDIA CUDA).
