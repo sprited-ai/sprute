@@ -7,6 +7,7 @@ from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
+from sprute.animate import PRESETS, animate as _animate
 from sprute.config import set_models_directory
 from collections.abc import Callable
 from rich.panel import Panel
@@ -296,6 +297,31 @@ def turntable(
         return strip
 
     run_with_panel("Turntable", run, verbose=verbose)
+
+
+@app.command()
+def animate(
+    directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
+    preset: str = typer.Option(..., help=f"Motion to apply: {', '.join(PRESETS)}."),
+    seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    out: Path = Path("output"),
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", exists=True, file_okay=False,
+        help="Override the config models directory. Default: config or ./models.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview"),
+):
+    """Animate the eight directions with a motion preset."""
+    set_models_directory(models_directory)
+    require_setup()
+    def run(on_event: Callable[[Event], None]) -> Path:
+        animation = _animate(directions, preset, seed=seed, out=out, on_event=on_event)
+        if preview:
+            on_event(Event("image", str(animation)))
+        return animation
+
+    run_with_panel("Animate", run, verbose=verbose)
 
 
 def require_setup() -> None:

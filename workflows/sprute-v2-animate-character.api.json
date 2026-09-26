@@ -1,0 +1,1839 @@
+{
+  "3": {
+    "inputs": {
+      "image": "sprute-v2-standing-example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "4": {
+    "inputs": {
+      "image": "sprute-v2-run-81.webp"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "413": {
+    "inputs": {
+      "unet_name": "wan2.1_14B_SCAIL_2_fp16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "414": {
+    "inputs": {
+      "lora_name": "wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
+      "strength_model": 1,
+      "model": [
+        "413",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "415": {
+    "inputs": {
+      "lora_name": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
+      "strength_model": 0.8,
+      "model": [
+        "414",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "416": {
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "417": {
+    "inputs": {
+      "vae_name": "Wan2_1_VAE_bf16.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "418": {
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "419": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "416",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "421": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "416",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "422": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "418",
+        0
+      ],
+      "image": [
+        "489",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP Vision Encode"
+    }
+  },
+  "423": {
+    "inputs": {
+      "value": false
+    },
+    "class_type": "PrimitiveBoolean",
+    "_meta": {
+      "title": "Boolean （Replace Mode）"
+    }
+  },
+  "425": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "length": [
+        "439",
+        2
+      ],
+      "batch_size": 1,
+      "pose_strength": 1,
+      "pose_start": 0,
+      "pose_end": 1,
+      "video_frame_offset": 0,
+      "previous_frame_count": 5,
+      "replacement_mode": [
+        "423",
+        0
+      ],
+      "positive": [
+        "419",
+        0
+      ],
+      "negative": [
+        "421",
+        0
+      ],
+      "vae": [
+        "417",
+        0
+      ],
+      "pose_video": [
+        "493",
+        0
+      ],
+      "pose_video_mask": [
+        "431",
+        0
+      ],
+      "reference_image": [
+        "489",
+        0
+      ],
+      "reference_image_mask": [
+        "482",
+        0
+      ],
+      "clip_vision_output": [
+        "422",
+        0
+      ]
+    },
+    "class_type": "WanSCAILToVideo",
+    "_meta": {
+      "title": "WanSCAILToVideo"
+    }
+  },
+  "427": {
+    "inputs": {
+      "mask": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "428": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": [
+        "439",
+        2
+      ],
+      "color": 0
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (Black Batch)"
+    }
+  },
+  "431": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "428",
+        0
+      ],
+      "source": [
+        "432",
+        0
+      ],
+      "mask": [
+        "427",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "Image Composite Masked (Driving Mask)"
+    }
+  },
+  "432": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": [
+        "439",
+        2
+      ],
+      "color": 255
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (Blue Batch)"
+    }
+  },
+  "436": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": 1,
+      "color": 16777215
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (White Single)"
+    }
+  },
+  "439": {
+    "inputs": {
+      "image": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "448": {
+    "inputs": {
+      "expression": "a / 3",
+      "values.a": [
+        "439",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "453": {
+    "inputs": {
+      "images": [
+        "480:478",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "482": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "436",
+        0
+      ],
+      "source": [
+        "486",
+        0
+      ],
+      "mask": [
+        "484",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "Image Composite Masked (Driving Mask)"
+    }
+  },
+  "483": {
+    "inputs": {
+      "image": [
+        "480:478",
+        0
+      ]
+    },
+    "class_type": "SplitImageWithAlpha",
+    "_meta": {
+      "title": "Split Image with Alpha"
+    }
+  },
+  "484": {
+    "inputs": {
+      "mask": [
+        "483",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "486": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": 1,
+      "color": 255
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (Blue Single)"
+    }
+  },
+  "488": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": 1,
+      "color": 8421504
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (Gray Single)"
+    }
+  },
+  "489": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "488",
+        0
+      ],
+      "source": [
+        "483",
+        0
+      ],
+      "mask": [
+        "484",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "Image Composite Masked"
+    }
+  },
+  "490": {
+    "inputs": {
+      "images": [
+        "489",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "492": {
+    "inputs": {
+      "images": [
+        "482",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "493": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "494",
+        0
+      ],
+      "source": [
+        "4",
+        0
+      ],
+      "mask": [
+        "499",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "Image Composite Masked"
+    }
+  },
+  "494": {
+    "inputs": {
+      "width": [
+        "439",
+        0
+      ],
+      "height": [
+        "439",
+        1
+      ],
+      "batch_size": [
+        "439",
+        2
+      ],
+      "color": 8421504
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image (Gray Batch)"
+    }
+  },
+  "499": {
+    "inputs": {
+      "mask": [
+        "4",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "502": {
+    "inputs": {
+      "fps": 24,
+      "images": [
+        "431",
+        0
+      ]
+    },
+    "class_type": "PreviewAnimation",
+    "_meta": {
+      "title": "Preview Animation 81x768x768"
+    }
+  },
+  "503": {
+    "inputs": {
+      "fps": 24,
+      "images": [
+        "493",
+        0
+      ]
+    },
+    "class_type": "PreviewAnimation",
+    "_meta": {
+      "title": "Preview Animation 81x768x768"
+    }
+  },
+  "504": {
+    "inputs": {
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1,
+      "sampler_name": "uni_pc",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "506",
+        0
+      ],
+      "positive": [
+        "425",
+        0
+      ],
+      "negative": [
+        "425",
+        1
+      ],
+      "latent_image": [
+        "425",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "505": {
+    "inputs": {
+      "samples": [
+        "504",
+        0
+      ],
+      "vae": [
+        "417",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "506": {
+    "inputs": {
+      "shift": 5,
+      "model": [
+        "415",
+        0
+      ]
+    },
+    "class_type": "ModelSamplingSD3",
+    "_meta": {
+      "title": "ModelSamplingSD3"
+    }
+  },
+  "507": {
+    "inputs": {
+      "fps": 24,
+      "images": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "PreviewAnimation",
+    "_meta": {
+      "title": "Preview Animation 81x768x768"
+    }
+  },
+  "528": {
+    "inputs": {
+      "images.image0": [
+        "518:82",
+        0
+      ],
+      "images.image1": [
+        "518:79",
+        0
+      ],
+      "images.image2": [
+        "518:75",
+        0
+      ],
+      "images.image3": [
+        "518:88",
+        0
+      ],
+      "images.image4": [
+        "518:61",
+        0
+      ],
+      "images.image5": [
+        "518:53",
+        0
+      ],
+      "images.image6": [
+        "518:57",
+        0
+      ],
+      "images.image7": [
+        "518:85",
+        0
+      ]
+    },
+    "class_type": "BatchImagesNode",
+    "_meta": {
+      "title": "Batch Images"
+    }
+  },
+  "542": {
+    "inputs": {
+      "model": "BiRefNet_toonout",
+      "process_resolution": 512,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "refine_foreground": true,
+      "background": "Alpha",
+      "background_color": "#808080",
+      "image": [
+        "528",
+        0
+      ]
+    },
+    "class_type": "BiRefNetRMBG",
+    "_meta": {
+      "title": "BiRefNet Remove Background (RMBG)"
+    }
+  },
+  "554": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "fps": 24,
+      "lossless": true,
+      "quality": 85,
+      "method": "default",
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "SaveAnimatedWEBP",
+    "_meta": {
+      "title": "Save Animated WEBP"
+    }
+  },
+  "577": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "fps": 24,
+      "lossless": true,
+      "quality": 80,
+      "method": "default",
+      "images": [
+        "580:576",
+        0
+      ]
+    },
+    "class_type": "SaveAnimatedWEBP",
+    "_meta": {
+      "title": "Save Animated WEBP"
+    }
+  },
+  "480:449": {
+    "inputs": {
+      "image": [
+        "480:443",
+        0
+      ],
+      "alpha": [
+        "480:445",
+        0
+      ]
+    },
+    "class_type": "JoinImageWithAlpha",
+    "_meta": {
+      "title": "Join Image with Alpha"
+    }
+  },
+  "480:451": {
+    "inputs": {
+      "rows": 1,
+      "columns": 8,
+      "image": [
+        "480:449",
+        0
+      ]
+    },
+    "class_type": "FS: Crop Image Into Even Pieces",
+    "_meta": {
+      "title": "Crop Image Into Even Pieces (FS)"
+    }
+  },
+  "480:459": {
+    "inputs": {
+      "image": [
+        "480:451",
+        0
+      ]
+    },
+    "class_type": "SplitImageWithAlpha",
+    "_meta": {
+      "title": "Split Image with Alpha"
+    }
+  },
+  "480:454": {
+    "inputs": {
+      "target_width": [
+        "448",
+        1
+      ],
+      "target_height": [
+        "448",
+        1
+      ],
+      "padding_color": "black",
+      "interpolation": "area",
+      "image": [
+        "480:459",
+        0
+      ]
+    },
+    "class_type": "ResizeAndPadImage",
+    "_meta": {
+      "title": "Resize And Pad Image"
+    }
+  },
+  "480:465": {
+    "inputs": {
+      "mask": [
+        "480:459",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "480:463": {
+    "inputs": {
+      "mask": [
+        "480:465",
+        0
+      ]
+    },
+    "class_type": "MaskToImage",
+    "_meta": {
+      "title": "Convert Mask to Image"
+    }
+  },
+  "480:464": {
+    "inputs": {
+      "target_width": [
+        "448",
+        1
+      ],
+      "target_height": [
+        "448",
+        1
+      ],
+      "padding_color": "black",
+      "interpolation": "area",
+      "image": [
+        "480:463",
+        0
+      ]
+    },
+    "class_type": "ResizeAndPadImage",
+    "_meta": {
+      "title": "Resize And Pad Image"
+    }
+  },
+  "480:469": {
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "480:464",
+        0
+      ]
+    },
+    "class_type": "ImageToMask",
+    "_meta": {
+      "title": "Convert Image to Mask"
+    }
+  },
+  "480:470": {
+    "inputs": {
+      "mask": [
+        "480:469",
+        0
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "480:468": {
+    "inputs": {
+      "image": [
+        "480:454",
+        0
+      ],
+      "alpha": [
+        "480:470",
+        0
+      ]
+    },
+    "class_type": "JoinImageWithAlpha",
+    "_meta": {
+      "title": "Join Image with Alpha"
+    }
+  },
+  "480:467": {
+    "inputs": {
+      "indexes": "5,4,3,6",
+      "images": [
+        "480:468",
+        0
+      ]
+    },
+    "class_type": "GetImagesFromBatchIndexed",
+    "_meta": {
+      "title": "Get Images From Batch Indexed"
+    }
+  },
+  "480:466": {
+    "inputs": {
+      "images.image0": [
+        "480:467",
+        0
+      ],
+      "images.image1": [
+        "480:474",
+        0
+      ],
+      "images.image2": [
+        "480:471",
+        0
+      ]
+    },
+    "class_type": "BatchImagesNode",
+    "_meta": {
+      "title": "Batch Images"
+    }
+  },
+  "480:472": {
+    "inputs": {
+      "width": [
+        "448",
+        1
+      ],
+      "height": [
+        "448",
+        1
+      ],
+      "batch_size": 1,
+      "color": 0
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image"
+    }
+  },
+  "480:473": {
+    "inputs": {
+      "width": [
+        "448",
+        1
+      ],
+      "height": [
+        "448",
+        1
+      ],
+      "batch_size": 1,
+      "color": 0
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image"
+    }
+  },
+  "480:475": {
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "480:473",
+        0
+      ]
+    },
+    "class_type": "ImageToMask",
+    "_meta": {
+      "title": "Convert Image to Mask"
+    }
+  },
+  "480:476": {
+    "inputs": {
+      "mask": [
+        "480:475",
+        0
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "480:474": {
+    "inputs": {
+      "image": [
+        "480:472",
+        0
+      ],
+      "alpha": [
+        "480:476",
+        0
+      ]
+    },
+    "class_type": "JoinImageWithAlpha",
+    "_meta": {
+      "title": "Join Image with Alpha"
+    }
+  },
+  "480:478": {
+    "inputs": {
+      "num_columns": 3,
+      "match_image_size": false,
+      "max_resolution": 4096,
+      "images": [
+        "480:466",
+        0
+      ]
+    },
+    "class_type": "ImageConcatFromBatch",
+    "_meta": {
+      "title": "Image Concatenate From Batch"
+    }
+  },
+  "480:445": {
+    "inputs": {
+      "resize_type": "scale height",
+      "resize_type.height": 256,
+      "scale_method": "lanczos",
+      "input": [
+        "3",
+        1
+      ]
+    },
+    "class_type": "ResizeImageMaskNode",
+    "_meta": {
+      "title": "Resize Image/Mask"
+    }
+  },
+  "480:443": {
+    "inputs": {
+      "resize_type": "scale height",
+      "resize_type.height": 256,
+      "scale_method": "lanczos",
+      "input": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "ResizeImageMaskNode",
+    "_meta": {
+      "title": "Resize Image/Mask"
+    }
+  },
+  "480:471": {
+    "inputs": {
+      "indexes": "2,7,0,1",
+      "images": [
+        "480:468",
+        0
+      ]
+    },
+    "class_type": "GetImagesFromBatchIndexed",
+    "_meta": {
+      "title": "Get Images From Batch Indexed"
+    }
+  },
+  "518:50": {
+    "inputs": {
+      "expression": "max(1, int(a/b))",
+      "values.a": [
+        "518:51",
+        0
+      ],
+      "values.b": [
+        "518:52",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression （Width）"
+    }
+  },
+  "518:51": {
+    "inputs": {
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "518:52": {
+    "inputs": {
+      "value": 3
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int"
+    }
+  },
+  "518:53": {
+    "inputs": {
+      "crop_region": [
+        "518:54",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:54": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:55": {
+    "inputs": {
+      "expression": "max(1, int(a/b))",
+      "values.a": [
+        "518:51",
+        1
+      ],
+      "values.b": [
+        "518:52",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression(Height)"
+    }
+  },
+  "518:57": {
+    "inputs": {
+      "crop_region": [
+        "518:58",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:58": {
+    "inputs": {
+      "x": 0,
+      "y": [
+        "518:55",
+        1
+      ],
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:60": {
+    "inputs": {
+      "x": [
+        "518:50",
+        1
+      ],
+      "y": 0,
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:61": {
+    "inputs": {
+      "crop_region": [
+        "518:60",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:63": {
+    "inputs": {
+      "crop_region": [
+        "518:65",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:65": {
+    "inputs": {
+      "x": [
+        "518:50",
+        1
+      ],
+      "y": [
+        "518:55",
+        1
+      ],
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:71": {
+    "inputs": {
+      "expression": "2 * a",
+      "values.a": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression(height)"
+    }
+  },
+  "518:75": {
+    "inputs": {
+      "crop_region": [
+        "518:77",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:77": {
+    "inputs": {
+      "x": [
+        "518:78",
+        1
+      ],
+      "y": [
+        "518:55",
+        1
+      ],
+      "width": [
+        "518:140",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:78": {
+    "inputs": {
+      "expression": "2 * a",
+      "values.a": [
+        "518:50",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression(width)"
+    }
+  },
+  "518:140": {
+    "inputs": {
+      "expression": "max(1, a - b)",
+      "values.a": [
+        "518:51",
+        0
+      ],
+      "values.b": [
+        "518:78",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression (Right Width)"
+    }
+  },
+  "518:141": {
+    "inputs": {
+      "expression": "max(1, a - b)",
+      "values.a": [
+        "518:51",
+        1
+      ],
+      "values.b": [
+        "518:71",
+        1
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression (Bottom Height)"
+    }
+  },
+  "518:79": {
+    "inputs": {
+      "crop_region": [
+        "518:81",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:81": {
+    "inputs": {
+      "x": [
+        "518:78",
+        1
+      ],
+      "y": [
+        "518:71",
+        1
+      ],
+      "width": [
+        "518:140",
+        1
+      ],
+      "height": [
+        "518:141",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:82": {
+    "inputs": {
+      "crop_region": [
+        "518:84",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:84": {
+    "inputs": {
+      "x": [
+        "518:50",
+        1
+      ],
+      "y": [
+        "518:71",
+        1
+      ],
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:141",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:85": {
+    "inputs": {
+      "crop_region": [
+        "518:86",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:86": {
+    "inputs": {
+      "x": 0,
+      "y": [
+        "518:71",
+        1
+      ],
+      "width": [
+        "518:50",
+        1
+      ],
+      "height": [
+        "518:141",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:88": {
+    "inputs": {
+      "crop_region": [
+        "518:89",
+        0
+      ],
+      "image": [
+        "505",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
+    }
+  },
+  "518:89": {
+    "inputs": {
+      "x": [
+        "518:78",
+        1
+      ],
+      "y": 0,
+      "width": [
+        "518:140",
+        1
+      ],
+      "height": [
+        "518:55",
+        1
+      ]
+    },
+    "class_type": "PrimitiveBoundingBox",
+    "_meta": {
+      "title": "Bounding Box"
+    }
+  },
+  "518:136": {
+    "inputs": {
+      "images.image0": [
+        "518:53",
+        0
+      ],
+      "images.image1": [
+        "518:61",
+        0
+      ],
+      "images.image2": [
+        "518:88",
+        0
+      ],
+      "images.image3": [
+        "518:57",
+        0
+      ],
+      "images.image4": [
+        "518:63",
+        0
+      ],
+      "images.image5": [
+        "518:75",
+        0
+      ],
+      "images.image6": [
+        "518:85",
+        0
+      ],
+      "images.image7": [
+        "518:82",
+        0
+      ],
+      "images.image8": [
+        "518:79",
+        0
+      ]
+    },
+    "class_type": "BatchImagesNode",
+    "_meta": {
+      "title": "Batch Images"
+    }
+  },
+  "580:569": {
+    "inputs": {
+      "start_index": [
+        "580:570",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:566": {
+    "inputs": {
+      "start_index": [
+        "580:563",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:567": {
+    "inputs": {
+      "start_index": [
+        "580:564",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:568": {
+    "inputs": {
+      "start_index": [
+        "580:562",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:565": {
+    "inputs": {
+      "start_index": [
+        "580:561",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:560": {
+    "inputs": {
+      "start_index": [
+        "580:559",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:570": {
+    "inputs": {
+      "expression": "a * 7",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:564": {
+    "inputs": {
+      "expression": "a * 6",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:576": {
+    "inputs": {
+      "inputcount": 8,
+      "direction": "right",
+      "match_image_size": false,
+      "Update inputs": null,
+      "image_1": [
+        "580:555",
+        0
+      ],
+      "image_2": [
+        "580:556",
+        0
+      ],
+      "image_3": [
+        "580:560",
+        0
+      ],
+      "image_4": [
+        "580:565",
+        0
+      ],
+      "image_5": [
+        "580:568",
+        0
+      ],
+      "image_6": [
+        "580:566",
+        0
+      ],
+      "image_7": [
+        "580:567",
+        0
+      ],
+      "image_8": [
+        "580:569",
+        0
+      ]
+    },
+    "class_type": "ImageConcatMulti",
+    "_meta": {
+      "title": "Image Concatenate Multi"
+    }
+  },
+  "580:563": {
+    "inputs": {
+      "expression": "a * 5",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:562": {
+    "inputs": {
+      "expression": "a * 4",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:556": {
+    "inputs": {
+      "start_index": [
+        "580:557",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  },
+  "580:561": {
+    "inputs": {
+      "expression": "a * 3",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:559": {
+    "inputs": {
+      "expression": "a * 2",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:557": {
+    "inputs": {
+      "expression": "a * 1",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:558": {
+    "inputs": {
+      "expression": "a * 0",
+      "values.a": [
+        "439",
+        2
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression"
+    }
+  },
+  "580:555": {
+    "inputs": {
+      "start_index": [
+        "580:558",
+        1
+      ],
+      "num_frames": [
+        "439",
+        2
+      ],
+      "images": [
+        "542",
+        0
+      ]
+    },
+    "class_type": "GetImageRangeFromBatch",
+    "_meta": {
+      "title": "Get Image or Mask Range From Batch"
+    }
+  }
+}

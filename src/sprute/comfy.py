@@ -127,3 +127,24 @@ def _output_path(result: dict, node_id: str, *, output_directory: Path) -> Path:
     if not path.is_file():
         raise FileNotFoundError(f"ComfyUI output not found: {path}")
     return path
+
+
+def saved_workflow(path: Path) -> dict | None:
+    """Read the API workflow ComfyUI embeds in a saved PNG or animated WebP."""
+    from PIL import Image
+    try:
+        with Image.open(path) as image:
+            if "prompt" in image.info:
+                return json.loads(image.info["prompt"])
+            # SaveAnimatedWEBP stores it in EXIF 0x0110 as "prompt:{...}".
+            prompt = image.getexif().get(0x0110, "")
+            return json.loads(prompt.removeprefix("prompt:")) if prompt.startswith("prompt:") else None
+    except (OSError, ValueError):
+        return None
+
+
+def same_workflow(saved: dict | None, workflow: dict) -> bool:
+    """Compare what runs; ComfyUI adds bookkeeping such as is_changed when saving."""
+    def runnable(nodes: dict) -> dict:
+        return {node_id: (node.get("class_type"), node.get("inputs")) for node_id, node in nodes.items()}
+    return saved is not None and runnable(saved) == runnable(workflow)

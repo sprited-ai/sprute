@@ -4,8 +4,7 @@ from pathlib import Path
 from collections.abc import Callable
 import secrets
 from sprute.events import Event
-from sprute.comfy import input_name, run_workflow
-from PIL import Image
+from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 
 WORKFLOW = Path("workflows/sprute-v2-turntable-character.api.json")
 
@@ -67,18 +66,3 @@ def turntable(
     report("completed", f"Directions saved: {strip}")
     return strip
 
-
-def saved_workflow(path: Path) -> dict | None:
-    """Read the API workflow ComfyUI embeds in a saved PNG."""
-    try:
-        with Image.open(path) as image:
-            return json.loads(image.info["prompt"])
-    except (OSError, KeyError, ValueError):
-        return None
-
-
-def same_workflow(saved: dict | None, workflow: dict) -> bool:
-    """Compare what runs; ComfyUI adds bookkeeping such as is_changed when saving."""
-    def runnable(nodes: dict) -> dict:
-        return {node_id: (node.get("class_type"), node.get("inputs")) for node_id, node in nodes.items()}
-    return saved is not None and runnable(saved) == runnable(workflow)
