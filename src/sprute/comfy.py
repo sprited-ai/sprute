@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import shutil
@@ -10,6 +11,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory, TemporaryFile
 from sprute.config import get_models_directory
 
+def input_name(path: Path) -> str:
+    """Name an input by its content so the saved workflow identifies it exactly."""
+    return hashlib.sha256(path.read_bytes()).hexdigest() + path.suffix
+
+
 def custom_nodes_path() -> Path:
     """Locate the node checkout directory without importing ComfyUI."""
     return Path(distribution("comfyui").locate_file("comfy/custom_nodes")).resolve()
@@ -17,7 +23,7 @@ def custom_nodes_path() -> Path:
 def run_workflow(
     workflow: dict,
     *,
-    input_files: tuple[Path, ...] = (),
+    input_files: dict[str, Path] | None = None,
     output_node_ids: tuple[str, ...],
     on_log: Callable[[str], None],
 ) -> dict[str, bytes]:
@@ -36,12 +42,9 @@ def run_workflow(
         output_directory = Path(workspace) / "output"
         input_directory = Path(workspace) / "input"
         input_directory.mkdir()
-        # The workflow refers to input files by file name.
-        for path in input_files:
-            target = input_directory / path.name
-            if target.exists():
-                raise ValueError(f"Duplicate input file name: {path.name}")
-            shutil.copyfile(path, target)
+        # The workflow refers to input files by the name they are copied under.
+        for name, path in (input_files or {}).items():
+            shutil.copyfile(path, input_directory / name)
         workflow_path.write_text(json.dumps(workflow), encoding="utf-8")
         command = [
             str(executable),

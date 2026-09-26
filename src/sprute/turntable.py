@@ -1,9 +1,11 @@
 import json
+import os
 from pathlib import Path
 from collections.abc import Callable
 import secrets
 from sprute.events import Event
-from sprute.comfy import run_workflow
+from sprute.comfy import input_name, run_workflow
+from PIL import Image
 
 WORKFLOW = Path("workflows/sprute-v2-turntable-character.api.json")
 
@@ -30,35 +32,53 @@ def turntable(
         "28": out / f"{name}.directions.webp",
         "34": out / f"{name}.directions.png",
     }
-    for destination in destinations.values():
-        if destination.exists() or destination.is_symlink():
-            raise FileExistsError(f"Output already exists: {destination}")
+    image_name = input_name(image)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
-    graph["1"]["inputs"]["image"] = image.name
+    graph["1"]["inputs"]["image"] = image_name
     graph["18"]["inputs"]["seed"] = seed
     graph["17"]["inputs"]["filename_prefix"] = "turntable"
     graph["28"]["inputs"]["filename_prefix"] = "directions"
     graph["34"]["inputs"]["filename_prefix"] = "strip"
+    strip = destinations["34"]
+    if all(destination.is_file() for destination in destinations.values()) and same_workflow(saved_workflow(strip), graph):
+        report("completed", f"Turntable unchanged: {destinations['17']}")
+        report("completed", f"Directions unchanged: {strip}")
+        return strip
     report("started", f"Generating turntable · seed {seed}", timed=True)
     sources = run_workflow(
         graph,
-        input_files=(image,),
+        input_files={image_name: image},
         output_node_ids=tuple(destinations),
         on_log=lambda message: report("log", message),
     )
-    created = []
+    # Write every output before replacing any, so a failure leaves the old set intact.
+    temporaries = {node_id: destination.with_name(f".{destination.name}.tmp") for node_id, destination in destinations.items()}
     try:
-        for node_id, destination in destinations.items():
-            with destination.open("xb") as target:
-                created.append(destination)
-                target.write(sources[node_id])
-    except BaseException:
-        for destination in created:
-            destination.unlink(missing_ok=True)
-        raise
+        for node_id, temporary in temporaries.items():
+            temporary.write_bytes(sources[node_id])
+        for node_id, temporary in temporaries.items():
+            os.replace(temporary, destinations[node_id])
+    finally:
+        for temporary in temporaries.values():
+            temporary.unlink(missing_ok=True)
 
-    strip = destinations["34"]
     report("completed", f"Turntable saved: {destinations['17']}")
     report("log", f"Direction preview saved: {destinations['28']}")
     report("completed", f"Directions saved: {strip}")
     return strip
+
+
+def saved_workflow(path: Path) -> dict | None:
+    """Read the API workflow ComfyUI embeds in a saved PNG."""
+    try:
+        with Image.open(path) as image:
+            return json.loads(image.info["prompt"])
+    except (OSError, KeyError, ValueError):
+        return None
+
+
+def same_workflow(saved: dict | None, workflow: dict) -> bool:
+    """Compare what runs; ComfyUI adds bookkeeping such as is_changed when saving."""
+    def runnable(nodes: dict) -> dict:
+        return {node_id: (node.get("class_type"), node.get("inputs")) for node_id, node in nodes.items()}
+    return saved is not None and runnable(saved) == runnable(workflow)

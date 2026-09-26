@@ -2,7 +2,7 @@ import json
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from sprute.comfy import run_workflow
+from sprute.comfy import input_name, run_workflow
 from sprute.events import Event
 
 WORKFLOW = Path("workflows/sprute-v2-generate-character.api.json")
@@ -26,7 +26,8 @@ def generate(
     graph["203"]["inputs"]["text"] = prompt
     graph["207"]["inputs"]["seed"] = seed
     template = TEMPLATE.resolve(strict=True)
-    graph["17"]["inputs"]["image"] = template.name
+    template_name = input_name(template)
+    graph["17"]["inputs"]["image"] = template_name
     graph["114"]["inputs"]["filename_prefix"] = "reference"
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -38,7 +39,7 @@ def generate(
             raise FileExistsError(f"Character already exists: {named_output}")
     data = run_workflow(
         graph,
-        input_files=(template,),
+        input_files={template_name: template},
         output_node_ids=("114",),
         on_log=lambda message: report("log", message),
     )["114"]
