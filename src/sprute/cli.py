@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from sprute.setup import setup as _setup
+from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
@@ -211,7 +211,7 @@ def run_with_panel[T](
 
 @app.command()
 def generate(
-    prompt: str = "",
+    prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
@@ -225,6 +225,7 @@ def generate(
 ):
     """Generate a character from a text prompt."""
     set_models_directory(models_directory)
+    require_setup()
     def generate_batch(on_event: Callable[[Event], None]) -> None:
         for index in range(batch):
             character_name = (
@@ -272,7 +273,7 @@ def show_sprite(image: Path) -> None:
 
 @app.command()
 def turntable(
-    image: Path = typer.Option(..., exists=True, dir_okay=False, help="Character reference image."),
+    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Character reference image."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
@@ -284,6 +285,7 @@ def turntable(
 ):
     """Generate a turntable and extract eight directional views."""
     set_models_directory(models_directory)
+    require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
         strip = _turntable(
             image, seed=seed, out=out,
@@ -294,3 +296,15 @@ def turntable(
         return strip
 
     run_with_panel("Turntable", run, verbose=verbose)
+
+
+def require_setup() -> None:
+    """Stop with a clear next step instead of failing inside ComfyUI."""
+    missing = missing_setup()
+    if missing:
+        console.print("Sprute is not set up yet. Run: sprute setup", style="red")
+        for item in missing[:5]:
+            console.print(f"  missing {item}", style="dim")
+        if len(missing) > 5:
+            console.print(f"  … and {len(missing) - 5} more", style="dim")
+        raise typer.Exit(code=1)

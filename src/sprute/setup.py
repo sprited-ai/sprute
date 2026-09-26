@@ -434,6 +434,22 @@ def run(
             + "\n".join(recent_logs)
         )
 
+def missing_setup() -> list[str]:
+    """List what `sprute setup` still has to do, without touching the network."""
+    if not is_installed("comfyui"):
+        return ["ComfyUI"]
+    missing = []
+    node_directory = custom_nodes_path()
+    for name, node in CUSTOM_NODES.items():
+        installed = node_directory / name / ".git" / "sprute-installed-revision"
+        if not installed.is_file() or installed.read_text().strip() != node["revision"]:
+            missing.append(f"custom node {name}")
+    models_directory = get_models_directory()
+    for model in MODELS.values():
+        if not (models_directory / model["destination"]).is_file():
+            missing.append(f"model {model['destination']}")
+    return missing
+
 def is_installed(package: str) -> bool:
     try:
         version(package)

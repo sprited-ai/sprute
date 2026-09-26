@@ -3,76 +3,76 @@
 
 *Sprute* is an open-source CLI tool for generating animated, 8-directional character sprites from a single reference image using template-guided image and video models.
 
-<img src="docs/resources/flowchart_v2.png">
+<img src="docs/resources/heroshot.png">
 
 Think of it as a Giga Press for character sprites: feed in one character image, and Sprute stamps out a complete set of animated directional sprites.
 
 ## Getting Started
 
-### Prerequisite
+Requires Python 3.12+ and a GPU (tested on NVIDIA CUDA).
 
-[TODO: How to configure Replicate API Key]
-
-### Generating Character Stills
-
-The easiest way to get started is to use our CLI tool.
-
-To generate 8-directional character, use `generate character`:
-```bash
-# Generate a random 8-dir character
-npx sprute generate character
-
-# From a text prompt
-npx sprute generate character --prompt "a girl wearing a dress"
-
-# From a reference image
-npx sprute generate character --image ./reference.png
-
-# Specify output path
-npx sprute generate character --output ./output/hero
-```
-
-The resulting 8-dir character will be saved in output directory (default: current directory). 
-
-**Example Output**:
-<table>
-<tr><td>Input</td><td>Result</td></tr>
-<tr><td align="center">
-<img src="docs/resources/elise-reference.png">
-</td><td align="center">
-<code>npx sprute generate character --image ./reference.png</code><br />
-<img src="docs/resources/elise-8-dir.png">
-</td></tr>
-</table>
-
-### Animating Characters
-
-Once 8-directional character stills are generated, you can feed it into `animate character` to animate them.
+### 1. Install
 
 ```bash
-# Generate run animation
-npx sprute animate character --character ./output/hero --preset run
-
-# Generate idle animation
-npx sprute animate character --character ./output/hero --preset idle
-```
-
-<table>
-<tr><td align="center">Input</td><td><img src="docs/resources/elise-8-dir.png"></td></tr>
-<tr><td align="center"><code>idle</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset idle</code><br />[TODO]</td></tr>
-<tr><td align="center"><code>walk</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset walk</code><br /><img src="docs/resources/elise-walk.webp"></td></tr>
-<tr><td align="center"><code>run</code></td><td align="center"><code>npx sprute animate character --character ./output/hero --preset run</code><br /><img src="docs/resources/elise-run.webp"></td></tr>
-</table>
-
-## Setting up local development environment
-
-```
 uv venv
 source .venv/bin/activate
 uv pip install -e .
 ```
 
-## Why?
+### 2. Point Sprute at your models (optional)
+
+Without this, `sprute setup` downloads models into `./models`.
+
+To reuse an existing ComfyUI models folder instead, create `sprute.config.json` in the directory you run Sprute from:
+
+```json
+{
+  "models_directory": "/path/to/ComfyUI/models"
+}
+```
+
+`--models-directory` on any command overrides the config.
+
+### 3. Set up
+
+```bash
+sprute setup
+```
+
+This installs ComfyUI and its custom nodes, downloads the models, and checks that your GPU works.
+
+The models take about 108 GB. Any that are already in the models directory are reused, not downloaded again.
+
+### 4. Generate a character
+
+```bash
+# Random character
+sprute generate
+
+# From a text prompt
+sprute generate "a girl wearing a dress"
+
+# Named, with a fixed seed
+sprute generate "a knight" --name knight --seed 42
+```
+
+Characters are saved as `output/<name>.character.png`, numbered `0001`, `0002`, … when no name is given.
+
+### 5. Generate eight directions
+
+```bash
+sprute turntable output/0001.character.png
+```
+
+This saves:
+
+- `0001.turntable.webp`: the rotating turntable animation
+- `0001.directions.png`: a strip of the eight directions
+- `0001.directions.webp`: the eight directions as an animation
+
+Running it again overwrites these files. With the same `--seed` and the same input image, Sprute returns the existing files instead of rerunning.
+
+## Why Sprute?
 
 Making sprite animations is hard. Hard enough that creators often stop themselves from adding more animation states, more characters, more NPCs, or more enemies simply because of the amount of work involved.
 
@@ -86,13 +86,9 @@ Given a single prompt or reference image, Sprute aims to create a complete anima
 
 ## Is it Free?
 
-The Sprute CLI itself is free and open source, but some parts of the pipeline use close-source cloud models for inference.
+Yes. Sprute is free and open source, and it runs entirely on your own GPU, so there are no API keys or inference costs.
 
-To use those models, you'll need to provide a Replicate API key (read in *Getting Started*). Any inference costs are billed through your own Replicate account.
-
-As of version 2.0, the expected cost of generating *idle* plus *run* animation is around $0.70 (70 cents).
-
-I hope to offer a fully local workflow in the future, so you can run the entire pipeline on your own hardware.
+Alternate workflows in [`workflows/alts`](workflows/alts) can be opened in ComfyUI directly. Some of them use API nodes, which need a ComfyUI account and are billed by the provider.
 
 ## License
 
