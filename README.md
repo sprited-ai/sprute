@@ -70,7 +70,27 @@ This saves:
 - `0001.directions.png`: a strip of the eight directions
 - `0001.directions.webp`: the eight directions as an animation
 
+Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from south), in both the strip and the animations.
+
 Running it again overwrites these files. With the same `--seed` and the same input image, Sprute returns the existing files instead of rerunning.
+
+### 6. Animate
+
+```bash
+sprute animate output/0001.directions.png --preset run
+```
+
+Presets are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
+
+As with turntable, the same `--seed` and input return the existing file instead of rerunning.
+
+### Preview
+
+```bash
+sprute preview output/0001.run.webp
+```
+
+Shows an output in iTerm2. Animated WebP files play in place.
 
 ## Why Sprute?
 
