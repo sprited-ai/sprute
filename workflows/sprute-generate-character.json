@@ -41,11 +41,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "sprute-v2-fill.png",
+        "sprute-fill.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "sprute-v2-fill.png",
+        "image": "sprute-fill.png",
         "upload": "image"
       }
     },

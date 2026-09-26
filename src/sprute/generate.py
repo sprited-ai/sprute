@@ -5,8 +5,8 @@ from pathlib import Path
 from sprute.comfy import input_name, run_workflow
 from sprute.events import Event
 
-WORKFLOW = Path("workflows/sprute-v2-generate-character.api.json")
-TEMPLATE = Path("assets/sprute-v2-fill.png")
+WORKFLOW = Path("workflows/sprute-generate-character.api.json")
+TEMPLATE = Path("assets/sprute-fill.png")
 
 def generate(
     prompt: str,

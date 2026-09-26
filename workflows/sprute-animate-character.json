@@ -1666,11 +1666,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "sprute-v2-run-81.576.webp",
+        "sprute-run-81.576.webp",
         "image"
       ],
       "widgets_values_named": {
-        "image": "sprute-v2-run-81.576.webp",
+        "image": "sprute-run-81.576.webp",
         "upload": "image"
       }
     },
@@ -1711,11 +1711,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "sprute-v2-standing-example.png",
+        "sprute-standing-example.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "sprute-v2-standing-example.png",
+        "image": "sprute-standing-example.png",
         "upload": "image"
       }
     },

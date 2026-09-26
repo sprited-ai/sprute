@@ -103,12 +103,12 @@ python scripts/sprute.py animate \
 
 # Inspect all driver/reference/mask inputs without GPU inference:
 python scripts/sprute.py animate \
-  --standing assets/sprute-v2-standing-example.png \
+  --standing assets/sprute-standing-example.png \
   --out out/inspect --prepare-only
 
 # Continue prepared or interrupted jobs with unchanged inputs:
 python scripts/sprute.py animate \
-  --standing assets/sprute-v2-standing-example.png \
+  --standing assets/sprute-standing-example.png \
   --out out/inspect --resume
 ```
 

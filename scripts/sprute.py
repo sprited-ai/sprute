@@ -289,7 +289,7 @@ def parser():
         q.add_argument('--dry-run', action='store_true', help='Validate and save job without loading weights')
         return q
     g = execution('generate', 'Prompt + masked SpriteDX template -> reference RGBA')
-    g.add_argument('--template', type=Path, default=ASSETS/'sprute-v2-fill.png')
+    g.add_argument('--template', type=Path, default=ASSETS/'sprute-fill.png')
     g.add_argument('--prompt', default='pixelated retro pixel art cute NPC character')
     g.add_argument('--steps', type=int, default=50)
     g.add_argument('--cell-index', type=int, choices=range(8), default=6)
@@ -305,8 +305,8 @@ def parser():
         a.add_argument('--text-encoder-fp8', type=Path,
                        help='Existing scaled-FP8 UMT5 checkpoint for SCAIL2')
         a.add_argument('--states', default='idle,walk,run')
-        a.add_argument('--driver', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.webp')
-        a.add_argument('--manifest', type=Path, default=ASSETS/'sprute-v2-idle-walk-run-center-arrows.json')
+        a.add_argument('--driver', type=Path, default=ASSETS/'sprute-idle-walk-run-center-arrows.webp')
+        a.add_argument('--manifest', type=Path, default=ASSETS/'sprute-idle-walk-run-center-arrows.json')
         a.add_argument('--size', type=int, default=768)
         a.add_argument('--cell-width', type=int,
                        help='Tile width without rescaling (default: 192, capped at --size / 3)')
@@ -324,7 +324,7 @@ def parser():
     motion_options(r)
     r.add_argument('--image', type=Path, help='Already prepared full-body character; skips FLUX')
     r.add_argument('--prompt', default='pixelated retro pixel art cute NPC character')
-    r.add_argument('--template', type=Path, default=ASSETS/'sprute-v2-fill.png')
+    r.add_argument('--template', type=Path, default=ASSETS/'sprute-fill.png')
     r.add_argument('--fill-steps', type=int, default=50)
     r.add_argument('--turntable-size', type=int, choices=[256, 512, 640, 768], default=256)
     r.add_argument('--turntable-precision', choices=['bf16', 'fp8'], default='bf16')

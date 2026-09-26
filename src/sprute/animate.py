@@ -6,7 +6,7 @@ from pathlib import Path
 from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 from sprute.events import Event
 
-WORKFLOW = Path("workflows/sprute-v2-animate-character.api.json")
+WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 PRESETS = ("idle", "walk", "run")
 
 def animate(
@@ -23,7 +23,7 @@ def animate(
     if preset not in PRESETS:
         raise ValueError(f"Unknown preset {preset!r}; choose one of: {', '.join(PRESETS)}")
     directions = directions.expanduser().resolve(strict=True)
-    motion = Path(f"assets/sprute-v2-{preset}-81.576.webp").resolve(strict=True)
+    motion = Path(f"assets/sprute-{preset}-81.576.webp").resolve(strict=True)
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
     if seed is None:

@@ -1,6 +1,6 @@
 # Native / Comfy inference comparison
 
-Open `sprute-v2-animate-native-parity.json` on gin's ComfyUI. This is a comparison
+Open `sprute-animate-native-parity.json` on gin's ComfyUI. This is a comparison
 workflow, not a replacement for the full character workflow.
 
 It reuses native-prepared inputs copied into

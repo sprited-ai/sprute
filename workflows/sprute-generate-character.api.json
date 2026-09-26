@@ -1,7 +1,7 @@
 {
   "17": {
     "inputs": {
-      "image": "sprute-v2-fill.png"
+      "image": "sprute-fill.png"
     },
     "class_type": "LoadImage",
     "_meta": {

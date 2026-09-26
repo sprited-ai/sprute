@@ -872,14 +872,14 @@
       "widgets_values": [
         42,
         "",
-        "sprute-v2-idle-81.webp",
+        "sprute-idle-81.webp",
         "image",
         ""
       ],
       "widgets_values_named": {
         "seed": 42,
         "text": "",
-        "image": "sprute-v2-idle-81.webp",
+        "image": "sprute-idle-81.webp",
         "upload": "image",
         "text_1": ""
       }
@@ -992,14 +992,14 @@
       "widgets_values": [
         42,
         "",
-        "sprute-v2-walk-81.webp",
+        "sprute-walk-81.webp",
         "image",
         ""
       ],
       "widgets_values_named": {
         "seed": 42,
         "text": "",
-        "image": "sprute-v2-walk-81.webp",
+        "image": "sprute-walk-81.webp",
         "upload": "image",
         "text_1": ""
       }
@@ -1122,14 +1122,14 @@
       "widgets_values": [
         42,
         "",
-        "sprute-v2-run-81.webp",
+        "sprute-run-81.webp",
         "image",
         ""
       ],
       "widgets_values_named": {
         "seed": 42,
         "text": "",
-        "image": "sprute-v2-run-81.webp",
+        "image": "sprute-run-81.webp",
         "upload": "image",
         "text_1": ""
       }
@@ -2700,11 +2700,11 @@
               "Node name for S&R": "LoadImage"
             },
             "widgets_values": [
-              "sprute-v2-fill.png",
+              "sprute-fill.png",
               "image"
             ],
             "widgets_values_named": {
-              "image": "sprute-v2-fill.png",
+              "image": "sprute-fill.png",
               "upload": "image"
             }
           },
@@ -5491,11 +5491,11 @@
               "Node name for S&R": "LoadImage"
             },
             "widgets_values": [
-              "sprute-v2-run-81.webp",
+              "sprute-run-81.webp",
               "image"
             ],
             "widgets_values_named": {
-              "image": "sprute-v2-run-81.webp",
+              "image": "sprute-run-81.webp",
               "upload": "image"
             }
           },
@@ -13195,11 +13195,11 @@
               "Node name for S&R": "LoadImage"
             },
             "widgets_values": [
-              "sprute-v2-run-81.webp",
+              "sprute-run-81.webp",
               "image"
             ],
             "widgets_values_named": {
-              "image": "sprute-v2-run-81.webp",
+              "image": "sprute-run-81.webp",
               "upload": "image"
             }
           },
@@ -20898,11 +20898,11 @@
               "Node name for S&R": "LoadImage"
             },
             "widgets_values": [
-              "sprute-v2-run-81.webp",
+              "sprute-run-81.webp",
               "image"
             ],
             "widgets_values_named": {
-              "image": "sprute-v2-run-81.webp",
+              "image": "sprute-run-81.webp",
               "upload": "image"
             }
           },

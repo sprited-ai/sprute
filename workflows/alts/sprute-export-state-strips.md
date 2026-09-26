@@ -1,7 +1,7 @@
 # Export state strips in Comfy
 
-Open `sprute-v2-export-state-strips.json`. This is the tested postprocessing
-companion to `sprute-v2-animate-native-parity.json`; no diffusion model is run.
+Open `sprute-export-state-strips.json`. This is the tested postprocessing
+companion to `sprute-animate-native-parity.json`; no diffusion model is run.
 
 ## Input contract
 

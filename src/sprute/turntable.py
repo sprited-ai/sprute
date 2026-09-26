@@ -6,7 +6,7 @@ import secrets
 from sprute.events import Event
 from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 
-WORKFLOW = Path("workflows/sprute-v2-turntable-character.api.json")
+WORKFLOW = Path("workflows/sprute-turntable-character.api.json")
 
 def turntable(
     image: Path,
