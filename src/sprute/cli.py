@@ -9,6 +9,9 @@ from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
 from sprute.animate import PRESETS, animate as _animate
 from sprute.config import set_models_directory
+from sprute.comfy import saved_workflow
+from tempfile import TemporaryDirectory
+from PIL import Image, ImageSequence
 from collections.abc import Callable
 from rich.panel import Panel
 from rich.text import Text
@@ -253,7 +256,7 @@ def generate(
     run_with_panel("Generate", generate_batch, verbose=verbose, prompt=prompt)
 
 
-def show_sprite(image: Path) -> None:
+def show_sprite(image: Path, *, fps: float | None = None) -> None:
     """Display while Live is stopped; never send image escapes into redirected output."""
     if not sys.stdout.isatty():
         return
@@ -261,14 +264,49 @@ def show_sprite(image: Path) -> None:
     if imgcat is None:
         return
     try:
-        subprocess.run(
-            # Fix the height so wide strips keep the same scale as single sprites.
-            [imgcat, "-H", "256px", str(image)],
-            check=True,
-            timeout=10,
-        )
+        # iTerm2 animates GIFs but not WebP, so animated images go through a temporary GIF.
+        with TemporaryDirectory(prefix="sprute-preview-") as workspace:
+            shown = image
+            with Image.open(image) as opened:
+                if getattr(opened, "n_frames", 1) > 1 and opened.format != "GIF":
+                    shown = Path(workspace) / f"{image.stem}.gif"
+                    duration = round(1000 / (fps or animation_fps(image)))
+                    frames = [frame.convert("RGBA") for frame in ImageSequence.Iterator(opened)]
+                    frames[0].save(shown, save_all=True, append_images=frames[1:],
+                                   duration=duration, loop=0, disposal=2)
+            subprocess.run(
+                # Fix the height so wide strips keep the same scale as single sprites.
+                [imgcat, "-H", "256px", str(shown)],
+                check=True,
+                timeout=60,
+            )
     except (OSError, subprocess.SubprocessError) as error:
-        console.print(f"Image saved, but terminal preview failed: {error}", style="yellow", markup=False)
+        console.print(f"Terminal preview failed: {error}", style="yellow", markup=False)
+
+
+def animation_fps(image: Path) -> float:
+    """Read fps from the ComfyUI save node that wrote this file; WebP keeps no frame timing."""
+    kind = image.stem.rsplit(".", 1)[-1]
+    for node in (saved_workflow(image) or {}).values():
+        inputs = node.get("inputs", {})
+        if node.get("class_type") == "SaveAnimatedWEBP" and inputs.get("filename_prefix") == kind:
+            return float(inputs.get("fps") or 24)
+    return 24.0
+
+
+@app.command()
+def preview(
+    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF."),
+    fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default from the file's workflow, else 24."),
+):
+    """Show an image in the terminal (iTerm2)."""
+    if not sys.stdout.isatty():
+        console.print("Not a terminal; nothing to show.", style="yellow")
+        raise typer.Exit(code=1)
+    if shutil.which("imgcat") is None:
+        console.print("imgcat not found on PATH; install iTerm2's imgcat to preview.", style="yellow")
+        raise typer.Exit(code=1)
+    show_sprite(image, fps=fps)
 
 
 
