@@ -43,25 +43,36 @@ This installs ComfyUI and its custom nodes, downloads the models, and checks tha
 
 The models take about 108 GB. Any that are already in the models directory are reused, not downloaded again.
 
-### 4. Generate a character
+### 4. Make a character
+
+```bash
+sprute character "a knight in silver armor"
+
+# Start from your own character image instead
+sprute character --image hero.png
+```
+
+This runs every step below: generate, eight directions, and the `idle`, `walk`, and `run` animations. `--presets idle,run` picks which animations, and `--seed` is used for every step. The rest of this section covers each step on its own.
+
+### 5. Generate a character
 
 ```bash
 # Random character
-sprute generate
+sprute character-generate
 
 # From a text prompt
-sprute generate "a girl wearing a dress"
+sprute character-generate "a girl wearing a dress"
 
 # Named, with a fixed seed
-sprute generate "a knight" --name knight --seed 42
+sprute character-generate "a knight" --name knight --seed 42
 ```
 
 Characters are saved as `output/<name>.character.png`, numbered `0001`, `0002`, … when no name is given.
 
-### 5. Generate eight directions
+### 6. Generate eight directions
 
 ```bash
-sprute turntable output/0001.character.png
+sprute character-turntable output/0001.character.png
 ```
 
 This saves:
@@ -74,10 +85,10 @@ Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from
 
 Running it again overwrites these files. With the same `--seed` and the same input image, Sprute returns the existing files instead of rerunning.
 
-### 6. Animate
+### 7. Animate
 
 ```bash
-sprute animate output/0001.directions.png --preset run
+sprute character-animate output/0001.directions.png --preset run
 ```
 
 Presets are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).

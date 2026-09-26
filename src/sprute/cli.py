@@ -2,6 +2,7 @@ import typer
 import shutil
 import subprocess
 import sys
+import secrets
 from pathlib import Path
 from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
@@ -213,7 +214,50 @@ def run_with_panel[T](
     console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
     return result
 
-@app.command()
+@app.command("character")
+def spawn(
+    prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
+    image: Path | None = typer.Option(None, exists=True, dir_okay=False, help="Start from this character image instead of generating one."),
+    presets: str = typer.Option(",".join(PRESETS), help="Comma-separated motions to animate."),
+    name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
+    seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
+    out: Path = Path("output"),
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", exists=True, file_okay=False,
+        help="Override the config models directory. Default: config or ./models.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview"),
+):
+    """Generate a character, its eight directions, and its animations in one go."""
+    chosen = [preset.strip() for preset in presets.split(",") if preset.strip()]
+    unknown = [preset for preset in chosen if preset not in PRESETS]
+    if unknown or not chosen:
+        raise typer.BadParameter(f"choose from: {', '.join(PRESETS)}", param_hint="--presets")
+    if image is not None and prompt:
+        raise typer.BadParameter("give a prompt or --image, not both", param_hint="--image")
+    set_models_directory(models_directory)
+    require_setup()
+    # One seed for every step, so rerunning with it reproduces the whole character.
+    run_seed = seed if seed is not None else secrets.randbits(32)
+    def run(on_event: Callable[[Event], None]) -> None:
+        def show(path: Path) -> None:
+            if preview:
+                on_event(Event("image", str(path)))
+        if image is not None:
+            character = image
+        else:
+            character = _generate(prompt, seed=run_seed, out=out, name=name, on_event=on_event)
+            show(character)
+        directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
+        show(directions)
+        for preset in chosen:
+            show(_animate(directions, preset, seed=run_seed, out=out, on_event=on_event))
+
+    run_with_panel("Character", run, verbose=verbose, prompt=prompt)
+
+
+@app.command("character-generate")
 def generate(
     prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
@@ -294,23 +338,8 @@ def animation_fps(image: Path) -> float:
     return 24.0
 
 
-@app.command()
-def preview(
-    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF."),
-    fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default from the file's workflow, else 24."),
-):
-    """Show an image in the terminal (iTerm2)."""
-    if not sys.stdout.isatty():
-        console.print("Not a terminal; nothing to show.", style="yellow")
-        raise typer.Exit(code=1)
-    if shutil.which("imgcat") is None:
-        console.print("imgcat not found on PATH; install iTerm2's imgcat to preview.", style="yellow")
-        raise typer.Exit(code=1)
-    show_sprite(image, fps=fps)
 
-
-
-@app.command()
+@app.command("character-turntable")
 def turntable(
     image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Character reference image."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
@@ -337,7 +366,7 @@ def turntable(
     run_with_panel("Turntable", run, verbose=verbose)
 
 
-@app.command()
+@app.command("character-animate")
 def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
     preset: str = typer.Option(..., help=f"Motion to apply: {', '.join(PRESETS)}."),
@@ -372,3 +401,18 @@ def require_setup() -> None:
         if len(missing) > 5:
             console.print(f"  … and {len(missing) - 5} more", style="dim")
         raise typer.Exit(code=1)
+
+
+@app.command()
+def preview(
+    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF."),
+    fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default from the file's workflow, else 24."),
+):
+    """Show an image in the terminal (iTerm2)."""
+    if not sys.stdout.isatty():
+        console.print("Not a terminal; nothing to show.", style="yellow")
+        raise typer.Exit(code=1)
+    if shutil.which("imgcat") is None:
+        console.print("imgcat not found on PATH; install iTerm2's imgcat to preview.", style="yellow")
+        raise typer.Exit(code=1)
+    show_sprite(image, fps=fps)
