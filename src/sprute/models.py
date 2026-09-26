@@ -140,17 +140,11 @@ def plan_model_downloads(
     return plan
 
 
-def find_local_model(model: dict[str, str], directories: tuple[Path, ...], size: int) -> Path | None:
-    """Prefer exact Comfy paths; search nested weight folders by filename and size."""
-    relative = Path(model["destination"])
-    for directory in directories:
-        candidates = [directory / relative, directory / relative.name]
-        # Don't match unrelated config.json or Python files in other model folders.
-        if relative.suffix == ".safetensors":
-            candidates.extend(sorted(directory.rglob(relative.name)))
-        for candidate in candidates:
-            if candidate.is_file() and candidate.stat().st_size == size:
-                return candidate.resolve()
+def find_local_model(model: dict[str, str], models_directory: Path, size: int) -> Path | None:
+    """Reuse a model only where ComfyUI will look for it."""
+    path = models_directory / model["destination"]
+    if path.is_file() and path.stat().st_size == size:
+        return path.resolve()
     return None
 
 

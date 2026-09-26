@@ -77,7 +77,7 @@ def setup_models(*, report: Reporter) -> None:
     plan = plan_model_downloads(MODELS)
     sizes = {name: info.file_size for name, info in plan.items()}
     local = {
-        name: find_local_model(MODELS[name], (models_directory,), size)
+        name: find_local_model(MODELS[name], models_directory, size)
         for name, size in sizes.items() if size is not None
     }
     remaining = sum(size for name, size in sizes.items() if not local[name] and size is not None)
