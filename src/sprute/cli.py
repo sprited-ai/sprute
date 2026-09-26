@@ -8,7 +8,7 @@ from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.animate import PRESETS, animate as _animate
+from sprute.animate import MOTIONS, animate as _animate
 from sprute.config import set_models_directory
 from tempfile import TemporaryDirectory
 from PIL import Image, ImageSequence
@@ -217,7 +217,7 @@ def run_with_panel[T](
 def spawn(
     prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
     image: Path | None = typer.Option(None, exists=True, dir_okay=False, help="Start from this character image instead of generating one."),
-    presets: str = typer.Option(",".join(PRESETS), help="Comma-separated motions to animate."),
+    motions: str = typer.Option(",".join(MOTIONS), help="Comma-separated motions to animate."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
     out: Path = Path("output"),
@@ -229,10 +229,10 @@ def spawn(
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Generate a character, its eight directions, and its animations in one go."""
-    chosen = [preset.strip() for preset in presets.split(",") if preset.strip()]
-    unknown = [preset for preset in chosen if preset not in PRESETS]
+    chosen = [motion.strip() for motion in motions.split(",") if motion.strip()]
+    unknown = [motion for motion in chosen if motion not in MOTIONS]
     if unknown or not chosen:
-        raise typer.BadParameter(f"choose from: {', '.join(PRESETS)}", param_hint="--presets")
+        raise typer.BadParameter(f"choose from: {', '.join(MOTIONS)}", param_hint="--motions")
     if image is not None and prompt:
         raise typer.BadParameter("give a prompt or --image, not both", param_hint="--image")
     set_models_directory(models_directory)
@@ -250,8 +250,8 @@ def spawn(
             show(character)
         directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
         show(directions)
-        for preset in chosen:
-            show(_animate(directions, preset, seed=run_seed, out=out, on_event=on_event))
+        for motion in chosen:
+            show(_animate(directions, motion, seed=run_seed, out=out, on_event=on_event))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -372,7 +372,7 @@ def turntable(
 @app.command("character-animate")
 def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
-    preset: str = typer.Option(..., help=f"Motion to apply: {', '.join(PRESETS)}."),
+    motion: str = typer.Option(..., help=f"Motion to apply: {', '.join(MOTIONS)}."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
@@ -382,11 +382,11 @@ def animate(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
-    """Animate the eight directions with a motion preset."""
+    """Animate the eight directions with a motion."""
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, preset, seed=seed, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation

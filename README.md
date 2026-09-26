@@ -65,7 +65,7 @@ sprute character "a knight in silver armor"
 sprute character --image hero.png
 ```
 
-This runs every step below: generate, eight directions, and the `idle`, `walk`, and `run` animations. `--presets idle,run` picks which animations, and `--seed` is used for every step. The rest of this section covers each step on its own.
+This runs every step below: generate, eight directions, and the `idle`, `walk`, and `run` animations. `--motions idle,run` picks which ones, and `--seed` is used for every step. The rest of this section covers each step on its own.
 
 ### 5. Generate a character
 
@@ -101,10 +101,10 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 ### 7. Animate
 
 ```bash
-sprute character-animate output/0001.directions.png --preset run
+sprute character-animate output/0001.directions.png --motion run
 ```
 
-Presets are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (1536×256, 81 frames).
+Motions are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (1536×256, 81 frames).
 
 As with turntable, the same `--seed` and input return the existing file instead of rerunning.
 
