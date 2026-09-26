@@ -1,8 +1,8 @@
 {
   "id": "a613ec97-7750-405c-9bf3-7312767345ec",
   "revision": 0,
-  "last_node_id": 36,
-  "last_link_id": 71,
+  "last_node_id": 52,
+  "last_link_id": 101,
   "nodes": [
     {
       "id": 2,
@@ -221,7 +221,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 7,
+      "order": 9,
       "mode": 0,
       "inputs": [
         {
@@ -265,7 +265,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 8,
+      "order": 10,
       "mode": 0,
       "inputs": [
         {
@@ -309,7 +309,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 11,
+      "order": 13,
       "mode": 0,
       "inputs": [
         {
@@ -322,12 +322,16 @@
         {
           "name": "width",
           "type": "INT",
-          "links": []
+          "links": [
+            74
+          ]
         },
         {
           "name": "height",
           "type": "INT",
-          "links": []
+          "links": [
+            75
+          ]
         },
         {
           "name": "batch_size",
@@ -339,7 +343,9 @@
         "cnr_id": "comfy-core",
         "ver": "0.33.1",
         "Node name for S&R": "GetImageSize"
-      }
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
     },
     {
       "id": 1,
@@ -361,15 +367,16 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            27,
             46,
-            50
+            77
           ]
         },
         {
           "name": "MASK",
           "type": "MASK",
-          "links": null
+          "links": [
+            81
+          ]
         }
       ],
       "properties": {
@@ -378,11 +385,11 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "wan-turntable-lily-gray.png",
+        "0009.character.png",
         "image"
       ],
       "widgets_values_named": {
-        "image": "wan-turntable-lily-gray.png",
+        "image": "0009.character.png",
         "upload": "image"
       }
     },
@@ -398,7 +405,7 @@
         280
       ],
       "flags": {},
-      "order": 9,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -480,7 +487,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 12,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -491,7 +498,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 50
+          "link": 98
         }
       ],
       "outputs": [
@@ -509,10 +516,10 @@
         "Node name for S&R": "CLIPVisionEncode"
       },
       "widgets_values": [
-        "center"
+        "none"
       ],
       "widgets_values_named": {
-        "crop": "center"
+        "crop": "none"
       }
     },
     {
@@ -529,7 +536,7 @@
       "flags": {
         "collapsed": false
       },
-      "order": 13,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -557,7 +564,23 @@
           "name": "start_image",
           "shape": 7,
           "type": "IMAGE",
-          "link": 27
+          "link": 99
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 72
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 73
         }
       ],
       "outputs": [
@@ -591,13 +614,13 @@
         "Node name for S&R": "WanImageToVideo"
       },
       "widgets_values": [
-        256,
+        32,
         256,
         81,
         1
       ],
       "widgets_values_named": {
-        "width": 256,
+        "width": 32,
         "height": 256,
         "length": 81,
         "batch_size": 1
@@ -617,7 +640,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 16,
+      "order": 23,
       "mode": 0,
       "inputs": [
         {
@@ -658,7 +681,7 @@
         360
       ],
       "flags": {},
-      "order": 15,
+      "order": 22,
       "mode": 0,
       "inputs": [
         {
@@ -741,7 +764,7 @@
         340
       ],
       "flags": {},
-      "order": 14,
+      "order": 21,
       "mode": 0,
       "inputs": [
         {
@@ -826,7 +849,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 18,
+      "order": 25,
       "mode": 0,
       "inputs": [
         {
@@ -896,7 +919,7 @@
         120
       ],
       "flags": {},
-      "order": 10,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
@@ -938,7 +961,7 @@
         380
       ],
       "flags": {},
-      "order": 19,
+      "order": 26,
       "mode": 0,
       "inputs": [
         {
@@ -986,7 +1009,7 @@
         380
       ],
       "flags": {},
-      "order": 21,
+      "order": 28,
       "mode": 0,
       "inputs": [
         {
@@ -1034,7 +1057,7 @@
         120
       ],
       "flags": {},
-      "order": 20,
+      "order": 27,
       "mode": 0,
       "inputs": [
         {
@@ -1049,7 +1072,8 @@
           "type": "IMAGE",
           "links": [
             60,
-            67
+            100,
+            101
           ]
         }
       ],
@@ -1070,7 +1094,7 @@
       "type": "PreviewImage",
       "pos": [
         420,
-        880
+        840
       ],
       "size": [
         280,
@@ -1079,13 +1103,13 @@
       "flags": {
         "collapsed": true
       },
-      "order": 23,
+      "order": 29,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 68
+          "link": 100
         }
       ],
       "outputs": [
@@ -1106,7 +1130,7 @@
       "type": "ImageConcatFromBatch",
       "pos": [
         420,
-        840
+        800
       ],
       "size": [
         320,
@@ -1115,13 +1139,13 @@
       "flags": {
         "collapsed": true
       },
-      "order": 24,
+      "order": 30,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 69
+          "link": 101
         }
       ],
       "outputs": [
@@ -1161,7 +1185,7 @@
         440
       ],
       "flags": {},
-      "order": 25,
+      "order": 31,
       "mode": 0,
       "inputs": [
         {
@@ -1190,68 +1214,6 @@
       }
     },
     {
-      "id": 35,
-      "type": "AILab_ImageCrop",
-      "pos": [
-        420,
-        800
-      ],
-      "size": [
-        300,
-        200
-      ],
-      "flags": {
-        "collapsed": true
-      },
-      "order": 22,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 67
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CROP",
-          "type": "IMAGE",
-          "links": [
-            68,
-            69
-          ]
-        },
-        {
-          "name": "REST",
-          "type": "IMAGE",
-          "links": null
-        }
-      ],
-      "properties": {
-        "aux_id": "kndlt/ComfyUI-RMBG",
-        "ver": "7f02fab3f33aee806002c9b349cc9ea763f4d2e7",
-        "Node name for S&R": "AILab_ImageCrop"
-      },
-      "widgets_values": [
-        160,
-        256,
-        0,
-        0,
-        false,
-        "center"
-      ],
-      "widgets_values_named": {
-        "width": 160,
-        "height": 256,
-        "x_offset": 0,
-        "y_offset": 0,
-        "split": false,
-        "position": "center"
-      },
-      "color": "#2e3e57",
-      "bgcolor": "#4b5b73"
-    },
-    {
       "id": 36,
       "type": "ReverseImageBatch",
       "pos": [
@@ -1259,13 +1221,13 @@
         840
       ],
       "size": [
-        179.421484375,
-        26
+        180,
+        40
       ],
       "flags": {
         "collapsed": true
       },
-      "order": 17,
+      "order": 24,
       "mode": 0,
       "inputs": [
         {
@@ -1287,6 +1249,399 @@
         "cnr_id": "comfyui-kjnodes",
         "ver": "1.4.4",
         "Node name for S&R": "ReverseImageBatch"
+      }
+    },
+    {
+      "id": 37,
+      "type": "PrimitiveInt",
+      "pos": [
+        -160,
+        920
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            72,
+            95
+          ]
+        }
+      ],
+      "title": "W",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        192,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 192,
+        "fixed": "fixed"
+      }
+    },
+    {
+      "id": 38,
+      "type": "PrimitiveInt",
+      "pos": [
+        -160,
+        960
+      ],
+      "size": [
+        280,
+        100
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            73,
+            91,
+            96
+          ]
+        }
+      ],
+      "title": "H",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        256,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 256,
+        "fixed": "fixed"
+      }
+    },
+    {
+      "id": 40,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        140,
+        960
+      ],
+      "size": [
+        280,
+        160
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 76
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 77
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": 82
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            90
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ],
+      "widgets_values_named": {
+        "x": 0,
+        "y": 0,
+        "resize_source": false
+      }
+    },
+    {
+      "id": 41,
+      "type": "EmptyImage",
+      "pos": [
+        -160,
+        1000
+      ],
+      "size": [
+        280,
+        140
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 74
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 75
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            76
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "EmptyImage"
+      },
+      "widgets_values": [
+        512,
+        512,
+        1,
+        8421504
+      ],
+      "widgets_values_named": {
+        "width": 512,
+        "height": 512,
+        "batch_size": 1,
+        "color": 8421504
+      }
+    },
+    {
+      "id": 44,
+      "type": "InvertMask",
+      "pos": [
+        140,
+        920
+      ],
+      "size": [
+        140,
+        40
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 81
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            82
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "InvertMask"
+      }
+    },
+    {
+      "id": 49,
+      "type": "ImageScaleToMaxDimension",
+      "pos": [
+        140,
+        1000
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 90
+        },
+        {
+          "name": "largest_size",
+          "type": "INT",
+          "widget": {
+            "name": "largest_size"
+          },
+          "link": 91
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            93
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "ImageScaleToMaxDimension"
+      },
+      "widgets_values": [
+        "lanczos",
+        837
+      ],
+      "widgets_values_named": {
+        "upscale_method": "lanczos",
+        "largest_size": 837
+      }
+    },
+    {
+      "id": 51,
+      "type": "ImageResizeKJv2",
+      "pos": [
+        420,
+        880
+      ],
+      "size": [
+        280,
+        340
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 93
+        },
+        {
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK",
+          "link": null
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 95
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 96
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            98,
+            99
+          ]
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "1.4.4",
+        "Node name for S&R": "ImageResizeKJv2"
+      },
+      "widgets_values": [
+        512,
+        512,
+        "lanczos",
+        "crop",
+        "0, 0, 0",
+        "center",
+        2,
+        "cpu"
+      ],
+      "widgets_values_named": {
+        "width": 512,
+        "height": 512,
+        "upscale_method": "lanczos",
+        "keep_proportion": "crop",
+        "pad_color": "0, 0, 0",
+        "crop_position": "center",
+        "divisible_by": 2,
+        "device": "cpu"
       }
     }
   ],
@@ -1330,14 +1685,6 @@
       8,
       2,
       "VAE"
-    ],
-    [
-      27,
-      1,
-      0,
-      8,
-      4,
-      "IMAGE"
     ],
     [
       28,
@@ -1452,14 +1799,6 @@
       "CLIP_VISION"
     ],
     [
-      50,
-      1,
-      0,
-      21,
-      1,
-      "IMAGE"
-    ],
-    [
       51,
       21,
       0,
@@ -1500,26 +1839,18 @@
       "IMAGE"
     ],
     [
-      67,
-      29,
+      70,
+      13,
       0,
-      35,
-      0,
-      "IMAGE"
-    ],
-    [
-      68,
-      35,
-      0,
-      30,
+      36,
       0,
       "IMAGE"
     ],
     [
-      69,
-      35,
+      71,
+      36,
       0,
-      33,
+      23,
       0,
       "IMAGE"
     ],
@@ -1540,18 +1871,138 @@
       "INT"
     ],
     [
-      70,
-      13,
+      72,
+      37,
       0,
-      36,
+      8,
+      5,
+      "INT"
+    ],
+    [
+      73,
+      38,
+      0,
+      8,
+      6,
+      "INT"
+    ],
+    [
+      74,
+      19,
+      0,
+      41,
+      0,
+      "INT"
+    ],
+    [
+      75,
+      19,
+      1,
+      41,
+      1,
+      "INT"
+    ],
+    [
+      76,
+      41,
+      0,
+      40,
       0,
       "IMAGE"
     ],
     [
-      71,
-      36,
+      77,
+      1,
       0,
-      23,
+      40,
+      1,
+      "IMAGE"
+    ],
+    [
+      81,
+      1,
+      1,
+      44,
+      0,
+      "MASK"
+    ],
+    [
+      82,
+      44,
+      0,
+      40,
+      2,
+      "MASK"
+    ],
+    [
+      90,
+      40,
+      0,
+      49,
+      0,
+      "IMAGE"
+    ],
+    [
+      91,
+      38,
+      0,
+      49,
+      1,
+      "INT"
+    ],
+    [
+      93,
+      49,
+      0,
+      51,
+      0,
+      "IMAGE"
+    ],
+    [
+      95,
+      37,
+      0,
+      51,
+      2,
+      "INT"
+    ],
+    [
+      96,
+      38,
+      0,
+      51,
+      3,
+      "INT"
+    ],
+    [
+      98,
+      51,
+      0,
+      21,
+      1,
+      "IMAGE"
+    ],
+    [
+      99,
+      51,
+      0,
+      8,
+      4,
+      "IMAGE"
+    ],
+    [
+      100,
+      29,
+      0,
+      30,
+      0,
+      "IMAGE"
+    ],
+    [
+      101,
+      29,
+      0,
+      33,
       0,
       "IMAGE"
     ]
@@ -1560,10 +2011,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7263890053347397,
+      "scale": 0.8789306964550372,
       "offset": [
-        573.9125418416784,
-        135.29001679714287
+        304.13925783770475,
+        -42.07180502995559
       ]
     },
     "frontendVersion": "1.53.6",

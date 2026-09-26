@@ -78,7 +78,7 @@ sprute character-turntable output/0001.character.png
 This saves:
 
 - `0001.turntable.webp`: the rotating turntable animation
-- `0001.directions.png`: a strip of the eight directions
+- `0001.directions.png`: a strip of the eight directions (1536×256)
 - `0001.directions.webp`: the eight directions as an animation
 
 Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from south), in both the strip and the animations.

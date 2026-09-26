@@ -1,8 +1,8 @@
 {
   "id": "0b37580c-4b00-4152-a36d-157416d2bd6d",
   "revision": 0,
-  "last_node_id": 209,
-  "last_link_id": 81,
+  "last_node_id": 210,
+  "last_link_id": 83,
   "nodes": [
     {
       "id": 17,
@@ -391,7 +391,7 @@
       ],
       "size": [
         140,
-        124.00000000000006
+        140
       ],
       "flags": {
         "collapsed": true
@@ -430,9 +430,7 @@
         "cnr_id": "comfy-core",
         "ver": "0.37.0",
         "Node name for S&R": "GetImageSize"
-      },
-      "widgets_values": [],
-      "widgets_values_named": {}
+      }
     },
     {
       "id": 99,
@@ -443,7 +441,7 @@
       ],
       "size": [
         140,
-        46
+        60
       ],
       "flags": {
         "collapsed": true
@@ -529,8 +527,8 @@
         600
       ],
       "size": [
-        270,
-        82
+        280,
+        100
       ],
       "flags": {
         "collapsed": true
@@ -569,8 +567,8 @@
         640
       ],
       "size": [
-        270,
-        82
+        280,
+        100
       ],
       "flags": {
         "collapsed": true
@@ -611,7 +609,7 @@
       ],
       "size": [
         340,
-        268
+        280
       ],
       "flags": {
         "collapsed": true
@@ -685,13 +683,13 @@
         760
       ],
       "flags": {},
-      "order": 24,
+      "order": 25,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 63
+          "link": 83
         }
       ],
       "outputs": [
@@ -721,8 +719,8 @@
         780
       ],
       "size": [
-        270,
-        130
+        280,
+        140
       ],
       "flags": {
         "collapsed": true
@@ -771,8 +769,8 @@
         860
       ],
       "size": [
-        270,
-        130
+        280,
+        140
       ],
       "flags": {
         "collapsed": true
@@ -791,7 +789,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            63
+            82
           ]
         }
       ],
@@ -821,8 +819,8 @@
         680
       ],
       "size": [
-        270,
-        82
+        280,
+        100
       ],
       "flags": {
         "collapsed": true
@@ -861,8 +859,8 @@
         720
       ],
       "size": [
-        270,
-        130
+        280,
+        140
       ],
       "flags": {
         "collapsed": true
@@ -906,8 +904,8 @@
         880
       ],
       "size": [
-        270,
-        58
+        280,
+        60
       ],
       "flags": {
         "collapsed": true
@@ -987,8 +985,8 @@
         800
       ],
       "size": [
-        270,
-        58
+        280,
+        60
       ],
       "flags": {
         "collapsed": true
@@ -1075,8 +1073,8 @@
         840
       ],
       "size": [
-        270,
-        138
+        280,
+        140
       ],
       "flags": {
         "collapsed": true
@@ -1196,7 +1194,7 @@
         "Node name for S&R": "KSampler"
       },
       "widgets_values": [
-        267634844215911,
+        556038030045637,
         "randomize",
         50,
         1,
@@ -1205,7 +1203,7 @@
         1
       ],
       "widgets_values_named": {
-        "seed": 267634844215911,
+        "seed": 556038030045637,
         "control_after_generate": "randomize",
         "steps": 50,
         "cfg": 1,
@@ -1282,6 +1280,68 @@
         "cnr_id": "comfy-core",
         "ver": "0.37.0",
         "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 210,
+      "type": "ImageCropV2",
+      "pos": [
+        440,
+        900
+      ],
+      "size": [
+        300,
+        450
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 82
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            83
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.37.0",
+        "Node name for S&R": "ImageCropV2"
+      },
+      "widgets_values": [
+        {
+          "x": 80,
+          "y": 0,
+          "width": 480,
+          "height": 640
+        },
+        80,
+        0,
+        480,
+        640
+      ],
+      "widgets_values_named": {
+        "crop_region": {
+          "x": 80,
+          "y": 0,
+          "width": 480,
+          "height": 640
+        },
+        "x": 80,
+        "y": 0,
+        "width": 480,
+        "height": 640
       }
     }
   ],
@@ -1439,14 +1499,6 @@
       "IMAGE"
     ],
     [
-      63,
-      119,
-      0,
-      114,
-      0,
-      "IMAGE"
-    ],
-    [
       64,
       47,
       0,
@@ -1573,16 +1625,32 @@
       209,
       0,
       "IMAGE"
+    ],
+    [
+      82,
+      119,
+      0,
+      210,
+      0,
+      "IMAGE"
+    ],
+    [
+      83,
+      210,
+      0,
+      114,
+      0,
+      "IMAGE"
     ]
   ],
   "groups": [],
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.9750981297106269,
+      "scale": 0.7326056571830409,
       "offset": [
-        464.1756866390574,
-        153.995994725069
+        661.4720315024116,
+        -522.0175939104878
       ]
     },
     "frontendVersion": "1.53.6",

@@ -191,7 +191,7 @@
     "inputs": {
       "filename_prefix": "sprite-dx/local-fill/transparent",
       "images": [
-        "119",
+        "210",
         0
       ]
     },
@@ -333,8 +333,8 @@
   },
   "207": {
     "inputs": {
-      "seed": 267634844215911,
-      "steps": 20,
+      "seed": 556038030045637,
+      "steps": 50,
       "cfg": 1,
       "sampler_name": "euler",
       "scheduler": "simple",
@@ -383,6 +383,24 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "Preview Image"
+    }
+  },
+  "210": {
+    "inputs": {
+      "crop_region": {
+        "x": 80,
+        "y": 0,
+        "width": 480,
+        "height": 640
+      },
+      "image": [
+        "119",
+        0
+      ]
+    },
+    "class_type": "ImageCropV2",
+    "_meta": {
+      "title": "Crop Image"
     }
   }
 }

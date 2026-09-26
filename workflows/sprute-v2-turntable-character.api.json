@@ -1,7 +1,7 @@
 {
   "1": {
     "inputs": {
-      "image": "wan-turntable-lily-gray.png"
+      "image": "0009.character.png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -76,8 +76,14 @@
   },
   "8": {
     "inputs": {
-      "width": 256,
-      "height": 256,
+      "width": [
+        "37",
+        0
+      ],
+      "height": [
+        "38",
+        0
+      ],
       "length": 81,
       "batch_size": 1,
       "positive": [
@@ -97,7 +103,7 @@
         0
       ],
       "start_image": [
-        "1",
+        "51",
         0
       ]
     },
@@ -269,13 +275,13 @@
   },
   "21": {
     "inputs": {
-      "crop": "center",
+      "crop": "none",
       "clip_vision": [
         "20",
         0
       ],
       "image": [
-        "1",
+        "51",
         0
       ]
     },
@@ -337,7 +343,7 @@
   "30": {
     "inputs": {
       "images": [
-        "35",
+        "29",
         0
       ]
     },
@@ -352,7 +358,7 @@
       "match_image_size": false,
       "max_resolution": 4096,
       "images": [
-        "35",
+        "29",
         0
       ]
     },
@@ -374,24 +380,6 @@
       "title": "Save Image"
     }
   },
-  "35": {
-    "inputs": {
-      "width": 160,
-      "height": 256,
-      "x_offset": 0,
-      "y_offset": 0,
-      "split": false,
-      "position": "center",
-      "image": [
-        "29",
-        0
-      ]
-    },
-    "class_type": "AILab_ImageCrop",
-    "_meta": {
-      "title": "Image Crop (RMBG) 🖼️"
-    }
-  },
   "36": {
     "inputs": {
       "images": [
@@ -402,6 +390,120 @@
     "class_type": "ReverseImageBatch",
     "_meta": {
       "title": "Reverse Image Batch"
+    }
+  },
+  "37": {
+    "inputs": {
+      "value": 192
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "W"
+    }
+  },
+  "38": {
+    "inputs": {
+      "value": 256
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "H"
+    }
+  },
+  "40": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "resize_source": false,
+      "destination": [
+        "41",
+        0
+      ],
+      "source": [
+        "1",
+        0
+      ],
+      "mask": [
+        "44",
+        0
+      ]
+    },
+    "class_type": "ImageCompositeMasked",
+    "_meta": {
+      "title": "Image Composite Masked"
+    }
+  },
+  "41": {
+    "inputs": {
+      "width": [
+        "19",
+        0
+      ],
+      "height": [
+        "19",
+        1
+      ],
+      "batch_size": 1,
+      "color": 8421504
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "Empty Image"
+    }
+  },
+  "44": {
+    "inputs": {
+      "mask": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "Invert Mask"
+    }
+  },
+  "49": {
+    "inputs": {
+      "upscale_method": "lanczos",
+      "largest_size": [
+        "38",
+        0
+      ],
+      "image": [
+        "40",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToMaxDimension",
+    "_meta": {
+      "title": "Scale Image to Max Dimension"
+    }
+  },
+  "51": {
+    "inputs": {
+      "width": [
+        "37",
+        0
+      ],
+      "height": [
+        "38",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "keep_proportion": "crop",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "49",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
     }
   }
 }
