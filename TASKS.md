@@ -15,3 +15,4 @@
 - [ ] Release 2.0
 - [ ] Image 2 Char flows
 - [ ] Cloud options
+- [ ] resolve head turning issue
