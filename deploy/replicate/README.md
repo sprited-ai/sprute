@@ -30,7 +30,10 @@ publishing. Use real files: host symlinks pointing outside the build context wil
 not make their targets available in a deployment.
 
 For gin tests, mount existing weights read-only instead of downloading them again.
-Mount any external symlink targets too, or use a directory with regular files:
+Mount any external symlink targets too, or use a directory with regular files.
+The pinned RMBG node rewrites `RMBG/BiRefNet/birefnet.py` on load: for real
+inference with read-only weights, overlay a writable copy of that file. Baked-in
+models use the container writable layer and do not need this extra mount.
 
 ```sh
 docker run --rm --gpus all \
