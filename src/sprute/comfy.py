@@ -13,7 +13,10 @@ from sprute.config import get_models_directory
 
 def input_name(path: Path) -> str:
     """Name an input by its content so the saved workflow identifies it exactly."""
-    return hashlib.sha256(path.read_bytes()).hexdigest() + path.suffix
+    return content_name(path.read_bytes(), path.suffix)
+
+def content_name(content: bytes, suffix: str) -> str:
+    return hashlib.sha256(content).hexdigest() + suffix
 
 
 def custom_nodes_path() -> Path:
@@ -23,7 +26,7 @@ def custom_nodes_path() -> Path:
 def run_workflow(
     workflow: dict,
     *,
-    input_files: dict[str, Path] | None = None,
+    input_files: dict[str, Path | bytes] | None = None,
     output_node_ids: tuple[str, ...],
     on_log: Callable[[str], None],
 ) -> dict[str, bytes]:
@@ -43,8 +46,11 @@ def run_workflow(
         input_directory = Path(workspace) / "input"
         input_directory.mkdir()
         # The workflow refers to input files by the name they are copied under.
-        for name, path in (input_files or {}).items():
-            shutil.copyfile(path, input_directory / name)
+        for name, source in (input_files or {}).items():
+            if isinstance(source, bytes):
+                (input_directory / name).write_bytes(source)
+            else:
+                shutil.copyfile(source, input_directory / name)
         workflow_path.write_text(json.dumps(workflow), encoding="utf-8")
         command = [
             str(executable),
@@ -60,6 +66,8 @@ def run_workflow(
         ]
         command.extend(["--base-directory", workspace])
         command.extend(["--base-paths", str(custom_nodes_path().parent)])
+        # Sprute's own nodes are in this repository's custom_nodes folder.
+        command.extend(["--base-paths", str(Path.cwd())])
         recent_logs: deque[str] = deque(maxlen=20)
         with subprocess.Popen(
             command,
