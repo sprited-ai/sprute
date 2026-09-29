@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+.env.*
+__pycache__
+*.pyc
+output
+outputs
+out
+experiments
+node_modules
+sprute.config.json
