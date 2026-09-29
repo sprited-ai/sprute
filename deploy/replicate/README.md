@@ -1,7 +1,7 @@
 # Sprute on Replicate
 
 This adapter runs the committed generate, turntable and animate workflows without
-changing their settings. It starts a fresh headless Comfy subprocess per prediction.
+changing their settings. It starts a fresh headless Comfy subprocess per stage.
 Only one prediction runs at a time; outputs from the previous request are removed
 when the next request starts, after Cog has serialized them.
 
@@ -46,14 +46,16 @@ docker run --rm --gpus all \
 Once weights are in `models/`:
 
 ```sh
-cog run -i operation=generate -i prompt='A cheerful pink-haired adventurer' -i seed=42
-cog run -i operation=turntable -i image=@character.png -i seed=42
-cog run -i operation=animate -i image=@character.directions.png -i motion=run -i seed=42
+cog run -i prompt='A cheerful pink-haired adventurer' -i stop_after=generate -i seed=42
+cog run -i image=@character.png -i stop_after=turntable -i seed=42
+cog run -i image=@character.directions.png -i image_type=directions -i motions=run -i seed=42
+# Complete chain, with independent idle, walk and run inference:
+cog run -i prompt='A cheerful pink-haired adventurer' -i seed=42
 ```
 
 The response contains generated images/WebPs plus `metrics.json`. Seed `-1`
-chooses a random seed; the actual seed is recorded. Animate accepts idle/walk/run,
-one state per call. No changes to source workflow precision, resolution or LoRAs.
+chooses a random seed; the actual seed is recorded. The default chains generate, turntable and all three motions. Each animation
+state runs independently; `stop_after` and `image_type` allow partial pipelines. No changes to source workflow precision, resolution or LoRAs.
 
 ## Memory reporting
 
@@ -103,5 +105,25 @@ establish minimum deployment VRAM. Animation output was an 81-frame 1536×256
 WebP. The character, direction strip and three animation samples were inspected;
 this is an integration smoke test, not a motion-quality benchmark. Idle/walk,
 Replicate-hosted execution, cold-start weights transfer and smaller GPUs remain
-untested. The current API exposes one operation per request; automatic chaining
-is a proposed follow-up, not implemented by this adapter.
+untested. These measurements predate the automatic chaining adapter. The updated adapter
+passes 8 pipeline/telemetry tests and an offline generate smoke test (43.46s).
+The complete single-request chain has not yet been GPU-validated.
+
+## Bounded hosted smoke test
+
+Use the **public model API**, not a dedicated Deployment. Replicate bills private
+models and Deployments for setup/idle time; ordinary public model requests do not
+have those charges. See https://replicate.com/docs/topics/billing .
+
+```sh
+python deploy/replicate/smoke.py --version EXACT_VERSION_HASH \
+  --token-file /secure/path/replicate-token --out /tmp/sprute-smoke-unique
+```
+
+This checks visibility and version, submits **one generate-only request**, includes
+server-side `Cancel-After: 15m`, records its ID/status, and requests cancellation
+on monitoring failure. It never retries submission, even if the response is lost.
+In that case inspect the account prediction list; the server deadline still applies.
+Run only one smoke script at a time. This is a request time limit, not a dollar
+spending cap or a private-instance shutdown mechanism. Do not automatically retry
+failed cold boots. Preserve logs and confirm terminal state before further testing.
