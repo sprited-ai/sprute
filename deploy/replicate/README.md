@@ -107,7 +107,11 @@ this is an integration smoke test, not a motion-quality benchmark. Idle/walk,
 Replicate-hosted execution, cold-start weights transfer and smaller GPUs remain
 untested. These measurements predate the automatic chaining adapter. The updated adapter
 passes 8 pipeline/telemetry tests and an offline generate smoke test (43.46s).
-The complete single-request chain has not yet been GPU-validated.
+The updated single-request generate → turntable → run chain also passed offline:
+42.032s / 29.874s / 196.422s (268.331s total). Its 1536×256 RGBA WebP has
+81 frames; samples 0, 40 and 80 were inspected. Hands remain close to the torso,
+as in the existing workflow; this is not a claim of improved motion quality.
+Twelve tests now cover pipeline, telemetry and hosted-smoke safeguards.
 
 ## Bounded hosted smoke test
 
