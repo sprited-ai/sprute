@@ -5,32 +5,18 @@ build:
   system_packages: [git, ffmpeg, libgl1, libglib2.0-0]
   python_requirements: deploy/replicate/requirements.txt
   run:
-    # Build commands run before project sources are copied into the image.
-    # Keep these revisions aligned with src/sprute/setup.py.
-    - |
-      python - <<'PYTHON'
-      from importlib.metadata import distribution
-      from pathlib import Path
-      import subprocess
-      import sys
-      
-      root = Path(distribution("comfyui").locate_file("comfy/custom_nodes"))
-      constraints = Path("/tmp/sprute-constraints.txt")
-      constraints.write_text("torch==2.14.0\ntorchvision==0.29.0\ncomfyui==0.37.0.1\n")
-      nodes = [
-          ('ComfyUI-KJNodes', 'https://github.com/kijai/ComfyUI-KJNodes.git', 'd3cfe21625e5170126ce06fbfcfe1d88108688c3'),
-          ('ComfyUI-RMBG', 'https://github.com/kndlt/ComfyUI-RMBG.git', '7f02fab3f33aee806002c9b349cc9ea763f4d2e7'),
-          ('comfyui-fitsize', 'https://github.com/bronkula/comfyui-fitsize.git', 'dff0221df4859a6de4a7ef26d5a3900a153818e1'),
-          ('ComfyUI-Custom-Scripts', 'https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git', '609f3afaa74b2f88ef9ce8d939626065e3247469'),
-          ('ComfyUI-VideoHelperSuite', 'https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git', '4d907bee61e92c2e65af3bd6383a4e4d356126d1'),
-       ]
-      for name, repository, revision in nodes:
-          destination = root / name
-          subprocess.run(["git", "init", str(destination)], check=True)
-          subprocess.run(["git", "-C", str(destination), "fetch", "--depth", "1", repository, revision], check=True)
-          subprocess.run(["git", "-C", str(destination), "checkout", "--detach", "FETCH_HEAD"], check=True)
-          requirements = destination / "requirements.txt"
-          if requirements.exists():
-              subprocess.run([sys.executable, "-m", "pip", "install", "--no-cache-dir", "-c", str(constraints), "-r", str(requirements)], check=True)
-      PYTHON
+    # Cog build commands cannot access project source files. These revisions
+    # mirror src/sprute/setup.py; install into Comfy's own custom_nodes directory.
+    - >-
+      python -c "from importlib.metadata import distribution; from pathlib import Path; import subprocess, sys; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'ComfyUI-KJNodes'; subprocess.run(['git','init',str(p)],check=True); subprocess.run(['git','-C',str(p),'fetch','--depth','1','https://github.com/kijai/ComfyUI-KJNodes.git','d3cfe21625e5170126ce06fbfcfe1d88108688c3'],check=True); subprocess.run(['git','-C',str(p),'checkout','--detach','FETCH_HEAD'],check=True); c=Path('/tmp/sprute-constraints.txt'); c.write_text('torch==2.14.0\\ntorchvision==0.29.0\\ncomfyui==0.37.0.1\\n'); r=p/'requirements.txt'; subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
+    - >-
+      python -c "from importlib.metadata import distribution; from pathlib import Path; import subprocess, sys; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'ComfyUI-RMBG'; subprocess.run(['git','init',str(p)],check=True); subprocess.run(['git','-C',str(p),'fetch','--depth','1','https://github.com/kndlt/ComfyUI-RMBG.git','7f02fab3f33aee806002c9b349cc9ea763f4d2e7'],check=True); subprocess.run(['git','-C',str(p),'checkout','--detach','FETCH_HEAD'],check=True); c=Path('/tmp/sprute-constraints.txt'); c.write_text('torch==2.14.0\\ntorchvision==0.29.0\\ncomfyui==0.37.0.1\\n'); r=p/'requirements.txt'; subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
+    - >-
+      python -c "from importlib.metadata import distribution; from pathlib import Path; import subprocess, sys; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'comfyui-fitsize'; subprocess.run(['git','init',str(p)],check=True); subprocess.run(['git','-C',str(p),'fetch','--depth','1','https://github.com/bronkula/comfyui-fitsize.git','dff0221df4859a6de4a7ef26d5a3900a153818e1'],check=True); subprocess.run(['git','-C',str(p),'checkout','--detach','FETCH_HEAD'],check=True); c=Path('/tmp/sprute-constraints.txt'); c.write_text('torch==2.14.0\\ntorchvision==0.29.0\\ncomfyui==0.37.0.1\\n'); r=p/'requirements.txt'; subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
+    - >-
+      python -c "from importlib.metadata import distribution; from pathlib import Path; import subprocess, sys; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'ComfyUI-Custom-Scripts'; subprocess.run(['git','init',str(p)],check=True); subprocess.run(['git','-C',str(p),'fetch','--depth','1','https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git','609f3afaa74b2f88ef9ce8d939626065e3247469'],check=True); subprocess.run(['git','-C',str(p),'checkout','--detach','FETCH_HEAD'],check=True); c=Path('/tmp/sprute-constraints.txt'); c.write_text('torch==2.14.0\\ntorchvision==0.29.0\\ncomfyui==0.37.0.1\\n'); r=p/'requirements.txt'; subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
+    - >-
+      python -c "from importlib.metadata import distribution; from pathlib import Path; import subprocess, sys; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'ComfyUI-VideoHelperSuite'; subprocess.run(['git','init',str(p)],check=True); subprocess.run(['git','-C',str(p),'fetch','--depth','1','https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git','4d907bee61e92c2e65af3bd6383a4e4d356126d1'],check=True); subprocess.run(['git','-C',str(p),'checkout','--detach','FETCH_HEAD'],check=True); c=Path('/tmp/sprute-constraints.txt'); c.write_text('torch==2.14.0\\ntorchvision==0.29.0\\ncomfyui==0.37.0.1\\n'); r=p/'requirements.txt'; subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
+    # Ensure the SDK uses the same managed Python as Comfy (not /usr Python).
+    - python -m pip install --break-system-packages --no-cache-dir cog==0.23.0
 predict: "predict.py:Predictor"

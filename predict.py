@@ -4,6 +4,7 @@ import os
 from pathlib import Path as LocalPath
 import secrets
 import shutil
+import site
 import sys
 from tempfile import mkdtemp
 
@@ -22,6 +23,12 @@ class Predictor(BasePredictor):
     def setup(self):
         os.chdir(ROOT)  # Committed workflows resolve assets relative to the checkout.
         set_models_directory(LocalPath(os.environ.get("SPRUTE_MODELS_DIRECTORY", ROOT / "models")))
+        # Comfy runs in a child process. Prefer the CUDA libraries installed with
+        # Torch over the older cuDNN shipped in the NVIDIA base image.
+        libraries = [str(path) for directory in site.getsitepackages()
+                     for path in LocalPath(directory).glob("nvidia/*/lib")]
+        libraries.extend(filter(None, os.environ.get("LD_LIBRARY_PATH", "").split(":")))
+        os.environ["LD_LIBRARY_PATH"] = ":".join(dict.fromkeys(libraries))
         self.output = None
 
     def predict(
@@ -44,6 +51,7 @@ class Predictor(BasePredictor):
         self.output = LocalPath(mkdtemp(prefix="sprute-prediction-"))
         seed = secrets.randbits(32) if seed == -1 else seed
         meter = PeakMemory()
+        status = "failed"
         try:
             with meter:
                 kwargs = dict(seed=seed, out=self.output, on_event=lambda event: print(event.message, flush=True))
@@ -53,8 +61,9 @@ class Predictor(BasePredictor):
                     turntable(LocalPath(image), **kwargs)
                 else:
                     animate(LocalPath(image), motion, **kwargs)
+            status = "succeeded"
         finally:
-            metrics = dict(operation=operation, seed=seed, **meter.result())
+            metrics = dict(operation=operation, seed=seed, status=status, **meter.result())
             (self.output / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n")
             print("SPRUTE_METRICS " + json.dumps(metrics), flush=True)
         return [Path(path) for path in sorted(self.output.iterdir()) if path.is_file()]
