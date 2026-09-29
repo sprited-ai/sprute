@@ -85,3 +85,23 @@ cog push r8.im/OWNER/MODEL
 ```
 
 Publishing is a separate step; building/testing this checkout does not publish it.
+
+## Local validation (gin, 2026-09-29)
+
+Cog 0.23.0 container on RTX PRO 6000 Blackwell, existing weights mounted locally,
+seed 42. Three successive HTTP predictions passed the actual PNG output of one
+stage into the next. Seven adapter/telemetry tests also passed in the container.
+
+| Stage | Seconds | Peak device VRAM (GiB) | Peak summed RSS (GiB) |
+| --- | ---: | ---: | ---: |
+| Generate | 35.298 | 44.48 | 10.33 |
+| Turntable | 27.184 | 36.26 | 5.53 |
+| Animate (run) | 196.719 | 95.42 | 17.22 |
+
+GPU figures include other services on gin and Comfy's caching; they do not
+establish minimum deployment VRAM. Animation output was an 81-frame 1536×256
+WebP. The character, direction strip and three animation samples were inspected;
+this is an integration smoke test, not a motion-quality benchmark. Idle/walk,
+Replicate-hosted execution, cold-start weights transfer and smaller GPUs remain
+untested. The current API exposes one operation per request; automatic chaining
+is a proposed follow-up, not implemented by this adapter.
