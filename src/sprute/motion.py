@@ -8,7 +8,7 @@ from sprute.events import Event
 
 WORKFLOW = Path("workflows/sprute-render-motion.api.json")
 MOTIONS = Path("motions")
-FRAMES = 81
+MINIMUM_FRAMES = 5
 
 def motions() -> list[str]:
     return sorted({path.stem for suffix in ("webp", "glb") for path in MOTIONS.glob(f"*.{suffix}")})
@@ -29,9 +29,11 @@ def check_driving_video(video: bytes, name: str, directions: Path) -> None:
         frames = getattr(image, "n_frames", 1)
         if image.size != size:
             raise ValueError(f"{name} is {image.size[0]}x{image.size[1]}; it must be {size[0]}x{size[1]}, like {directions.name}")
-        if frames != FRAMES:
-            raise ValueError(f"{name} has {frames} frames; it must have {FRAMES}")
-        if "A" not in image.convert("RGBA" if image.mode == "P" else image.mode).getbands():
+        # SCAIL2 works on 4n+1 frames and drops up to three at the end to get there.
+        if frames < MINIMUM_FRAMES:
+            raise ValueError(f"{name} has {frames} frames; it must have at least {MINIMUM_FRAMES}")
+        # An alpha channel alone is not enough: the first frame must have pixels that are see-through.
+        if image.convert("RGBA").getchannel("A").getextrema()[0] == 255:
             raise ValueError(f"{name} has no transparency; the background must be transparent")
 
 def render_motion(

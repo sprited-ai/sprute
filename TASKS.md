@@ -18,4 +18,5 @@
 - [ ] resolve head turning issue
 - [x] Remove scripts/sprute.py (it needs the stored driving videos, which go away with on-demand rendering)
 - [ ] Update workflows/sprute-demo-character.json (it still points at a stored driving video)
-- [ ] Allow driving videos with other frame counts than 81 (`FRAMES` in src/sprute/motion.py; SCAIL2 needs 4n+1 frames)
+- [x] Allow driving videos with other frame counts than 81 (SCAIL2 trims to 4n+1 frames)
+- [ ] Render a GLB at other frame counts than 81 (the render workflow is fixed at 81)
