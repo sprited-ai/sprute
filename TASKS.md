@@ -17,10 +17,12 @@
 - [ ] Cloud options
 - [ ] resolve head turning issue
 - [x] Remove scripts/sprute.py (it needs the stored driving videos, which go away with on-demand rendering)
-- [ ] Update workflows/sprute-demo-character.json (it still points at a stored driving video)
+- [x] Remove workflows/sprute-demo-character.json (it loaded stored driving videos, which no longer exist)
 - [x] Allow driving videos with other frame counts than 81 (SCAIL2 trims to 4n+1 frames)
 - [ ] Render a GLB at other frame counts than 81 (the render workflow is fixed at 81)
 - [ ] SCAIL 2 FP8 vs FP16
 - [ ] AniSora on Replicate
 - [ ] Scail 2 on Replicate
 - [ ] Audit Birefnet on Replicate
+- [ ] Custom nodes: make them installable by cloning sprute into ComfyUI/custom_nodes (needs an __init__.py at the repo root)
+- [ ] Custom nodes: write our own rasterizer (renderer.py imports `_rasterize_person`, a private ComfyUI function added 2026-08-23)
