@@ -9,6 +9,7 @@ from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
 from sprute.animate import MOTIONS, animate as _animate
+from sprute.motion import find_motion, render_motion as _render_motion
 from sprute.config import set_models_directory
 from tempfile import TemporaryDirectory
 from PIL import Image, ImageSequence
@@ -42,13 +43,16 @@ def setup(
     reinstall: bool = typer.Option(
         False, "--reinstall", help="Reinstall ComfyUI and its dependencies."
     ),
+    skip_models: bool = typer.Option(
+        False, "--skip-models", help="Do not download models. Enough to preview a motion, not to make a character."
+    ),
 ):
     """Install and check Sprute dependencies."""
     set_models_directory(models_directory)
     run_with_panel(
         "Setup",
         lambda on_event: _setup(
-            on_event=on_event, reinstall=reinstall
+            on_event=on_event, reinstall=reinstall, skip_models=skip_models
         ),
         verbose=verbose,
     )
@@ -220,6 +224,7 @@ def spawn(
     motions: str = typer.Option(",".join(MOTIONS), help="Comma-separated motions to animate."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
+    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -230,9 +235,11 @@ def spawn(
 ):
     """Generate a character, its eight directions, and its animations in one go."""
     chosen = [motion.strip() for motion in motions.split(",") if motion.strip()]
-    unknown = [motion for motion in chosen if motion not in MOTIONS]
-    if unknown or not chosen:
-        raise typer.BadParameter(f"choose from: {', '.join(MOTIONS)}", param_hint="--motions")
+    try:
+        for motion in chosen or [""]:
+            find_motion(motion)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--motions") from None
     if image is not None and prompt:
         raise typer.BadParameter("give a prompt or --image, not both", param_hint="--image")
     set_models_directory(models_directory)
@@ -251,7 +258,7 @@ def spawn(
         directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
-            show(_animate(directions, motion, seed=run_seed, out=out, on_event=on_event))
+            show(_animate(directions, motion, seed=run_seed, draft=draft, out=out, on_event=on_event))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -372,8 +379,9 @@ def turntable(
 @app.command("character-animate")
 def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
-    motion: str = typer.Option(..., help=f"Motion to apply: {', '.join(MOTIONS)}."),
+    motion: str = typer.Option(..., help="Motion to apply, such as idle, walk or run."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -386,7 +394,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation
@@ -394,11 +402,33 @@ def animate(
     run_with_panel("Animate", run, verbose=verbose)
 
 
-def require_setup() -> None:
+@app.command("character-render-motion")
+def render_motion(
+    motion: Path = typer.Argument(..., exists=True, dir_okay=False, help="Motion to render, a .glb file."),
+    out: Path = Path("output"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview"),
+):
+    """Render a motion into a driving video: Template-kun performing it in eight directions."""
+    # Rendering a motion needs ComfyUI, not the models.
+    require_setup(models=False)
+    def run(on_event: Callable[[Event], None]) -> Path:
+        video = (out.expanduser() / f"{motion.stem}.webp").resolve()
+        video.parent.mkdir(parents=True, exist_ok=True)
+        video.write_bytes(_render_motion(motion, on_event=on_event))
+        on_event(Event("completed", f"Driving video saved: {video}"))
+        if preview:
+            on_event(Event("image", str(video)))
+        return video
+
+    run_with_panel("Render Motion", run, verbose=verbose)
+
+
+def require_setup(*, models: bool = True) -> None:
     """Stop with a clear next step instead of failing inside ComfyUI."""
-    missing = missing_setup()
+    missing = missing_setup(models=models)
     if missing:
-        console.print("Sprute is not set up yet. Run: sprute setup", style="red")
+        console.print(f"Sprute is not set up yet. Run: sprute setup{'' if models else ' --skip-models'}", style="red")
         for item in missing[:5]:
             console.print(f"  missing {item}", style="dim")
         if len(missing) > 5:
@@ -408,7 +438,7 @@ def require_setup() -> None:
 
 @app.command()
 def preview(
-    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF."),
+    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Image to show; animated WebP plays as GIF. A motion (.glb) is rendered first."),
     fps: float | None = typer.Option(None, min=0.1, help="Playback speed; default is the file's own frame timing."),
 ):
     """Show an image in the terminal (iTerm2)."""
@@ -418,4 +448,12 @@ def preview(
     if shutil.which("imgcat") is None:
         console.print("imgcat not found on PATH; install iTerm2's imgcat to preview.", style="yellow")
         raise typer.Exit(code=1)
+    if image.suffix == ".glb":
+        # Rendering a motion needs ComfyUI, not the models.
+        require_setup(models=False)
+        with TemporaryDirectory(prefix="sprute-preview-") as workspace:
+            rendered = Path(workspace) / f"{image.stem}.webp"
+            run_with_panel("Motion", lambda on_event: rendered.write_bytes(_render_motion(image, on_event=on_event)))
+            show_sprite(rendered, fps=fps)
+        return
     show_sprite(image, fps=fps)

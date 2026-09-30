@@ -53,6 +53,7 @@ def setup(
     *,
     on_event: Callable[[Event], None] | None = None,
     reinstall: bool = False,
+    skip_models: bool = False,
 ) -> None:
     def report(
         state: Literal["started", "completed", "progress", "log", "warning"],
@@ -66,7 +67,12 @@ def setup(
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)
     setup_custom_nodes(report=report, reinstall=reinstall)
-    setup_models(report=report)
+    if skip_models:
+        # ComfyUI still needs the directory to start.
+        get_models_directory().mkdir(parents=True, exist_ok=True)
+        report("warning", "Models skipped: character commands will not run until sprute setup downloads them")
+    else:
+        setup_models(report=report)
     check_torch(report=report)
     check_comfy_workflow(report=report)
 
@@ -434,7 +440,7 @@ def run(
             + "\n".join(recent_logs)
         )
 
-def missing_setup() -> list[str]:
+def missing_setup(*, models: bool = True) -> list[str]:
     """List what `sprute setup` still has to do, without touching the network."""
     if not is_installed("comfyui"):
         return ["ComfyUI"]
@@ -444,10 +450,11 @@ def missing_setup() -> list[str]:
         installed = node_directory / name / ".git" / "sprute-installed-revision"
         if not installed.is_file() or installed.read_text().strip() != node["revision"]:
             missing.append(f"custom node {name}")
-    models_directory = get_models_directory()
-    for model in MODELS.values():
-        if not (models_directory / model["destination"]).is_file():
-            missing.append(f"model {model['destination']}")
+    if models:
+        models_directory = get_models_directory()
+        for model in MODELS.values():
+            if not (models_directory / model["destination"]).is_file():
+                missing.append(f"model {model['destination']}")
     return missing
 
 def is_installed(package: str) -> bool:

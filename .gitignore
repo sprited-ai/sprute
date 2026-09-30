@@ -17,8 +17,13 @@ outdated/
 .runtime/
 *.egg-info/
 build/
-experiments/kimodo-comfy
 /workspace
 /sprute.config.json
 /experiments
-/docs/research/flux-fill-replacement
+/docs/research/*
+
+# Motions made locally stay out of git. The ones below ship with sprute.
+/motions/*
+!/motions/idle.glb
+!/motions/walk.glb
+!/motions/run.glb
