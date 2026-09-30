@@ -52,7 +52,7 @@ def render_motion(
         graph,
         input_files={input_name(motion): motion},
         output_node_ids=("4",),
-        on_log=lambda message: report("log", message),
+        on_event=on_event,
     )["4"]
     report("completed", f"Rendered {motion.name}")
     return data

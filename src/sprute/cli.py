@@ -98,7 +98,7 @@ def run_with_panel[T](
             if event.state == "image":
                 show_sprite(Path(event.message))
                 return
-            if event.state == "progress":
+            if event.state in ("progress", "vram"):
                 return
             if event.state == "log" and not verbose:
                 return
@@ -121,6 +121,7 @@ def run_with_panel[T](
     completed: list[tuple[str, str]] = []
     warnings: list[str] = []
     current = ""
+    vram = ""
     failure: str | None = None
     spinner = Spinner("dots", style="cyan")
     def render () -> Panel:
@@ -155,9 +156,15 @@ def run_with_panel[T](
                         overflow="ellipsis",
                     )
                 )
+        heading = Text(title)
+        if vram:
+            gap = console.width - heading.cell_len - Text(vram).cell_len - 8
+            if gap >= 1:
+                heading.append(" " + "─" * gap + " ")
+                heading.append(vram, style="dim")
         return Panel(
             Group(*parts), 
-            title=title,
+            title=heading,
             title_align="left",
         )        
 
@@ -173,7 +180,10 @@ def run_with_panel[T](
     live.start(refresh=True)
     try:
         def on_event(event: Event) -> None:
-            nonlocal current, live
+            nonlocal current, live, vram
+            if event.state == "vram":
+                vram = event.message
+                return
             if event.state == "image":
                 # Clear and stop refresh before imgcat changes the cursor position.
                 live.stop()
@@ -196,6 +206,7 @@ def run_with_panel[T](
                     recent_logs.append(message)
                 return
             if event.state == "started":
+                vram = ""
                 event_duration(event)
                 current = event.message
                 recent_logs.clear()
@@ -224,7 +235,8 @@ def spawn(
     motions: str = typer.Option(",".join(MOTIONS), help="Comma-separated motions to animate."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
-    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
+    draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
+    scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -258,7 +270,7 @@ def spawn(
         directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
-            show(_animate(directions, motion, seed=run_seed, draft=draft, out=out, on_event=on_event))
+            show(_animate(directions, motion, seed=run_seed, draft=draft, scale=scale, out=out, on_event=on_event))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -381,7 +393,8 @@ def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
     motion: str = typer.Option(..., help="Motion to apply, such as idle, walk or run."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
-    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
+    draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
+    scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -394,7 +407,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation
