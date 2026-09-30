@@ -19,7 +19,7 @@
   },
   "413": {
     "inputs": {
-      "unet_name": "wan2.1_14B_SCAIL_2_fp16.safetensors",
+      "unet_name": "wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
       "weight_dtype": "default"
     },
     "class_type": "UNETLoader",

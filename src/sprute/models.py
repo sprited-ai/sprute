@@ -75,9 +75,9 @@ MODELS = {
     # Animate: SCAIL 2
     "scail2": {
         "repo_id": "Comfy-Org/SCAIL-2",
-        "filename": "diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors",
+        "filename": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
         "revision": "fe3c728bc793ba21ca674688f822afb709ad44fb",
-        "destination": "diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors",
+        "destination": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
     },
     "scail2-dpo": {
         "repo_id": "Comfy-Org/SCAIL-2",
