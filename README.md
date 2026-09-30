@@ -24,6 +24,8 @@ One character, eight directions, three motions:
 
 Requires Python 3.12+ and a GPU (tested on NVIDIA CUDA).
 
+Character animation has also been tested on an NVIDIA GeForce RTX 5090 (32 GB VRAM).
+
 ### 1. Install
 
 ```bash
