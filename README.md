@@ -54,7 +54,7 @@ sprute setup
 
 This installs ComfyUI and its custom nodes, downloads the models, and checks that your GPU works.
 
-The models take about 108 GB. Any that are already in the models directory are reused, not downloaded again.
+Setup reports the required download size. Any models already in the models directory are reused, not downloaded again.
 
 ### 4. Make a character
 
