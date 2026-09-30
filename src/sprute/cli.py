@@ -224,6 +224,7 @@ def spawn(
     motions: str = typer.Option(",".join(MOTIONS), help="Comma-separated motions to animate."),
     name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
+    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -257,7 +258,7 @@ def spawn(
         directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
-            show(_animate(directions, motion, seed=run_seed, out=out, on_event=on_event))
+            show(_animate(directions, motion, seed=run_seed, draft=draft, out=out, on_event=on_event))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -380,6 +381,7 @@ def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
     motion: str = typer.Option(..., help="Motion to apply, such as idle, walk or run."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    draft: bool = typer.Option(False, "--draft", help="Animate at half the width and height: faster, less detail."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -392,7 +394,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation

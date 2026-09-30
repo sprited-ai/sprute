@@ -15,6 +15,7 @@ def animate(
     motion: str,
     *,
     seed: int | None = None,
+    draft: bool = False,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
@@ -41,11 +42,13 @@ def animate(
     driving_video_name = content_name(driving_video, ".webp")
     graph["4"]["inputs"]["image"] = driving_video_name
     graph["504"]["inputs"]["seed"] = seed
+    # A draft runs the model at half the width and height; the result is scaled back up.
+    graph["587"]["inputs"]["value"] = 0.5 if draft else 1.0
     graph["577"]["inputs"]["filename_prefix"] = motion
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination
-    report("started", f"Animating {motion} from {motion_file.name} · seed {seed}", timed=True)
+    report("started", f"Animating {motion} from {motion_file.name} · seed {seed}{' · draft' if draft else ''}", timed=True)
     data = run_workflow(
         graph,
         input_files={directions_name: directions, driving_video_name: driving_video},

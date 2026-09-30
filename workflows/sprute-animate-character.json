@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 586,
-  "last_link_id": 886,
+  "last_node_id": 592,
+  "last_link_id": 904,
   "nodes": [
     {
       "id": 416,
@@ -212,7 +212,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 876
+          "link": 897
         }
       ],
       "outputs": [
@@ -670,7 +670,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 882
+          "link": 901
         }
       ],
       "outputs": [
@@ -786,7 +786,7 @@
         {
           "name": "source",
           "type": "IMAGE",
-          "link": 881
+          "link": 899
         },
         {
           "name": "mask",
@@ -1040,7 +1040,7 @@
         {
           "name": "source",
           "type": "IMAGE",
-          "link": 875
+          "link": 896
         },
         {
           "name": "mask",
@@ -1179,7 +1179,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 880
+          "link": 900
         }
       ],
       "outputs": [
@@ -1296,7 +1296,7 @@
         {
           "name": "mask",
           "type": "MASK",
-          "link": 877
+          "link": 898
         }
       ],
       "outputs": [
@@ -1799,7 +1799,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 874
+          "link": 895
         }
       ],
       "outputs": [
@@ -1926,7 +1926,7 @@
           "type": "IMAGE",
           "links": [
             742,
-            883
+            902
           ]
         }
       ],
@@ -2135,16 +2135,15 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            874,
-            875
+            887,
+            903
           ]
         },
         {
           "name": "MASK",
           "type": "MASK",
           "links": [
-            876,
-            877
+            889
           ]
         }
       ],
@@ -2185,15 +2184,14 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            880,
-            881
+            891
           ]
         },
         {
           "name": "MASK",
           "type": "MASK",
           "links": [
-            882
+            893
           ]
         }
       ],
@@ -2221,7 +2219,7 @@
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 883
+          "link": 904
         }
       ],
       "outputs": [
@@ -2273,6 +2271,330 @@
         "Node name for S&R": "SpruteCellsToStrip"
       },
       "widgets_values": []
+    },
+    {
+      "id": 587,
+      "type": "PrimitiveFloat",
+      "title": "Float (Inference Scale)",
+      "pos": [
+        460,
+        740
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            888,
+            890,
+            892,
+            894
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        1.0
+      ],
+      "widgets_values_named": {
+        "value": 1.0
+      }
+    },
+    {
+      "id": 588,
+      "type": "ResizeImageMaskNode",
+      "title": "Resize Image/Mask (Driving Video)",
+      "pos": [
+        820,
+        700
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "input",
+          "name": "input",
+          "type": "IMAGE,MASK",
+          "link": 887
+        },
+        {
+          "localized_name": "multiplier",
+          "name": "resize_type.multiplier",
+          "type": "FLOAT",
+          "widget": {
+            "name": "resize_type.multiplier"
+          },
+          "link": 888
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "resized",
+          "name": "resized",
+          "type": "IMAGE,MASK",
+          "links": [
+            895,
+            896
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ResizeImageMaskNode"
+      },
+      "widgets_values": [
+        "scale by multiplier",
+        1.0,
+        "area"
+      ],
+      "widgets_values_named": {
+        "resize_type": "scale by multiplier",
+        "resize_type.multiplier": 1.0,
+        "scale_method": "area"
+      }
+    },
+    {
+      "id": 589,
+      "type": "ResizeImageMaskNode",
+      "title": "Resize Image/Mask (Driving Mask)",
+      "pos": [
+        820,
+        840
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "input",
+          "name": "input",
+          "type": "IMAGE,MASK",
+          "link": 889
+        },
+        {
+          "localized_name": "multiplier",
+          "name": "resize_type.multiplier",
+          "type": "FLOAT",
+          "widget": {
+            "name": "resize_type.multiplier"
+          },
+          "link": 890
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "resized",
+          "name": "resized",
+          "type": "IMAGE,MASK",
+          "links": [
+            897,
+            898
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ResizeImageMaskNode"
+      },
+      "widgets_values": [
+        "scale by multiplier",
+        1.0,
+        "area"
+      ],
+      "widgets_values_named": {
+        "resize_type": "scale by multiplier",
+        "resize_type.multiplier": 1.0,
+        "scale_method": "area"
+      }
+    },
+    {
+      "id": 590,
+      "type": "ResizeImageMaskNode",
+      "title": "Resize Image/Mask (Directions)",
+      "pos": [
+        1180,
+        1320
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "input",
+          "name": "input",
+          "type": "IMAGE,MASK",
+          "link": 891
+        },
+        {
+          "localized_name": "multiplier",
+          "name": "resize_type.multiplier",
+          "type": "FLOAT",
+          "widget": {
+            "name": "resize_type.multiplier"
+          },
+          "link": 892
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "resized",
+          "name": "resized",
+          "type": "IMAGE,MASK",
+          "links": [
+            899,
+            900
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ResizeImageMaskNode"
+      },
+      "widgets_values": [
+        "scale by multiplier",
+        1.0,
+        "area"
+      ],
+      "widgets_values_named": {
+        "resize_type": "scale by multiplier",
+        "resize_type.multiplier": 1.0,
+        "scale_method": "area"
+      }
+    },
+    {
+      "id": 591,
+      "type": "ResizeImageMaskNode",
+      "title": "Resize Image/Mask (Directions Mask)",
+      "pos": [
+        1180,
+        1460
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "input",
+          "name": "input",
+          "type": "IMAGE,MASK",
+          "link": 893
+        },
+        {
+          "localized_name": "multiplier",
+          "name": "resize_type.multiplier",
+          "type": "FLOAT",
+          "widget": {
+            "name": "resize_type.multiplier"
+          },
+          "link": 894
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "resized",
+          "name": "resized",
+          "type": "IMAGE,MASK",
+          "links": [
+            901
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ResizeImageMaskNode"
+      },
+      "widgets_values": [
+        "scale by multiplier",
+        1.0,
+        "area"
+      ],
+      "widgets_values_named": {
+        "resize_type": "scale by multiplier",
+        "resize_type.multiplier": 1.0,
+        "scale_method": "area"
+      }
+    },
+    {
+      "id": 592,
+      "type": "ResizeImageMaskNode",
+      "title": "Resize Image/Mask (Back To Full Size)",
+      "pos": [
+        2200,
+        660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "input",
+          "name": "input",
+          "type": "IMAGE,MASK",
+          "link": 902
+        },
+        {
+          "localized_name": "match",
+          "name": "resize_type.match",
+          "type": "IMAGE,MASK",
+          "link": 903
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "resized",
+          "name": "resized",
+          "type": "IMAGE,MASK",
+          "links": [
+            904
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ResizeImageMaskNode"
+      },
+      "widgets_values": [
+        "match size",
+        "disabled",
+        "lanczos"
+      ],
+      "widgets_values_named": {
+        "resize_type": "match size",
+        "resize_type.crop": "disabled",
+        "scale_method": "lanczos"
+      }
     }
   ],
   "links": [
@@ -2741,38 +3063,6 @@
       "MASK"
     ],
     [
-      874,
-      583,
-      0,
-      439,
-      0,
-      "IMAGE"
-    ],
-    [
-      875,
-      583,
-      0,
-      493,
-      1,
-      "IMAGE"
-    ],
-    [
-      876,
-      583,
-      1,
-      427,
-      0,
-      "MASK"
-    ],
-    [
-      877,
-      583,
-      1,
-      499,
-      0,
-      "MASK"
-    ],
-    [
       878,
       3,
       0,
@@ -2787,38 +3077,6 @@
       584,
       1,
       "MASK"
-    ],
-    [
-      880,
-      584,
-      0,
-      453,
-      0,
-      "IMAGE"
-    ],
-    [
-      881,
-      584,
-      0,
-      489,
-      1,
-      "IMAGE"
-    ],
-    [
-      882,
-      584,
-      1,
-      484,
-      0,
-      "MASK"
-    ],
-    [
-      883,
-      505,
-      0,
-      585,
-      0,
-      "IMAGE"
     ],
     [
       884,
@@ -2841,6 +3099,150 @@
       586,
       0,
       577,
+      0,
+      "IMAGE"
+    ],
+    [
+      887,
+      583,
+      0,
+      588,
+      0,
+      "IMAGE"
+    ],
+    [
+      888,
+      587,
+      0,
+      588,
+      1,
+      "FLOAT"
+    ],
+    [
+      889,
+      583,
+      1,
+      589,
+      0,
+      "MASK"
+    ],
+    [
+      890,
+      587,
+      0,
+      589,
+      1,
+      "FLOAT"
+    ],
+    [
+      891,
+      584,
+      0,
+      590,
+      0,
+      "IMAGE"
+    ],
+    [
+      892,
+      587,
+      0,
+      590,
+      1,
+      "FLOAT"
+    ],
+    [
+      893,
+      584,
+      1,
+      591,
+      0,
+      "MASK"
+    ],
+    [
+      894,
+      587,
+      0,
+      591,
+      1,
+      "FLOAT"
+    ],
+    [
+      895,
+      588,
+      0,
+      439,
+      0,
+      "IMAGE"
+    ],
+    [
+      896,
+      588,
+      0,
+      493,
+      1,
+      "IMAGE"
+    ],
+    [
+      897,
+      589,
+      0,
+      427,
+      0,
+      "MASK"
+    ],
+    [
+      898,
+      589,
+      0,
+      499,
+      0,
+      "MASK"
+    ],
+    [
+      899,
+      590,
+      0,
+      489,
+      1,
+      "IMAGE"
+    ],
+    [
+      900,
+      590,
+      0,
+      453,
+      0,
+      "IMAGE"
+    ],
+    [
+      901,
+      591,
+      0,
+      484,
+      0,
+      "MASK"
+    ],
+    [
+      902,
+      505,
+      0,
+      592,
+      0,
+      "IMAGE"
+    ],
+    [
+      903,
+      583,
+      0,
+      592,
+      1,
+      "IMAGE"
+    ],
+    [
+      904,
+      592,
+      0,
+      585,
       0,
       "IMAGE"
     ]

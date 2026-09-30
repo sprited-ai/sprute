@@ -20,3 +20,7 @@
 - [ ] Update workflows/sprute-demo-character.json (it still points at a stored driving video)
 - [x] Allow driving videos with other frame counts than 81 (SCAIL2 trims to 4n+1 frames)
 - [ ] Render a GLB at other frame counts than 81 (the render workflow is fixed at 81)
+- [ ] SCAIL 2 FP8 vs FP16
+- [ ] AniSora on Replicate
+- [ ] Scail 2 on Replicate
+- [ ] Audit Birefnet on Replicate
