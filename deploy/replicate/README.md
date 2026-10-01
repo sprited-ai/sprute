@@ -2,6 +2,8 @@
 
 This adapter runs the committed generate, turntable and animate workflows without
 changing their settings. It starts a fresh headless Comfy subprocess per stage.
+Each prediction runs in an isolated worker with a 600-second total deadline. On timeout, the worker process group (including Comfy children) is terminated. This bounds inference, not image pull or platform setup time.
+
 Only one prediction runs at a time; outputs from the previous request are removed
 when the next request starts, after Cog has serialized them.
 
@@ -23,7 +25,7 @@ Sprute dependencies installed in your development environment:
 PYTHONPATH=src python -c 'from sprute.setup import setup_models; setup_models(report=lambda state, message, **kw: print(message))'
 ```
 
-This downloads roughly 108 GB. HF access to gated repositories must already be
+The download size is reported by setup from the pinned model manifest. HF access to gated repositories must already be
 configured. Do not put credentials in the Docker build context. `.dockerignore`
 excludes local config and `.env` files; `models/` is intentionally included for
 publishing. Use real files: host symlinks pointing outside the build context will
@@ -55,7 +57,7 @@ cog run -i prompt='A cheerful pink-haired adventurer' -i seed=42
 
 The response contains generated images/WebPs plus `metrics.json`. Seed `-1`
 chooses a random seed; the actual seed is recorded. The default chains generate, turntable and all three motions. Each animation
-state runs independently; `stop_after` and `image_type` allow partial pipelines. No changes to source workflow precision, resolution or LoRAs.
+state runs independently; `stop_after` and `image_type` allow partial pipelines. Animation uses the current Sprute FP8-scaled SCAIL-2 workflow and renders the bundled GLB motions with Template-kun. `scale` defaults to 1.0 (range 0.5–1.0); smaller values reduce inference resolution while retaining exported sprite dimensions.
 
 ## Memory reporting
 
@@ -74,7 +76,7 @@ counters would miss the Comfy subprocess, so they are not used.
 
 ## Release
 
-Base implementation: main commit `95b7bb43e4719d2b6ac172ec1bb831f9347e8485`.
+Base implementation: Sprute commit `627ba7c1121ac2ee8355c844197c20d1eef38119`.
 Do not move the existing v0.2.0 tag. A later validated release can be v0.2.1;
 Replicate assigns its own version hash. Keep the source commit with deployment
 records. Review model hosting licenses (including FLUX Fill) before publishing.
@@ -131,3 +133,31 @@ In that case inspect the account prediction list; the server deadline still appl
 Run only one smoke script at a time. This is a request time limit, not a dollar
 spending cap or a private-instance shutdown mechanism. Do not automatically retry
 failed cold boots. Preserve logs and confirm terminal state before further testing.
+
+## Current Sprute integration check (gin, 2026-09-30)
+
+Source updated to Sprute `627ba7c`, using the existing Cog test environment with
+current source mounted. One bounded request ran generate → turntable → walk,
+seed 21, animation scale 1.0, with networking disabled and bundled weights:
+
+| Stage | Seconds |
+| --- | ---: |
+| Generate | 39.501 |
+| Turntable | 28.552 |
+| Walk (including GLB render and matting) | 203.591 |
+| Total | 271.650 |
+
+The returned walk is a 1536×256 RGBA WebP with 81 frames. Frames 0, 40 and 80
+were inspected: directions remained recognizable; some shoes are blurred in
+motion. This is one integration sample, not a quality/failure-rate benchmark.
+Device-wide sampled peak was 75.61 GiB, including other gin workloads; the
+Comfy process monitor reported 56.0 GiB. Neither is minimum required memory.
+Sixteen adapter/deadline/telemetry tests passed, including a real timeout that
+stops a worker and its child. Hosted execution remains to be validated.
+
+The rebuilt `sprute-replicate:current` image
+(`sha256:607a7af2369294b980df5de5ce499fde60e244582876c44466dc506a1eea4184`)
+is 111.27 GB (Docker's uncompressed size). Its 16 tests and GPU GLB rendering
+also passed with networking disabled and no source/model mounts. The full
+pipeline measurement above used the earlier environment with current source;
+it is not a full inference test of the rebuilt dependency environment.

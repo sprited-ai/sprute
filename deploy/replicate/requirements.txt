@@ -8,3 +8,4 @@ pillow
 huggingface-hub
 psutil
 nvidia-ml-py
+scipy

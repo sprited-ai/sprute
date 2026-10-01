@@ -1,5 +1,6 @@
 """Replicate adapter; inference remains in Sprute's existing workflows."""
 import json
+import math
 import os
 from pathlib import Path as LocalPath
 import secrets
@@ -18,6 +19,7 @@ from sprute.config import set_models_directory
 from sprute.generate import generate
 from sprute.turntable import turntable
 from deploy.replicate.metrics import PeakMemory
+from deploy.replicate.process import run_bounded
 
 
 class Predictor(BasePredictor):
@@ -40,7 +42,31 @@ class Predictor(BasePredictor):
         stop_after: str = Input(default="animate", choices=["generate", "turntable", "animate"], description="Last stage to run; all intermediate images are returned."),
         motions: str = Input(default="idle,walk,run", description="Comma-separated animations: idle, walk, run. Each runs independently."),
         seed: int = Input(default=-1, ge=-1, le=4294967295, description="-1 selects a random seed. The selected seed is shared by all stages."),
+        scale: float = Input(default=1.0, ge=0.5, le=1.0, description="Animation inference scale. Smaller values reduce detail and computation; exported sprite dimensions stay the same."),
     ) -> list[Path]:
+        # Keep the deadline outside the inference process, including all Comfy children.
+        if self.output is not None:
+            shutil.rmtree(self.output)
+        self.output = LocalPath(mkdtemp(prefix="sprute-prediction-"))
+        request = self.output / "request.json"
+        request.write_text(json.dumps(dict(
+            prompt=prompt, image=str(image) if image is not None else None,
+            image_type=image_type, stop_after=stop_after, motions=motions,
+            seed=seed, scale=scale,
+        )))
+        try:
+            run_bounded(
+                [sys.executable, "-u", "-m", "deploy.replicate.worker", str(request)],
+                timeout=600, cwd=ROOT,
+            )
+        finally:
+            request.unlink(missing_ok=True)
+        return [Path(path) for path in sorted(self.output.iterdir()) if path.is_file()]
+
+    def run_pipeline(self, *, prompt, image, image_type, stop_after, motions, seed, scale=1.0):
+        """Shared pipeline, run in a bounded worker by the hosted entry point."""
+        if not math.isfinite(scale) or not 0.5 <= scale <= 1.0:
+            raise ValueError("scale must be between 0.5 and 1.0")
         stages = {"generate": 0, "turntable": 1, "animate": 2}
         if stop_after not in stages or image_type not in ("character", "directions"):
             raise ValueError("Invalid stage or image type")
@@ -57,10 +83,6 @@ class Predictor(BasePredictor):
             raise ValueError("seed must be -1 or an unsigned 32-bit integer")
         if image is not None:
             image = LocalPath(image).resolve(strict=True)
-        # Cog uploads a response before the next serial prediction begins.
-        if self.output is not None:
-            shutil.rmtree(self.output)
-        self.output = LocalPath(mkdtemp(prefix="sprute-prediction-"))
         seed = secrets.randbits(32) if seed == -1 else seed
         records = []
         started = perf_counter()
@@ -93,14 +115,14 @@ class Predictor(BasePredictor):
                 current = run_stage("turntable", turntable, current)
             if end == 2:
                 for motion in selected:
-                    run_stage("animate:" + motion, animate, current, motion)
+                    run_stage("animate:" + motion, animate, current, motion, scale=scale)
             status = "succeeded"
         finally:
             peaks = {}
             for record in records:
                 for device, value in record["peak_device_memory_bytes"].items():
                     peaks[device] = max(peaks.get(device, 0), value)
-            metrics = dict(seed=seed, status=status, stop_after=stop_after,
+            metrics = dict(seed=seed, scale=scale, status=status, stop_after=stop_after,
                            elapsed_seconds=round(perf_counter() - started, 3),
                            peak_device_memory_bytes=peaks,
                            peak_process_tree_rss_bytes=max((r["peak_process_tree_rss_bytes"] for r in records), default=None),

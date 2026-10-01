@@ -10,3 +10,8 @@ out
 experiments
 node_modules
 sprute.config.json
+
+# Superseded checkpoint and legacy driving assets are not shipped.
+models/diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors
+assets/sprute-*-81*
+scripts

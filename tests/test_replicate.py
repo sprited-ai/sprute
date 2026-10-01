@@ -59,6 +59,7 @@ class PredictorTests(unittest.TestCase):
     def setUp(self):
         self.predictor = predict.Predictor()
         self.predictor.setup()
+        self.predictor.output = Path(tempfile.mkdtemp(prefix='sprute-test-'))
         self.inputs = tempfile.TemporaryDirectory()
         self.image = Path(self.inputs.name) / 'upload.png'
         Image.new('RGBA', (64, 64)).save(self.image)
@@ -73,7 +74,7 @@ class PredictorTests(unittest.TestCase):
         inputs = dict(prompt='test', image=None, image_type='character',
                       stop_after='animate', motions='idle,walk,run', seed=42)
         inputs.update(overrides)
-        return self.predictor.predict(**inputs)
+        return self.predictor.run_pipeline(**inputs)
 
     def fake_output(self, *args, **kwargs):
         path = kwargs['out'] / 'result.png'
@@ -125,13 +126,36 @@ class PredictorTests(unittest.TestCase):
         turntable.assert_not_called()
         animate.assert_called_once()
 
-    def test_isolated_outputs_and_random_seed(self):
+    def test_random_seed(self):
         with patch.object(predict, 'generate', side_effect=self.fake_output) as generate:
-            self.run_prediction(stop_after='generate')
-            previous = self.predictor.output
             self.run_prediction(stop_after='generate', seed=-1)
-        self.assertFalse(previous.exists())
         self.assertTrue(0 <= generate.call_args.kwargs['seed'] <= 4294967295)
+
+    def test_scale_only_reaches_animation(self):
+        with patch.object(predict, 'generate', side_effect=self.fake_output) as generate, \
+             patch.object(predict, 'turntable', side_effect=self.fake_output) as turntable, \
+             patch.object(predict, 'animate', side_effect=self.fake_output) as animate:
+            self.run_prediction(scale=0.85)
+        self.assertNotIn('scale', generate.call_args.kwargs)
+        self.assertNotIn('scale', turntable.call_args.kwargs)
+        self.assertEqual(animate.call_args.kwargs['scale'], 0.85)
+        with self.assertRaises(ValueError):
+            self.run_prediction(scale=float('nan'))
+
+    def test_hosted_entry_uses_bounded_worker_and_isolates_outputs(self):
+        previous = self.predictor.output
+        (previous / 'old.png').touch()
+        def worker(command, **kwargs):
+            self.assertEqual(kwargs['timeout'], 600)
+            request = Path(command[-1])
+            data = json.loads(request.read_text())
+            self.assertEqual(data['scale'], 0.95)
+            (request.parent / 'sprite.png').touch()
+        with patch.object(predict, 'run_bounded', side_effect=worker):
+            files = self.predictor.predict(prompt='test', image=None, image_type='character',
+                stop_after='generate', motions='run', seed=42, scale=0.95)
+        self.assertFalse(previous.exists())
+        self.assertEqual([p.name for p in files], ['sprite.png'])
 
     def test_failure_records_stage_and_stops_pipeline(self):
         with patch.object(predict, 'generate', side_effect=RuntimeError('inference failed')), \
