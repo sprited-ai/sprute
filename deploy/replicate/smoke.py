@@ -43,15 +43,15 @@ def run(version, token, output):
     try:
         # The server deadline survives loss of this client or its SSH session.
         # If this POST times out, do NOT retry: the server may have accepted it.
-        prediction = request("/predictions", payload, {"Cancel-After": "15m"})
+        prediction = request("/predictions", payload, {"Cancel-After": "10m"})
         print("Prediction:", prediction["id"], flush=True)
         while True:
             (output / "prediction.json").write_text(json.dumps(prediction, indent=2))
             print(prediction["status"], round(time.monotonic() - started), "seconds", flush=True)
             if prediction["status"] in TERMINAL:
                 break
-            if time.monotonic() - started >= 900:
-                raise TimeoutError("15-minute test deadline exceeded")
+            if time.monotonic() - started >= 600:
+                raise TimeoutError("10-minute test deadline exceeded")
             time.sleep(10)
             prediction = request("/predictions/" + prediction["id"])
     finally:

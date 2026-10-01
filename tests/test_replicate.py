@@ -30,7 +30,7 @@ class SmokeTests(unittest.TestCase):
              patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
             smoke.run('v', 'test-token', Path(directory) / 'test')
             request = http.call_args.args[0]
-            self.assertEqual(request.get_header('Cancel-after'), '15m')
+            self.assertEqual(request.get_header('Cancel-after'), '10m')
             self.assertEqual(json.loads(request.data)['input']['stop_after'], 'generate')
             self.assertEqual(sum(c.args[0].get_method() == 'POST' for c in http.call_args_list), 1)
 

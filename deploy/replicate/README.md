@@ -127,7 +127,7 @@ python deploy/replicate/smoke.py --version EXACT_VERSION_HASH \
 ```
 
 This checks visibility and version, submits **one generate-only request**, includes
-server-side `Cancel-After: 15m`, records its ID/status, and requests cancellation
+server-side `Cancel-After: 10m`, records its ID/status, and requests cancellation
 on monitoring failure. It never retries submission, even if the response is lost.
 In that case inspect the account prediction list; the server deadline still applies.
 Run only one smoke script at a time. This is a request time limit, not a dollar
