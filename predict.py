@@ -17,17 +17,21 @@ sys.path.insert(0, str(ROOT / "src"))
 from sprute.animate import animate
 from sprute.config import set_models_directory
 from sprute.generate import generate
+from sprute.motion import generate_motion
 from sprute.turntable import turntable
 from deploy.replicate.metrics import PeakMemory
 from deploy.replicate.process import run_bounded
-from deploy.replicate.weights import assemble_weights
 
 
 class Predictor(BasePredictor):
     def setup(self):
         os.chdir(ROOT)  # Committed workflows resolve assets relative to the checkout.
         models = LocalPath(os.environ.get("SPRUTE_MODELS_DIRECTORY", ROOT / "models"))
-        assemble_weights(models)
+        print("[setup] Preparing bundled weights (120s limit)", flush=True)
+        run_bounded(
+            [sys.executable, "-u", "-m", "deploy.replicate.weights", str(models)],
+            timeout=120, cwd=ROOT,
+        )
         set_models_directory(models)
         # Comfy runs in a child process. Prefer the CUDA libraries installed with
         # Torch over the older cuDNN shipped in the NVIDIA base image.
@@ -36,6 +40,7 @@ class Predictor(BasePredictor):
         libraries.extend(filter(None, os.environ.get("LD_LIBRARY_PATH", "").split(":")))
         os.environ["LD_LIBRARY_PATH"] = ":".join(dict.fromkeys(libraries))
         self.output = None
+        print("[setup] Ready", flush=True)
 
     def predict(
         self,
@@ -46,6 +51,7 @@ class Predictor(BasePredictor):
         motions: str = Input(default="idle,walk,run", description="Comma-separated animations: idle, walk, run. Each runs independently."),
         seed: int = Input(default=-1, ge=-1, le=4294967295, description="-1 selects a random seed. The selected seed is shared by all stages."),
         scale: float = Input(default=1.0, ge=0.5, le=1.0, description="Animation inference scale. Smaller values reduce detail and computation; exported sprite dimensions stay the same."),
+        motion_prompt: str = Input(default="", description="Optional Kimodo motion description. Generates one custom animation instead of the selected idle/walk/run motions. The clip is not guaranteed to loop."),
     ) -> list[Path]:
         # Keep the deadline outside the inference process, including all Comfy children.
         if self.output is not None:
@@ -55,7 +61,7 @@ class Predictor(BasePredictor):
         request.write_text(json.dumps(dict(
             prompt=prompt, image=str(image) if image is not None else None,
             image_type=image_type, stop_after=stop_after, motions=motions,
-            seed=seed, scale=scale,
+            seed=seed, scale=scale, motion_prompt=motion_prompt,
         )))
         try:
             run_bounded(
@@ -66,7 +72,7 @@ class Predictor(BasePredictor):
             request.unlink(missing_ok=True)
         return [Path(path) for path in sorted(self.output.iterdir()) if path.is_file()]
 
-    def run_pipeline(self, *, prompt, image, image_type, stop_after, motions, seed, scale=1.0):
+    def run_pipeline(self, *, prompt, image, image_type, stop_after, motions, seed, scale=1.0, motion_prompt=""):
         """Shared pipeline, run in a bounded worker by the hosted entry point."""
         if not math.isfinite(scale) or not 0.5 <= scale <= 1.0:
             raise ValueError("scale must be between 0.5 and 1.0")
@@ -80,7 +86,9 @@ class Predictor(BasePredictor):
         if image is None and not prompt.strip():
             raise ValueError("Provide a prompt or an image")
         selected = list(dict.fromkeys(part.strip() for part in motions.split(",") if part.strip()))
-        if end == 2 and (not selected or any(m not in ("idle", "walk", "run") for m in selected)):
+        if motion_prompt.strip() and end != 2:
+            raise ValueError("motion_prompt requires stop_after=animate")
+        if end == 2 and not motion_prompt.strip() and (not selected or any(m not in ("idle", "walk", "run") for m in selected)):
             raise ValueError("motions must contain idle, walk and/or run")
         if not -1 <= seed <= 4294967295:
             raise ValueError("seed must be -1 or an unsigned 32-bit integer")
@@ -117,8 +125,12 @@ class Predictor(BasePredictor):
             if start <= 1 <= end:
                 current = run_stage("turntable", turntable, current)
             if end == 2:
-                for motion in selected:
-                    run_stage("animate:" + motion, animate, current, motion, scale=scale)
+                if motion_prompt.strip():
+                    driver = run_stage("motion:kimodo", generate_motion, motion_prompt)
+                    run_stage("animate:custom", animate, current, "custom", scale=scale, driving_video=driver)
+                else:
+                    for motion in selected:
+                        run_stage("animate:" + motion, animate, current, motion, scale=scale)
             status = "succeeded"
         finally:
             peaks = {}

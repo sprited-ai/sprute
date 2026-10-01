@@ -69,4 +69,7 @@ build:
       subprocess.run([sys.executable,'-m','pip','install','--break-system-packages','--no-cache-dir','-c',str(c),'-r',str(r)],check=True) if r.exists() else None"
     # Ensure the SDK uses the same managed Python as Comfy (not /usr Python).
     - python -m pip install --break-system-packages --no-cache-dir cog==0.23.0
+    # Replicate installs runtime dependencies before setup(). Allow that bootstrap
+    # in this disposable container, as in the validated SCAIL-2 image.
+    - python -c "import pathlib, sysconfig; (pathlib.Path(sysconfig.get_path('stdlib')) / 'EXTERNALLY-MANAGED').unlink(missing_ok=True)"
 predict: "predict.py:Predictor"

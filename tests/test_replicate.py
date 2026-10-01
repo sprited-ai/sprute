@@ -11,6 +11,50 @@ from deploy.replicate import smoke
 
 
 class SmokeTests(unittest.TestCase):
+    def test_acknowledged_request_does_not_allow_other_active_jobs(self):
+        responses = [self.response(r) for r in [
+            {'visibility': 'public'},
+            {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+            {'results': [
+                {'id': 'stuck', 'model': smoke.MODEL, 'status': 'starting'},
+                {'id': 'other', 'model': smoke.MODEL, 'status': 'processing'},
+            ]},
+        ]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=responses) as http:
+            with self.assertRaisesRegex(RuntimeError, 'still active'):
+                smoke.run('v', 'test-token', Path(directory) / 'test', acknowledged_active_id='stuck')
+            self.assertTrue(all(c.args[0].get_method() == 'GET' for c in http.call_args_list))
+
+    def test_failed_cancellation_records_unconfirmed_stop(self):
+        responses = [self.response(r) for r in [
+            {'visibility': 'public'},
+            {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+            {'results': []}, {'id': 'p', 'status': 'starting'},
+        ]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke.time, 'sleep'), \
+             patch.object(smoke, 'urlopen', side_effect=responses + [OSError('network'), OSError('cancel rejected')]) as http:
+            output = Path(directory) / 'test'
+            with self.assertRaisesRegex(RuntimeError, 'STOP NOT CONFIRMED'):
+                smoke.run('v', 'test-token', output)
+            record = json.loads((output / 'cancellation-failed.json').read_text())
+            self.assertFalse(record['stopped'])
+            self.assertEqual(record['id'], 'p')
+            creates = [c for c in http.call_args_list if c.args[0].get_method() == 'POST'
+                       and c.args[0].full_url.endswith('/predictions')]
+            self.assertEqual(len(creates), 1)
+
+    def test_damaged_docker_label_is_rejected(self):
+        schema = {'components': {'schemas': {
+            'Input': {'properties': {'mode': {'allOf': [{'': '#/components/schemas/Mode'}]}}},
+            'Output': {}, 'Mode': {'enum': ['a', 'b']},
+        }}}
+        with self.assertRaisesRegex(ValueError, 'empty key'):
+            smoke.validate_schema(schema)
+        schema['components']['schemas']['Input']['properties']['mode']['allOf'][0] = {'$ref': '#/components/schemas/Mode'}
+        smoke.validate_schema(schema)
+
     def response(self, value):
         response = MagicMock()
         response.__enter__.return_value.read.return_value = json.dumps(value).encode()
@@ -24,7 +68,7 @@ class SmokeTests(unittest.TestCase):
             self.assertEqual(http.call_count, 1)
 
     def test_one_prediction_has_server_deadline(self):
-        responses = [{'visibility': 'public'}, {'id': 'v'}, {'results': []},
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []},
                      {'id': 'p', 'status': 'succeeded'}]
         with tempfile.TemporaryDirectory() as directory, \
              patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
@@ -36,7 +80,7 @@ class SmokeTests(unittest.TestCase):
 
     def test_uncertain_submission_is_not_retried(self):
         responses = [self.response(r) for r in
-                     [{'visibility': 'public'}, {'id': 'v'}, {'results': []}]]
+                     [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []}]]
         with tempfile.TemporaryDirectory() as directory, \
              patch.object(smoke, 'urlopen', side_effect=responses + [TimeoutError('network')]) as http:
             with self.assertRaises(TimeoutError):
@@ -45,7 +89,7 @@ class SmokeTests(unittest.TestCase):
 
     def test_poll_failure_cancels_known_prediction(self):
         responses = [self.response(r) for r in
-                     [{'visibility': 'public'}, {'id': 'v'}, {'results': []},
+                     [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []},
                       {'id': 'p', 'status': 'starting'}]]
         with tempfile.TemporaryDirectory() as directory, \
              patch.object(smoke.time, 'sleep'), \
@@ -131,6 +175,17 @@ class PredictorTests(unittest.TestCase):
             self.run_prediction(stop_after='generate', seed=-1)
         self.assertTrue(0 <= generate.call_args.kwargs['seed'] <= 4294967295)
 
+    def test_custom_motion_connects_driver_and_replaces_presets(self):
+        with patch.object(predict, 'generate_motion', side_effect=self.fake_output) as motion, \
+             patch.object(predict, 'animate', side_effect=self.fake_output) as animate:
+            self.run_prediction(image=self.image, image_type='directions', motion_prompt='Wave hello')
+        motion.assert_called_once()
+        animate.assert_called_once()
+        self.assertEqual(animate.call_args.args[1], 'custom')
+        self.assertEqual(animate.call_args.kwargs['driving_video'], self.predictor.output / 'result.png')
+        with self.assertRaisesRegex(ValueError, 'requires stop_after'):
+            self.run_prediction(stop_after='generate', motion_prompt='Wave hello')
+
     def test_scale_only_reaches_animation(self):
         with patch.object(predict, 'generate', side_effect=self.fake_output) as generate, \
              patch.object(predict, 'turntable', side_effect=self.fake_output) as turntable, \
@@ -153,7 +208,7 @@ class PredictorTests(unittest.TestCase):
             (request.parent / 'sprite.png').touch()
         with patch.object(predict, 'run_bounded', side_effect=worker):
             files = self.predictor.predict(prompt='test', image=None, image_type='character',
-                stop_after='generate', motions='run', seed=42, scale=0.95)
+                stop_after='generate', motions='run', seed=42, scale=0.95, motion_prompt='')
         self.assertFalse(previous.exists())
         self.assertEqual([p.name for p in files], ['sprite.png'])
 

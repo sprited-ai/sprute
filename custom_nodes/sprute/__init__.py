@@ -79,6 +79,22 @@ class SpruteRenderDrivingVideo:
         return (video[..., :3], 1.0 - video[..., 3])
 
 
+class SpruteKimodoMotion:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"motion": ("KIMODO_MOTION",)}}
+
+    RETURN_TYPES = ("SPRUTE_MOTION",)
+    RETURN_NAMES = ("motion",)
+    FUNCTION = "adapt"
+    CATEGORY = "Sprute"
+    DESCRIPTION = "Retarget one Kimodo SOMA clip onto Template-kun for eight-direction rendering."
+
+    def adapt(self, motion):
+        from .kimodo import adapt
+        return (adapt(motion, MODEL),)
+
+
 class SpruteStripToGrid:
     @classmethod
     def INPUT_TYPES(cls):
@@ -124,6 +140,7 @@ class SpruteCellsToStrip:
 
 
 NODE_CLASS_MAPPINGS = {
+    "SpruteKimodoMotion": SpruteKimodoMotion,
     "SpruteLoadMotion": SpruteLoadMotion,
     "SpruteRenderDrivingVideo": SpruteRenderDrivingVideo,
     "SpruteStripToGrid": SpruteStripToGrid,
@@ -131,6 +148,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteCellsToStrip": SpruteCellsToStrip,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "SpruteKimodoMotion": "Sprute Kimodo Motion",
     "SpruteLoadMotion": "Sprute Load Motion",
     "SpruteRenderDrivingVideo": "Sprute Render Driving Video",
     "SpruteStripToGrid": "Sprute Strip To Grid",

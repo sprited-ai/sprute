@@ -29,3 +29,8 @@ def assemble_weights(models: Path) -> None:
             os.replace(temporary, target)
         finally:
             temporary.unlink(missing_ok=True)
+
+
+if __name__ == "__main__":
+    import sys
+    assemble_weights(Path(sys.argv[1]))

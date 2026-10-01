@@ -3,6 +3,7 @@
 This adapter runs the committed generate, turntable and animate workflows without
 changing their settings. It starts a fresh headless Comfy subprocess per stage.
 Each prediction runs in an isolated worker with a 600-second total deadline. On timeout, the worker process group (including Comfy children) is terminated. This bounds inference, not image pull or platform setup time.
+Bundled weight reconstruction during setup has a separate 120-second deadline.
 
 Only one prediction runs at a time; outputs from the previous request are removed
 when the next request starts, after Cog has serialized them.
@@ -15,7 +16,51 @@ CUDA 13.0, PyTorch 2.14.0 and ComfyUI 0.37.0.1. Custom node commits match
 
 ```sh
 cog build -t sprute-replicate:test
+python -m deploy.replicate.check_image sprute-replicate:test
 ```
+
+The image check rejects damaged OpenAPI references and verifies Python permits
+Replicate's runtime package installation. It runs without network or GPU access.
+Build-time `--break-system-packages` alone does not fix runtime bootstrap: the
+container's `EXTERNALLY-MANAGED` marker must also be removed. This check does not
+replace starting the actual Cog server and verifying a hosted prediction.
+
+Do not submit another smoke prediction while an earlier one is nonterminal.
+A failed cancellation is not confirmation that the remote worker stopped.
+
+## Experimental Kimodo motion
+
+`workflows/sprute-kimodo-motion.api.json` connects Kimodo text-to-motion to the
+existing Template-kun renderer. It produces an 81-frame, 24fps transparent
+eight-direction driving strip. `generate_motion()` saves that strip;
+`animate(..., driving_video=path)` passes it through the existing SCAIL workflow.
+The adapter's `motion_prompt` selects one custom motion instead of preset motions.
+Generated clips are finite; seamless looping is not guaranteed.
+
+Kimodo is **not included in the currently published Sprute image**. Its optional
+dependency layer can be built on a validated Sprute image:
+
+```sh
+docker build -f deploy/replicate/Dockerfile.kimodo \
+  --build-arg BASE_IMAGE=sprute-replicate:bootstrap-fixed \
+  -t sprute-replicate:kimodo-source .
+```
+
+This pins ComfyUI-Kimodo to `9e758bce7f37eb1c4e5d2886463810c98c02b889`, builds
+MotionCorrection from source, and corrects the reduced/77-joint skeleton passed
+to postprocessing. It installs dependencies only; use the current source checkout
+with it. Model weights are separate: the tested offline cache contains
+Kimodo-SOMA-RP-v1, Meta-Llama-3-8B-Instruct, and its two LLM2Vec adapters. Mount
+that cache at `/src/models/huggingface_cache` and `/root/.cache/huggingface/hub`.
+Cold installation/download and redistribution of those additional weights have
+not been validated for the hosted image.
+
+The gin integration test generated a right-handed wave and animated the existing
+character strip in 167.237 seconds. The 81-frame result preserved eight views in
+sampled frames but raised both hands instead of one. This establishes pipeline
+connectivity, not faithful reproduction of every generated motion.
+The source-built dependency image also completed offline generation; all 81
+decoded RGBA frames matched the initial test using the prebuilt native module.
 
 Weights are **not downloaded at startup**. Prepare `models/` before publishing,
 using Sprute's pinned model manifest and ordinary Comfy category layout. With the
