@@ -161,3 +161,16 @@ is 111.27 GB (Docker's uncompressed size). Its 16 tests and GPU GLB rendering
 also passed with networking disabled and no source/model mounts. The full
 pipeline measurement above used the earlier environment with current source;
 it is not a full inference test of the rebuilt dependency environment.
+
+### Registry upload packaging
+
+The registry rejected the monolithic FLUX Fill layer with HTTP 413. The release
+image stores this checkpoint in three parts of at most 8 GiB, in `models/.parts/`.
+`manifest.json` records their order, final destination, byte size and SHA-256.
+`Predictor.setup()` joins these local parts atomically and verifies the result;
+it makes no network request. Other weights retain their normal Comfy layout.
+This requires about 24 GB of writable container storage at startup in addition
+to the image. The actual in-container assembly and integrity check passed.
+
+The deployment Dockerfile uses one COPY layer per model file/part, preserving
+completed uploads. Deployment build records live with the release artifacts.

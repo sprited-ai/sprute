@@ -20,12 +20,15 @@ from sprute.generate import generate
 from sprute.turntable import turntable
 from deploy.replicate.metrics import PeakMemory
 from deploy.replicate.process import run_bounded
+from deploy.replicate.weights import assemble_weights
 
 
 class Predictor(BasePredictor):
     def setup(self):
         os.chdir(ROOT)  # Committed workflows resolve assets relative to the checkout.
-        set_models_directory(LocalPath(os.environ.get("SPRUTE_MODELS_DIRECTORY", ROOT / "models")))
+        models = LocalPath(os.environ.get("SPRUTE_MODELS_DIRECTORY", ROOT / "models"))
+        assemble_weights(models)
+        set_models_directory(models)
         # Comfy runs in a child process. Prefer the CUDA libraries installed with
         # Torch over the older cuDNN shipped in the NVIDIA base image.
         libraries = [str(path) for directory in site.getsitepackages()
