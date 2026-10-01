@@ -10,10 +10,15 @@ from collections.abc import Callable
 from pathlib import Path
 from tempfile import TemporaryDirectory, TemporaryFile
 from sprute.config import get_models_directory
+from sprute.gpu import monitor_vram
+from sprute.events import Event
 
 def input_name(path: Path) -> str:
     """Name an input by its content so the saved workflow identifies it exactly."""
-    return hashlib.sha256(path.read_bytes()).hexdigest() + path.suffix
+    return content_name(path.read_bytes(), path.suffix)
+
+def content_name(content: bytes, suffix: str) -> str:
+    return hashlib.sha256(content).hexdigest() + suffix
 
 
 def custom_nodes_path() -> Path:
@@ -23,11 +28,15 @@ def custom_nodes_path() -> Path:
 def run_workflow(
     workflow: dict,
     *,
-    input_files: dict[str, Path] | None = None,
+    input_files: dict[str, Path | bytes] | None = None,
     output_node_ids: tuple[str, ...],
-    on_log: Callable[[str], None],
+    on_event: Callable[[Event], None] | None = None,
 ) -> dict[str, bytes]:
     """Run an API workflow and return the first saved image of each output node, by node id."""
+    def emit(event: Event) -> None:
+        if on_event is not None:
+            on_event(event)
+
     executable = Path(sysconfig.get_path("scripts")) / (
         "comfyui.exe" if os.name == "nt" else "comfyui"
     )
@@ -43,8 +52,11 @@ def run_workflow(
         input_directory = Path(workspace) / "input"
         input_directory.mkdir()
         # The workflow refers to input files by the name they are copied under.
-        for name, path in (input_files or {}).items():
-            shutil.copyfile(path, input_directory / name)
+        for name, source in (input_files or {}).items():
+            if isinstance(source, bytes):
+                (input_directory / name).write_bytes(source)
+            else:
+                shutil.copyfile(source, input_directory / name)
         workflow_path.write_text(json.dumps(workflow), encoding="utf-8")
         command = [
             str(executable),
@@ -60,6 +72,8 @@ def run_workflow(
         ]
         command.extend(["--base-directory", workspace])
         command.extend(["--base-paths", str(custom_nodes_path().parent)])
+        # Sprute's own nodes are in this repository's custom_nodes folder.
+        command.extend(["--base-paths", str(Path.cwd())])
         recent_logs: deque[str] = deque(maxlen=20)
         with subprocess.Popen(
             command,
@@ -70,13 +84,16 @@ def run_workflow(
             encoding="utf-8",
             errors="replace",
             bufsize=1,
-        ) as process:
+        ) as process, monitor_vram(
+            process.pid,
+            (lambda message: emit(Event("vram", message))) if on_event is not None else None,
+        ):
             assert process.stderr is not None
             try:
                 for line in process.stderr:
                     message = line.rstrip("\r\n")
                     recent_logs.append(message)
-                    on_log(message)
+                    emit(Event("log", message))
                 returncode = process.wait()
             except BaseException:
                 process.terminate()
@@ -102,12 +119,12 @@ def run_workflow(
             try:
                 value = json.loads(line)
             except json.JSONDecodeError:
-                on_log(line.rstrip("\r\n"))
+                emit(Event("log", line.rstrip("\r\n")))
                 continue
             if isinstance(value, dict):
                 saved = value
             else:
-                on_log(line.rstrip("\r\n"))
+                emit(Event("log", line.rstrip("\r\n")))
         if saved is None:
             raise RuntimeError("ComfyUI exited successfully but returned no JSON result.")
         return {

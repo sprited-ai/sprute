@@ -1,6 +1,6 @@
 from pathlib import Path
 from collections.abc import Callable
-from typing import Literal, Protocol
+from typing import Protocol
 from time import perf_counter
 from collections import deque
 import shutil
@@ -11,7 +11,7 @@ import json
 from io import BytesIO
 from sprute.config import get_models_directory
 from sprute.comfy import custom_nodes_path, run_workflow
-from sprute.events import Event
+from sprute.events import Event, EventState
 from sprute.models import MODELS, check_download_space, download_model, find_local_model, plan_model_downloads
 
 COMFY_VERSION = "0.37.0.1"
@@ -43,7 +43,7 @@ CUSTOM_NODES = {
 class Reporter(Protocol):
     def __call__(
         self,
-        state: Literal["started", "completed", "progress", "log", "warning"],
+        state: EventState,
         message: str,
         *,
         timed: bool = False,
@@ -53,9 +53,10 @@ def setup(
     *,
     on_event: Callable[[Event], None] | None = None,
     reinstall: bool = False,
+    skip_models: bool = False,
 ) -> None:
     def report(
-        state: Literal["started", "completed", "progress", "log", "warning"],
+        state: EventState,
         message: str,
         *,
         timed: bool = False,
@@ -66,7 +67,12 @@ def setup(
     report("completed", f"Python {sys.version.split()[0]}")
     setup_comfy(report=report, reinstall=reinstall)
     setup_custom_nodes(report=report, reinstall=reinstall)
-    setup_models(report=report)
+    if skip_models:
+        # ComfyUI still needs the directory to start.
+        get_models_directory().mkdir(parents=True, exist_ok=True)
+        report("warning", "Models skipped: character commands will not run until sprute setup downloads them")
+    else:
+        setup_models(report=report)
     check_torch(report=report)
     check_comfy_workflow(report=report)
 
@@ -382,7 +388,8 @@ def check_comfy_workflow(*, report: Reporter) -> None:
     data = run_workflow(
         workflow,
         output_node_ids=("3",),
-        on_log=lambda message: report("log", message)
+        on_event=lambda event: report(event.state, event.message)
+        if event.state in ("log", "vram") else None,
     )["3"]
     from PIL import Image
     with Image.open(BytesIO(data)) as image:
@@ -434,7 +441,7 @@ def run(
             + "\n".join(recent_logs)
         )
 
-def missing_setup() -> list[str]:
+def missing_setup(*, models: bool = True) -> list[str]:
     """List what `sprute setup` still has to do, without touching the network."""
     if not is_installed("comfyui"):
         return ["ComfyUI"]
@@ -444,10 +451,11 @@ def missing_setup() -> list[str]:
         installed = node_directory / name / ".git" / "sprute-installed-revision"
         if not installed.is_file() or installed.read_text().strip() != node["revision"]:
             missing.append(f"custom node {name}")
-    models_directory = get_models_directory()
-    for model in MODELS.values():
-        if not (models_directory / model["destination"]).is_file():
-            missing.append(f"model {model['destination']}")
+    if models:
+        models_directory = get_models_directory()
+        for model in MODELS.values():
+            if not (models_directory / model["destination"]).is_file():
+                missing.append(f"model {model['destination']}")
     return missing
 
 def is_installed(package: str) -> bool:

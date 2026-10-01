@@ -41,7 +41,7 @@ def generate(
         graph,
         input_files={template_name: template},
         output_node_ids=("114",),
-        on_log=lambda message: report("log", message),
+        on_event=on_event,
     )["114"]
     index = 1
     while True:

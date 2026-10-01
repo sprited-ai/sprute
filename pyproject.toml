@@ -12,6 +12,7 @@ dependencies = [
     "rich", 
     "pillow",
     "huggingface-hub",
+    "nvidia-ml-py",
 ]
 
 [project.scripts]

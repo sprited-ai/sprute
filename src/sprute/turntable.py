@@ -48,7 +48,7 @@ def turntable(
         graph,
         input_files={image_name: image},
         output_node_ids=tuple(destinations),
-        on_log=lambda message: report("log", message),
+        on_event=on_event,
     )
     # Write every output before replacing any, so a failure leaves the old set intact.
     temporaries = {node_id: destination.with_name(f".{destination.name}.tmp") for node_id, destination in destinations.items()}

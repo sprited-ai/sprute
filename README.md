@@ -24,6 +24,8 @@ One character, eight directions, three motions:
 
 Requires Python 3.12+ and a GPU (tested on NVIDIA CUDA).
 
+Character animation has also been tested on an NVIDIA GeForce RTX 5090 (32 GB VRAM).
+
 ### 1. Install
 
 ```bash
@@ -54,7 +56,7 @@ sprute setup
 
 This installs ComfyUI and its custom nodes, downloads the models, and checks that your GPU works.
 
-The models take about 108 GB. Any that are already in the models directory are reused, not downloaded again.
+Setup reports the required download size. Any models already in the models directory are reused, not downloaded again.
 
 ### 4. Make a character
 
@@ -105,6 +107,13 @@ sprute character-animate output/0001.directions.png --motion run
 ```
 
 Motions are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (1536×256, 81 frames).
+
+`--motion run` looks in `motions/` for `run.webp` first, then `run.glb`.
+
+- **`run.glb`** is a rig motion. Sprute renders it on its mannequin, Template-kun, and animates with that.
+- **`run.webp`** is a driving video you bring: an eight-direction animated strip of the same size as the directions image, with a transparent background. Any Sprute animation works, so one character can drive another.
+
+A driving video needs at least 5 frames. The model works on 4n+1 frames (41, 81, 97, ...), so up to three frames at the end are dropped: 100 frames in gives 97 out.
 
 As with turntable, the same `--seed` and input return the existing file instead of rerunning.
 
