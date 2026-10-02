@@ -8,6 +8,13 @@ from pathlib import Path
 import sys
 from time import monotonic
 
+# Replicate's injected HF proxy currently returns truncated response bodies.
+# Use the public origin for these public, revision-pinned model files.
+# Set before importing huggingface_hub, which reads these at import time.
+os.environ["HF_ENDPOINT"] = "https://huggingface.co"
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+os.environ.pop("HF_HUB_ENABLE_HF_TRANSFER", None)
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from sprute.models import check_download_space, download_model
 from huggingface_hub.utils import disable_progress_bars

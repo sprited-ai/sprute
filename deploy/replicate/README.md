@@ -37,6 +37,9 @@ deadline. Child process groups are terminated on timeout. Use the smoke test's
 The public Comfy-Org FLUX and VAE copies match the previously bundled files.
 Downloaded weights are verified and cached under `/src/models` for the lifetime
 of that worker. A new worker has its own cache. No credentials are embedded.
+The hosted downloader uses the public Hugging Face endpoint with Xet disabled:
+the injected Replicate proxy returned truncated bodies in both Xet-token and
+ordinary file requests during hosted testing.
 `SPRUTE_LAZY_WEIGHTS=0` disables downloads for offline tests with mounted weights.
 
 Only one prediction runs at a time. Previous outputs are removed when the next
