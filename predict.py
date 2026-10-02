@@ -51,7 +51,6 @@ class Predictor(BasePredictor):
         motions: str = Input(default="idle,walk,run", description="Comma-separated animations: idle, walk, run. Each runs independently."),
         seed: int = Input(default=-1, ge=-1, le=4294967295, description="-1 selects a random seed. The selected seed is shared by all stages."),
         scale: float = Input(default=1.0, ge=0.5, le=1.0, description="Animation inference scale. Smaller values reduce detail and computation; exported sprite dimensions stay the same."),
-        motion_prompt: str = Input(default="", description="Optional Kimodo motion description. Generates one custom animation instead of the selected idle/walk/run motions. The clip is not guaranteed to loop."),
     ) -> list[Path]:
         # Keep the deadline outside the inference process, including all Comfy children.
         if self.output is not None:
@@ -61,7 +60,7 @@ class Predictor(BasePredictor):
         request.write_text(json.dumps(dict(
             prompt=prompt, image=str(image) if image is not None else None,
             image_type=image_type, stop_after=stop_after, motions=motions,
-            seed=seed, scale=scale, motion_prompt=motion_prompt,
+            seed=seed, scale=scale,
         )))
         try:
             run_bounded(

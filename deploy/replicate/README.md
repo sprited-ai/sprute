@@ -10,16 +10,24 @@ when the next request starts, after Cog has serialized them.
 
 ## Build and test (Linux with NVIDIA Docker)
 
-Use Cog 0.23.0. Run from the repository root. The image uses Python 3.12,
-CUDA 13.0, PyTorch 2.14.0 and ComfyUI 0.37.0.1. Custom node commits match
+Use the Cog 0.23.0 builder with SDK 0.16.8, matching SCAIL-2. Run from the
+repository root. The image uses the Python 3.12.14 slim base (not an NVIDIA CUDA
+base), CUDA 12.8 wheels, PyTorch 2.11.0 and ComfyUI 0.37.0.1. Custom node commits match
 `src/sprute/setup.py`. Transitive dependencies are not fully locked yet.
+`cattrs==23.2.3` keeps Comfy's requests-cache compatible with the older `attrs`
+required by Cog 0.16.8; the image check includes `pip check` and an import probe.
 
 ```sh
-cog build -t sprute-replicate:test
-python -m deploy.replicate.check_image sprute-replicate:test
+# Generate with cog==0.16.8 installed; this imports the predictor without setup.
+python deploy/replicate/generate_schema.py
+cog build --use-cuda-base-image=false --openapi-schema openapi-upload.json -t sprute-replicate:test
+docker pull python:3.12.14-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+python -m deploy.replicate.check_image sprute-replicate:test \
+  --base-image python:3.12.14-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
 ```
 
-The image check rejects damaged OpenAPI references and verifies Python permits
+The image check rejects damaged OpenAPI references, checks the base layers and
+runtime versions against the validated SCAIL-2 stack, and verifies Python permits
 Replicate's runtime package installation. It runs without network or GPU access.
 Build-time `--break-system-packages` alone does not fix runtime bootstrap: the
 container's `EXTERNALLY-MANAGED` marker must also be removed. This check does not
@@ -28,13 +36,27 @@ replace starting the actual Cog server and verifying a hosted prediction.
 Do not submit another smoke prediction while an earlier one is nonterminal.
 A failed cancellation is not confirmation that the remote worker stopped.
 
+For the prepared gin release context containing `models/.parts/manifest.json`,
+repackage the validated build before upload:
+
+```sh
+python -m deploy.replicate.package_image sprute-replicate:test \
+  --tag sprute-replicate:release
+```
+
+This pins the base by digest, copies each bundled weight into its own layer,
+and excludes the full FLUX checkpoint when its split parts are present. It
+preserves Cog labels as Docker CLI arguments so `$ref` strings are not expanded.
+
 ## Experimental Kimodo motion
 
 `workflows/sprute-kimodo-motion.api.json` connects Kimodo text-to-motion to the
 existing Template-kun renderer. It produces an 81-frame, 24fps transparent
 eight-direction driving strip. `generate_motion()` saves that strip;
 `animate(..., driving_video=path)` passes it through the existing SCAIL workflow.
-The adapter's `motion_prompt` selects one custom motion instead of preset motions.
+The internal `run_pipeline(..., motion_prompt=...)` selects one custom motion
+instead of preset motions. It is not exposed as a hosted input until its optional
+dependencies and weights are bundled in a release.
 Generated clips are finite; seamless looping is not guaranteed.
 
 Kimodo is **not included in the currently published Sprute image**. Its optional
@@ -130,7 +152,7 @@ After validation and choosing a Replicate model name:
 
 ```sh
 cog login
-cog push r8.im/OWNER/MODEL
+cog push --use-cuda-base-image=false --openapi-schema openapi-upload.json r8.im/OWNER/MODEL
 ```
 
 Publishing is a separate step; building/testing this checkout does not publish it.

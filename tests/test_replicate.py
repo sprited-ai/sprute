@@ -208,7 +208,7 @@ class PredictorTests(unittest.TestCase):
             (request.parent / 'sprite.png').touch()
         with patch.object(predict, 'run_bounded', side_effect=worker):
             files = self.predictor.predict(prompt='test', image=None, image_type='character',
-                stop_after='generate', motions='run', seed=42, scale=0.95, motion_prompt='')
+                stop_after='generate', motions='run', seed=42, scale=0.95)
         self.assertFalse(previous.exists())
         self.assertEqual([p.name for p in files], ['sprite.png'])
 
