@@ -63,6 +63,12 @@ class Predictor(BasePredictor):
             seed=seed, scale=scale,
         )))
         try:
+            if os.environ.get("SPRUTE_LAZY_WEIGHTS") == "1":
+                print("[weights] Preparing requested stages (600s limit)", flush=True)
+                run_bounded(
+                    [sys.executable, "-u", "-m", "deploy.replicate.lazy_weights", str(request)],
+                    timeout=600, cwd=ROOT,
+                )
             run_bounded(
                 [sys.executable, "-u", "-m", "deploy.replicate.worker", str(request)],
                 timeout=600, cwd=ROOT,

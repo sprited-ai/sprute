@@ -87,6 +87,14 @@ class SmokeTests(unittest.TestCase):
                 smoke.run('v', 'test-token', Path(directory) / 'test')
             self.assertEqual(http.call_count, 4)
 
+    def test_lazy_test_can_use_twenty_minute_server_deadline(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded'}]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
+            smoke.run('v', 'test-token', Path(directory) / 'test', deadline_minutes=20)
+            self.assertEqual(http.call_args.args[0].get_header('Cancel-after'), '20m')
+
     def test_poll_failure_cancels_known_prediction(self):
         responses = [self.response(r) for r in
                      [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []},

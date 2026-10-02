@@ -35,7 +35,10 @@ def validate_schema(schema):
     check(schema)
 
 
-def run(version, token, output, *, acknowledged_active_id=None):
+def run(version, token, output, *, acknowledged_active_id=None, deadline_minutes=10):
+    if deadline_minutes not in (10, 20):
+        raise ValueError("Test deadline must be 10 or 20 minutes")
+    deadline_seconds = deadline_minutes * 60
     output.mkdir(parents=True, exist_ok=False)
 
     def request(path, data=None, headers=None):
@@ -69,18 +72,18 @@ def run(version, token, output, *, acknowledged_active_id=None):
     try:
         # The server deadline survives loss of this client or its SSH session.
         # If this POST times out, do NOT retry: the server may have accepted it.
-        prediction = request("/predictions", payload, {"Cancel-After": "10m"})
+        prediction = request("/predictions", payload, {"Cancel-After": f"{deadline_minutes}m"})
         print("Prediction:", prediction["id"], flush=True)
         while True:
             (output / "prediction.json").write_text(json.dumps(prediction, indent=2))
             print(prediction["status"], round(time.monotonic() - started), "seconds", flush=True)
             if prediction["status"] in TERMINAL:
                 break
-            if time.monotonic() - started >= 600:
-                raise TimeoutError("10-minute test deadline exceeded")
-            time.sleep(min(10, max(0, 600 - (time.monotonic() - started))))
-            if time.monotonic() - started >= 600:
-                raise TimeoutError("10-minute test deadline exceeded")
+            if time.monotonic() - started >= deadline_seconds:
+                raise TimeoutError(f"{deadline_minutes}-minute test deadline exceeded")
+            time.sleep(min(10, max(0, deadline_seconds - (time.monotonic() - started))))
+            if time.monotonic() - started >= deadline_seconds:
+                raise TimeoutError(f"{deadline_minutes}-minute test deadline exceeded")
             prediction = request("/predictions/" + prediction["id"])
     finally:
         if prediction is not None and prediction["status"] not in TERMINAL:
@@ -111,6 +114,8 @@ if __name__ == "__main__":
     parser.add_argument("--token-file", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--acknowledge-active-id", help="Explicitly acknowledged stuck prediction; other active requests still block testing")
+    parser.add_argument("--deadline-minutes", type=int, choices=(10, 20), default=10)
     args = parser.parse_args()
     token = args.token_file.read_text().strip() if args.token_file else os.environ["REPLICATE_API_TOKEN"]
-    run(args.version, token, args.out, acknowledged_active_id=args.acknowledge_active_id)
+    run(args.version, token, args.out, acknowledged_active_id=args.acknowledge_active_id,
+        deadline_minutes=args.deadline_minutes)

@@ -5,6 +5,28 @@ changing their settings. It starts a fresh headless Comfy subprocess per stage.
 Each prediction runs in an isolated worker with a 600-second total deadline. On timeout, the worker process group (including Comfy children) is terminated. This bounds inference, not image pull or platform setup time.
 Bundled weight reconstruction during setup has a separate 120-second deadline.
 
+### Experimental lazy weights
+
+`package_lazy_image` creates a model-free image from the validated runtime and
+current application source. It enables `SPRUTE_LAZY_WEIGHTS=1`:
+
+```sh
+python -m deploy.replicate.package_lazy_image sprute-replicate:scail-aligned \
+  --tag sprute-replicate:lazy
+```
+
+Setup stays lightweight. Each prediction first prepares only the weights needed
+for its input and requested stages, with a 600-second download deadline, then
+runs inference under the existing separate 600-second deadline. Use the smoke
+test's `--deadline-minutes 20` for this experiment; Replicate's setup deadline is
+independent. All child processes are terminated when their phase times out.
+
+`weights-manifest.json` pins revisions, sizes and SHA-256 hashes. FLUX and its VAE
+use public Comfy-Org copies verified against the existing bundled files. Files
+are verified after download and cached under `/src/models` for the lifetime of
+that worker. New workers have independent caches. No credentials are baked into
+the image. The bundled build route below remains available.
+
 Only one prediction runs at a time; outputs from the previous request are removed
 when the next request starts, after Cog has serialized them.
 
