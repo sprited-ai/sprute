@@ -1,0 +1,13 @@
+# Optional Kimodo layer. Build only after validating the base Sprute image.
+# Weights must be supplied separately; this layer does not download them.
+ARG BASE_IMAGE=sprute-replicate:bootstrap-fixed
+FROM ${BASE_IMAGE}
+RUN apt-get update && apt-get install -y --no-install-recommends cmake g++ libeigen3-dev && rm -rf /var/lib/apt/lists/*
+RUN git clone https://github.com/jtydhr88/ComfyUI-Kimodo.git /opt/ComfyUI-Kimodo && \
+    git -C /opt/ComfyUI-Kimodo checkout 9e758bce7f37eb1c4e5d2886463810c98c02b889
+# The sampler expands SOMA-RP to 77 joints. Postprocess must receive that same
+# skeleton, not the original reduced model skeleton.
+RUN python -c "from pathlib import Path; p=Path('/opt/ComfyUI-Kimodo/nodes.py'); s=p.read_text(); old='            skeleton=model.skeleton,'; assert s.count(old)==1; p.write_text(s.replace(old,'            skeleton=skel_for_viz,'))"
+RUN python -m pip install --no-cache-dir hydra-core==1.3.2 bvhio scenepic && \
+    python -m pip install --no-cache-dir --no-deps --no-build-isolation /opt/ComfyUI-Kimodo/kimodo/MotionCorrection
+RUN python -c "from importlib.metadata import distribution; from pathlib import Path; p=Path(distribution('comfyui').locate_file('comfy/custom_nodes'))/'ComfyUI-Kimodo'; p.symlink_to('/opt/ComfyUI-Kimodo'); import motion_correction; print('Kimodo native module ready')"

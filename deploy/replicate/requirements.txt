@@ -1,0 +1,14 @@
+--extra-index-url https://download.pytorch.org/whl/cu128
+--extra-index-url https://nodes.appmana.com/simple/
+comfyui==0.37.0.1
+torch==2.8.0+cu128
+torchvision==0.23.0+cu128
+typer
+rich
+pillow
+huggingface-hub
+psutil
+nvidia-ml-py
+scipy
+# Cog 0.16.8 requires attrs<24; newer cattrs requires attrs>=25.4.
+cattrs==23.2.3

@@ -56,3 +56,22 @@ def render_motion(
     )["4"]
     report("completed", f"Rendered {motion.name}")
     return data
+
+
+def generate_motion(prompt: str, *, seed: int, out: Path,
+                    on_event: Callable[[Event], None] | None = None) -> Path:
+    """Generate and render one finite Kimodo clip with the standard mannequin."""
+    if not prompt.strip():
+        raise ValueError("A motion prompt is required")
+    graph = json.loads(Path("workflows/sprute-kimodo-motion.api.json").read_text())
+    graph["2"]["inputs"]["prompt"] = prompt
+    graph["3"]["inputs"]["seed"] = seed
+    if on_event:
+        on_event(Event("started", "Generating Kimodo motion", timed=True))
+    data = run_workflow(graph, output_node_ids=("8",), on_event=on_event)["8"]
+    out.mkdir(parents=True, exist_ok=True)
+    destination = out / "sprite.driving.webp"
+    destination.write_bytes(data)
+    if on_event:
+        on_event(Event("completed", f"Driving motion saved: {destination}"))
+    return destination

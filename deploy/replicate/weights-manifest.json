@@ -1,0 +1,138 @@
+{
+  "flux-fill": {
+    "repo_id": "Comfy-Org/flux1-dev",
+    "filename": "split_files/diffusion_models/flux1-fill-dev.safetensors",
+    "revision": "83c446ef27a6ac1e9e36ecf13257283aa12cf22a",
+    "destination": "diffusion_models/flux1-fill-dev.safetensors",
+    "size": 23804922408,
+    "sha256": "03e289f530df51d014f48e675a9ffa2141bc003259bf5f25d75b957e920a41ca"
+  },
+  "clip-l": {
+    "repo_id": "comfyanonymous/flux_text_encoders",
+    "filename": "clip_l.safetensors",
+    "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+    "destination": "text_encoders/clip_l.safetensors",
+    "size": 246144152,
+    "sha256": "660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd"
+  },
+  "t5-xxl": {
+    "repo_id": "comfyanonymous/flux_text_encoders",
+    "filename": "t5xxl_fp16.safetensors",
+    "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+    "destination": "text_encoders/t5xxl_fp16.safetensors",
+    "size": 9787841024,
+    "sha256": "6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635"
+  },
+  "flux-vae": {
+    "repo_id": "Comfy-Org/Lumina_Image_2.0_Repackaged",
+    "filename": "split_files/vae/ae.safetensors",
+    "revision": "5b072540ef86570fecb8249c505f23d5bdeb88cd",
+    "destination": "vae/ae.safetensors",
+    "size": 335304388,
+    "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
+  },
+  "anisora-high": {
+    "repo_id": "Kijai/WanVideo_comfy_fp8_scaled",
+    "filename": "I2V/AniSora/Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+    "revision": "033a4e487f60220b3d6e469599a6aebc46e13cee",
+    "destination": "diffusion_models/Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+    "size": 15002999874,
+    "sha256": "f7c0904ea138964f47c8cea732a8bae3e4268d6b6775572f6cbdd1316fe6f2eb"
+  },
+  "anisora-low": {
+    "repo_id": "Kijai/WanVideo_comfy_fp8_scaled",
+    "filename": "I2V/AniSora/Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+    "revision": "033a4e487f60220b3d6e469599a6aebc46e13cee",
+    "destination": "diffusion_models/Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+    "size": 15002999866,
+    "sha256": "6dceea0a08b2fab35824c89891eed6f3393796ef0d3b6ba46a3ebae33998a933"
+  },
+  "umt5-xxl": {
+    "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "filename": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "destination": "text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+    "size": 6735906897,
+    "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68"
+  },
+  "clip-vision-h": {
+    "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "filename": "split_files/clip_vision/clip_vision_h.safetensors",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "destination": "clip_vision/clip_vision_h.safetensors",
+    "size": 1264219396,
+    "sha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161"
+  },
+  "wan-vae": {
+    "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+    "filename": "split_files/vae/wan_2.1_vae.safetensors",
+    "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+    "destination": "vae/wan_2.1_vae.safetensors",
+    "size": 253815318,
+    "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b"
+  },
+  "wan-vae-bf16": {
+    "repo_id": "Kijai/WanVideo_comfy",
+    "filename": "Wan2_1_VAE_bf16.safetensors",
+    "revision": "8260d429d19fd7a72304cad059160b95d843913f",
+    "destination": "vae/Wan2_1_VAE_bf16.safetensors",
+    "size": 253806278,
+    "sha256": "1ab9a32cc2c740f6e39d80d367ce5dcc28db8c71b79b28670546b8973e9d75f9"
+  },
+  "scail2": {
+    "repo_id": "Comfy-Org/SCAIL-2",
+    "filename": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+    "revision": "fe3c728bc793ba21ca674688f822afb709ad44fb",
+    "destination": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+    "size": 17694586857,
+    "sha256": "11513b4697ecf566de0cb74660c478f301fb6699a62b10369e91a6ed0fd6b083"
+  },
+  "scail2-dpo": {
+    "repo_id": "Comfy-Org/SCAIL-2",
+    "filename": "loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
+    "revision": "fe3c728bc793ba21ca674688f822afb709ad44fb",
+    "destination": "loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
+    "size": 1226936552,
+    "sha256": "b106522036f64e50f5f8ae3b808973515ff442cc2fac27b65d875eafb95b89e2"
+  },
+  "lightx2v": {
+    "repo_id": "Kijai/WanVideo_comfy",
+    "filename": "Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
+    "revision": "8260d429d19fd7a72304cad059160b95d843913f",
+    "destination": "loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
+    "size": 738005744,
+    "sha256": "85c4a61c30e0497aa44b91d93a893b624708461a56fe5485183b28fa07e2dfb3"
+  },
+  "toonout": {
+    "repo_id": "1038lab/BiRefNet",
+    "filename": "BiRefNet_toonout.safetensors",
+    "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+    "destination": "RMBG/BiRefNet/BiRefNet_toonout.safetensors",
+    "size": 884878824,
+    "sha256": "5ff451d2e1d15dd22a66efea05640f79e470467f89f8bdc239a81a6757f66093"
+  },
+  "birefnet-code": {
+    "repo_id": "1038lab/BiRefNet",
+    "filename": "birefnet.py",
+    "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+    "destination": "RMBG/BiRefNet/birefnet.py",
+    "size": 92068,
+    "sha256": "a9566611aa07a6fbb68ddb6ac8e19e62c879a428fbfc2f44efa53d233f2e302f"
+  },
+  "birefnet-config-code": {
+    "repo_id": "1038lab/BiRefNet",
+    "filename": "BiRefNet_config.py",
+    "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+    "destination": "RMBG/BiRefNet/BiRefNet_config.py",
+    "size": 298,
+    "sha256": "e7b8c2a74f6cea6a59553d517f71d47f2c1d90e670a13416af17c25fe2f3dc52"
+  },
+  "birefnet-config": {
+    "repo_id": "1038lab/BiRefNet",
+    "filename": "config.json",
+    "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+    "destination": "RMBG/BiRefNet/config.json",
+    "size": 402,
+    "sha256": "966a1f0165b072d2d1309756e71907750e535ba5c3790d8cd0e69713ff3a56cd"
+  }
+}

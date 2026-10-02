@@ -1,0 +1,306 @@
+"""Pipeline contracts without downloading models or running GPU inference."""
+import json
+from io import BytesIO
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+from PIL import Image
+import predict
+from deploy.replicate.metrics import PeakMemory
+from deploy.replicate import smoke
+
+
+class SmokeTests(unittest.TestCase):
+    def test_success_downloads_artifacts_before_urls_expire(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded',
+                                       'output': ['https://example.com/sprite.png']}]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses] + [BytesIO(b'png-bytes')]) as http:
+            output = Path(directory) / 'test'
+            smoke.run('v', 'test-token', output)
+            self.assertEqual((output / 'sprite.png').read_bytes(), b'png-bytes')
+            self.assertFalse((output / 'sprite.png.partial').exists())
+            self.assertNotIn('Authorization', http.call_args.args[0].headers)
+
+    def test_acknowledged_request_does_not_allow_other_active_jobs(self):
+        responses = [self.response(r) for r in [
+            {'visibility': 'public'},
+            {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+            {'results': [
+                {'id': 'stuck', 'model': smoke.MODEL, 'status': 'starting'},
+                {'id': 'other', 'model': smoke.MODEL, 'status': 'processing'},
+            ]},
+        ]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=responses) as http:
+            with self.assertRaisesRegex(RuntimeError, 'still active'):
+                smoke.run('v', 'test-token', Path(directory) / 'test', acknowledged_active_id='stuck')
+            self.assertTrue(all(c.args[0].get_method() == 'GET' for c in http.call_args_list))
+
+    def test_failed_cancellation_records_unconfirmed_stop(self):
+        responses = [self.response(r) for r in [
+            {'visibility': 'public'},
+            {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+            {'results': []}, {'id': 'p', 'status': 'starting'},
+        ]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke.time, 'sleep'), \
+             patch.object(smoke, 'urlopen', side_effect=responses + [OSError('network'), OSError('cancel rejected')]) as http:
+            output = Path(directory) / 'test'
+            with self.assertRaisesRegex(RuntimeError, 'STOP NOT CONFIRMED'):
+                smoke.run('v', 'test-token', output)
+            record = json.loads((output / 'cancellation-failed.json').read_text())
+            self.assertFalse(record['stopped'])
+            self.assertEqual(record['id'], 'p')
+            creates = [c for c in http.call_args_list if c.args[0].get_method() == 'POST'
+                       and c.args[0].full_url.endswith('/predictions')]
+            self.assertEqual(len(creates), 1)
+
+    def test_damaged_docker_label_is_rejected(self):
+        schema = {'components': {'schemas': {
+            'Input': {'properties': {'mode': {'allOf': [{'': '#/components/schemas/Mode'}]}}},
+            'Output': {}, 'Mode': {'enum': ['a', 'b']},
+        }}}
+        with self.assertRaisesRegex(ValueError, 'empty key'):
+            smoke.validate_schema(schema)
+        schema['components']['schemas']['Input']['properties']['mode']['allOf'][0] = {'$ref': '#/components/schemas/Mode'}
+        smoke.validate_schema(schema)
+
+    def response(self, value):
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(value).encode()
+        return response
+
+    def test_private_model_is_rejected_before_prediction(self):
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', return_value=self.response({'visibility': 'private'})) as http:
+            with self.assertRaisesRegex(RuntimeError, 'private-model'):
+                smoke.run('v', 'test-token', Path(directory) / 'test')
+            self.assertEqual(http.call_count, 1)
+
+    def test_one_prediction_has_server_deadline(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []},
+                     {'id': 'p', 'status': 'succeeded'}]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
+            smoke.run('v', 'test-token', Path(directory) / 'test')
+            request = http.call_args.args[0]
+            self.assertEqual(request.get_header('Cancel-after'), '10m')
+            self.assertEqual(json.loads(request.data)['input']['stop_after'], 'generate')
+            self.assertEqual(sum(c.args[0].get_method() == 'POST' for c in http.call_args_list), 1)
+
+    def test_uncertain_submission_is_not_retried(self):
+        responses = [self.response(r) for r in
+                     [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []}]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=responses + [TimeoutError('network')]) as http:
+            with self.assertRaises(TimeoutError):
+                smoke.run('v', 'test-token', Path(directory) / 'test')
+            self.assertEqual(http.call_count, 4)
+
+    def test_explicit_stage_inputs_preserve_deadline_and_single_submission(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded'}]
+        inputs = {'image': 'https://example.com/strip.png', 'image_type': 'directions',
+                  'stop_after': 'animate', 'motions': 'idle,walk,run', 'seed': 42}
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
+            smoke.run('v', 'test-token', Path(directory) / 'test', inputs=inputs, deadline_minutes=20)
+            request = http.call_args.args[0]
+            self.assertEqual(json.loads(request.data)['input'], inputs)
+            self.assertEqual(request.get_header('Cancel-after'), '20m')
+            self.assertEqual(sum(c.args[0].get_method() == 'POST' for c in http.call_args_list), 1)
+
+    def test_lazy_test_can_use_twenty_minute_server_deadline(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded'}]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
+            smoke.run('v', 'test-token', Path(directory) / 'test', deadline_minutes=20)
+            self.assertEqual(http.call_args.args[0].get_header('Cancel-after'), '20m')
+
+    def test_poll_failure_cancels_known_prediction(self):
+        responses = [self.response(r) for r in
+                     [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}}, {'results': []},
+                      {'id': 'p', 'status': 'starting'}]]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke.time, 'sleep'), \
+             patch.object(smoke, 'urlopen', side_effect=responses + [OSError('network'), self.response({'status': 'canceled'})]) as http:
+            output = Path(directory) / 'test'
+            with self.assertRaises(OSError):
+                smoke.run('v', 'test-token', output)
+            self.assertTrue(http.call_args.args[0].full_url.endswith('/p/cancel'))
+            self.assertEqual(json.loads((output / 'prediction.json').read_text())['status'], 'canceled')
+
+
+class PredictorTests(unittest.TestCase):
+    def setUp(self):
+        self.predictor = predict.Predictor()
+        self.predictor.setup()
+        self.predictor.output = Path(tempfile.mkdtemp(prefix='sprute-test-'))
+        self.inputs = tempfile.TemporaryDirectory()
+        self.image = Path(self.inputs.name) / 'upload.png'
+        Image.new('RGBA', (64, 64)).save(self.image)
+
+    def tearDown(self):
+        self.inputs.cleanup()
+        if self.predictor.output:
+            import shutil
+            shutil.rmtree(self.predictor.output, ignore_errors=True)
+
+    def run_prediction(self, **overrides):
+        inputs = dict(prompt='test', image=None, image_type='character',
+                      stop_after='animate', motions='idle,walk,run', seed=42)
+        inputs.update(overrides)
+        return self.predictor.run_pipeline(**inputs)
+
+    def fake_output(self, *args, **kwargs):
+        path = kwargs['out'] / 'result.png'
+        Image.new('RGBA', (64, 64)).save(path)
+        return path
+
+    def test_required_inputs(self):
+        with self.assertRaisesRegex(ValueError, 'prompt or an image'):
+            self.run_prediction(prompt=' ')
+        with self.assertRaisesRegex(ValueError, 'before'):
+            self.run_prediction(image=self.image, image_type='directions', stop_after='turntable')
+        with self.assertRaisesRegex(ValueError, 'motions'):
+            self.run_prediction(motions='jump')
+
+    def test_full_pipeline_connects_files_and_runs_separate_motions(self):
+        calls = []
+        def stage(name):
+            def execute(*args, **kwargs):
+                calls.append((name, args, kwargs['seed']))
+                return self.fake_output(*args, **kwargs)
+            return execute
+        with patch.object(predict, 'generate', side_effect=stage('generate')), \
+             patch.object(predict, 'turntable', side_effect=stage('turntable')), \
+             patch.object(predict, 'animate', side_effect=stage('animate')):
+            self.run_prediction()
+        self.assertEqual([c[0] for c in calls], ['generate', 'turntable', 'animate', 'animate', 'animate'])
+        self.assertEqual([c[1][1] for c in calls[2:]], ['idle', 'walk', 'run'])
+        self.assertTrue(all(c[2] == 42 for c in calls))
+        self.assertEqual(calls[1][1][0], self.predictor.output / 'result.png')
+        metrics = json.loads((self.predictor.output / 'metrics.json').read_text())
+        self.assertEqual(len(metrics['stages']), 5)
+        self.assertEqual(metrics['status'], 'succeeded')
+
+    def test_character_skips_generate_and_stop_after_turntable(self):
+        with patch.object(predict, 'generate') as generate, \
+             patch.object(predict, 'turntable', side_effect=self.fake_output) as turntable, \
+             patch.object(predict, 'animate') as animate:
+            self.run_prediction(image=self.image, stop_after='turntable')
+        generate.assert_not_called()
+        animate.assert_not_called()
+        turntable.assert_called_once()
+
+    def test_directions_skips_earlier_stages_and_deduplicates_motions(self):
+        with patch.object(predict, 'generate') as generate, \
+             patch.object(predict, 'turntable') as turntable, \
+             patch.object(predict, 'animate', side_effect=self.fake_output) as animate:
+            self.run_prediction(image=self.image, image_type='directions', motions='run, run')
+        generate.assert_not_called()
+        turntable.assert_not_called()
+        animate.assert_called_once()
+
+    def test_random_seed(self):
+        with patch.object(predict, 'generate', side_effect=self.fake_output) as generate:
+            self.run_prediction(stop_after='generate', seed=-1)
+        self.assertTrue(0 <= generate.call_args.kwargs['seed'] <= 4294967295)
+
+    def test_custom_motion_connects_driver_and_replaces_presets(self):
+        with patch.object(predict, 'generate_motion', side_effect=self.fake_output) as motion, \
+             patch.object(predict, 'animate', side_effect=self.fake_output) as animate:
+            self.run_prediction(image=self.image, image_type='directions', motion_prompt='Wave hello')
+        motion.assert_called_once()
+        animate.assert_called_once()
+        self.assertEqual(animate.call_args.args[1], 'custom')
+        self.assertEqual(animate.call_args.kwargs['driving_video'], self.predictor.output / 'result.png')
+        with self.assertRaisesRegex(ValueError, 'requires stop_after'):
+            self.run_prediction(stop_after='generate', motion_prompt='Wave hello')
+
+    def test_scale_only_reaches_animation(self):
+        with patch.object(predict, 'generate', side_effect=self.fake_output) as generate, \
+             patch.object(predict, 'turntable', side_effect=self.fake_output) as turntable, \
+             patch.object(predict, 'animate', side_effect=self.fake_output) as animate:
+            self.run_prediction(scale=0.85)
+        self.assertNotIn('scale', generate.call_args.kwargs)
+        self.assertNotIn('scale', turntable.call_args.kwargs)
+        self.assertEqual(animate.call_args.kwargs['scale'], 0.85)
+        with self.assertRaises(ValueError):
+            self.run_prediction(scale=float('nan'))
+
+    def test_hosted_entry_uses_bounded_worker_and_isolates_outputs(self):
+        previous = self.predictor.output
+        (previous / 'old.png').touch()
+        def worker(command, **kwargs):
+            self.assertGreater(kwargs['timeout'], 0)
+            self.assertLessEqual(kwargs['timeout'], 900)
+            request = Path(command[-1])
+            data = json.loads(request.read_text())
+            self.assertEqual(data['scale'], 0.95)
+            (request.parent / 'sprite.png').touch()
+        with patch.object(predict, 'run_bounded', side_effect=worker):
+            files = self.predictor.predict(prompt='test', image=None, image_type='character',
+                stop_after='generate', motions='run', seed=42, scale=0.95)
+        self.assertFalse(previous.exists())
+        self.assertEqual([p.name for p in files], ['sprite.png'])
+
+    def test_failure_records_stage_and_stops_pipeline(self):
+        with patch.object(predict, 'generate', side_effect=RuntimeError('inference failed')), \
+             patch.object(predict, 'turntable') as turntable:
+            with self.assertRaisesRegex(RuntimeError, 'inference failed'):
+                self.run_prediction()
+        turntable.assert_not_called()
+        metrics = json.loads((self.predictor.output / 'metrics.json').read_text())
+        self.assertEqual(metrics['status'], 'failed')
+        self.assertEqual(metrics['stages'][0]['status'], 'failed')
+
+    def test_download_time_reduces_remaining_inference_budget(self):
+        with patch.dict('os.environ', {'SPRUTE_LAZY_WEIGHTS': '1'}), \
+             patch.object(predict, 'perf_counter', side_effect=[0, 500]), \
+             patch.object(predict, 'run_bounded') as worker:
+            self.predictor.predict(prompt='test', image=None, image_type='character',
+                stop_after='animate', motions='idle,walk,run', seed=42, scale=1.0)
+        self.assertEqual([call.kwargs['timeout'] for call in worker.call_args_list], [600, 700])
+
+    def test_failed_lazy_download_never_starts_inference(self):
+        with patch.dict('os.environ', {'SPRUTE_LAZY_WEIGHTS': '1'}), \
+             patch.object(predict, 'run_bounded', side_effect=RuntimeError('download failed')) as worker:
+            with self.assertRaisesRegex(RuntimeError, 'download failed'):
+                self.predictor.predict(prompt='test', image=None, image_type='character',
+                    stop_after='generate', motions='walk', seed=42, scale=1.0)
+            worker.assert_called_once()
+            self.assertIn('deploy.replicate.lazy_weights', worker.call_args.args[0])
+            self.assertEqual(worker.call_args.kwargs['timeout'], 600)
+            self.assertFalse((self.predictor.output / 'request.json').exists())
+
+
+class MemoryTests(unittest.TestCase):
+    def test_peak_is_maximum_sample_not_last(self):
+        nvml = MagicMock()
+        nvml.nvmlDeviceGetCount.return_value = 1
+        nvml.nvmlDeviceGetUUID.return_value = 'GPU-test'
+        nvml.nvmlDeviceGetMemoryInfo.side_effect = [
+            type('Memory', (), {'used': n})() for n in (100, 500, 200)]
+        with patch.dict('sys.modules', {'pynvml': nvml}):
+            with PeakMemory(interval=60) as meter:
+                meter.sample()
+                meter.sample()
+        self.assertEqual(meter.result()['peak_device_memory_bytes'], {'GPU-test': 500})
+        nvml.nvmlShutdown.assert_called_once()
+
+    def test_missing_nvml_is_reported_not_zero_gpu(self):
+        with patch.dict('sys.modules', {'pynvml': None}):
+            with PeakMemory() as meter:
+                pass
+        self.assertEqual(meter.result()['peak_device_memory_bytes'], {})
+        self.assertIsNotNone(meter.result()['telemetry_error'])
+        self.assertFalse(meter.thread.is_alive())
+
+
+if __name__ == '__main__':
+    unittest.main()

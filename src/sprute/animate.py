@@ -18,6 +18,7 @@ def animate(
     seed: int | None = None,
     draft: bool = False,
     scale: float = 1.0,
+    driving_video: Path | None = None,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
@@ -31,7 +32,7 @@ def animate(
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
-    motion_file = find_motion(motion).resolve()
+    motion_file = (driving_video or find_motion(motion)).resolve(strict=True)
     directions = directions.expanduser().resolve(strict=True)
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
