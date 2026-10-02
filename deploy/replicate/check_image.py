@@ -39,13 +39,13 @@ if marker.exists():
     raise RuntimeError('Replicate bootstrap is blocked by EXTERNALLY-MANAGED')
 cog = metadata.version('cog')
 print(f'Python: {sys.executable}; Cog: {cog}', flush=True)
-expected = {'python': '3.12.14', 'torch': '2.11.0+cu128',
-            'torchvision': '0.26.0+cu128', 'cuda': '12.8', 'cog': '0.16.8'}
-actual = {'python': platform.python_version(), 'torch': torch.__version__,
+expected = {'python': '3.12', 'torch': '2.8.0+cu128',
+            'torchvision': '0.23.0+cu128', 'cuda': '12.8', 'cog': '0.16.8'}
+actual = {'python': '.'.join(platform.python_version_tuple()[:2]), 'torch': torch.__version__,
           'torchvision': metadata.version('torchvision'),
           'cuda': torch.version.cuda, 'cog': cog}
 if actual != expected:
-    raise RuntimeError(f'Runtime differs from validated SCAIL-2 stack: {actual}')
+    raise RuntimeError(f'Runtime differs from the shared Cog base stack: {actual}')
 print(f'Runtime versions match: {actual}', flush=True)
 subprocess.run([sys.executable, '-m', 'pip', 'check'], check=True, timeout=30)
 subprocess.run([sys.executable, '-m', 'pip', 'install', '--dry-run',

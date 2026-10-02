@@ -232,6 +232,17 @@ class PredictorTests(unittest.TestCase):
         self.assertEqual(metrics['status'], 'failed')
         self.assertEqual(metrics['stages'][0]['status'], 'failed')
 
+    def test_failed_lazy_download_never_starts_inference(self):
+        with patch.dict('os.environ', {'SPRUTE_LAZY_WEIGHTS': '1'}), \
+             patch.object(predict, 'run_bounded', side_effect=RuntimeError('download failed')) as worker:
+            with self.assertRaisesRegex(RuntimeError, 'download failed'):
+                self.predictor.predict(prompt='test', image=None, image_type='character',
+                    stop_after='generate', motions='walk', seed=42, scale=1.0)
+            worker.assert_called_once()
+            self.assertIn('deploy.replicate.lazy_weights', worker.call_args.args[0])
+            self.assertEqual(worker.call_args.kwargs['timeout'], 600)
+            self.assertFalse((self.predictor.output / 'request.json').exists())
+
 
 class MemoryTests(unittest.TestCase):
     def test_peak_is_maximum_sample_not_last(self):

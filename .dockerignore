@@ -15,3 +15,6 @@ sprute.config.json
 models/diffusion_models/wan2.1_14B_SCAIL_2_fp16.safetensors
 assets/sprute-*-81*
 scripts
+
+# Weights are fetched per worker; keep the standard Cog image lightweight.
+models

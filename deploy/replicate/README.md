@@ -1,74 +1,49 @@
 # Sprute on Replicate
 
-This adapter runs the committed generate, turntable and animate workflows without
-changing their settings. It starts a fresh headless Comfy subprocess per stage.
-Each prediction runs in an isolated worker with a 600-second total deadline. On timeout, the worker process group (including Comfy children) is terminated. This bounds inference, not image pull or platform setup time.
-Bundled weight reconstruction during setup has a separate 120-second deadline.
+This adapter runs Sprute's committed generate, turntable and animate workflows.
+Each stage uses the existing headless Comfy runner.
 
-### Experimental lazy weights
+## Standard Cog build
 
-`package_lazy_image` creates a model-free image from the validated runtime and
-current application source. It enables `SPRUTE_LAZY_WEIGHTS=1`:
-
-```sh
-python -m deploy.replicate.package_lazy_image sprute-replicate:scail-aligned \
-  --tag sprute-replicate:lazy
-```
-
-Setup stays lightweight. Each prediction first prepares only the weights needed
-for its input and requested stages, with a 600-second download deadline, then
-runs inference under the existing separate 600-second deadline. Use the smoke
-test's `--deadline-minutes 20` for this experiment; Replicate's setup deadline is
-independent. All child processes are terminated when their phase times out.
-
-`weights-manifest.json` pins revisions, sizes and SHA-256 hashes. FLUX and its VAE
-use public Comfy-Org copies verified against the existing bundled files. Files
-are verified after download and cached under `/src/models` for the lifetime of
-that worker. New workers have independent caches. No credentials are baked into
-the image. The bundled build route below remains available.
-
-Only one prediction runs at a time; outputs from the previous request are removed
-when the next request starts, after Cog has serialized them.
-
-## Build and test (Linux with NVIDIA Docker)
-
-Use the Cog 0.23.0 builder with SDK 0.16.8, matching SCAIL-2. Run from the
-repository root. The image uses the Python 3.12.14 slim base (not an NVIDIA CUDA
-base), CUDA 12.8 wheels, PyTorch 2.11.0 and ComfyUI 0.37.0.1. Custom node commits match
-`src/sprute/setup.py`. Transitive dependencies are not fully locked yet.
-`cattrs==23.2.3` keeps Comfy's requests-cache compatible with the older `attrs`
-required by Cog 0.16.8; the image check includes `pip check` and an import probe.
+Use Cog's default prebuilt base image. The supported combination is CUDA 12.8,
+Python 3.12 and PyTorch 2.8.0 (`r8.im/cog-base:cuda12.8-python3.12-torch2.8.0`).
+Keep the default `--use-cog-base-image` setting enabled; no custom Dockerfile,
+filesystem repackaging, or base-image override is needed. These shared base
+layers are pre-pulled on Replicate, although worker availability and cold-start
+latency are still platform-dependent.
 
 ```sh
-# Generate with cog==0.16.8 installed; this imports the predictor without setup.
+# Generate the schema with the pinned cog==0.16.8 SDK.
 python deploy/replicate/generate_schema.py
-cog build --use-cuda-base-image=false --openapi-schema openapi-upload.json -t sprute-replicate:test
-docker pull python:3.12.14-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+cog build --openapi-schema openapi-upload.json -t sprute-replicate:test
 python -m deploy.replicate.check_image sprute-replicate:test \
-  --base-image python:3.12.14-slim@sha256:f77ac9e44ae96ef2c90b8053ea08c31f8be030f824196b0ae4db6d462c84e51f
+  --base-image r8.im/cog-base:cuda12.8-python3.12-torch2.8.0
 ```
 
-The image check rejects damaged OpenAPI references, checks the base layers and
-runtime versions against the validated SCAIL-2 stack, and verifies Python permits
-Replicate's runtime package installation. It runs without network or GPU access.
-Build-time `--break-system-packages` alone does not fix runtime bootstrap: the
-container's `EXTERNALLY-MANAGED` marker must also be removed. This check does not
-replace starting the actual Cog server and verifying a hosted prediction.
+The SDK remains pinned to 0.16.8 for the validated output contract.
+`cattrs==23.2.3` preserves compatibility with its `attrs` dependency.
+The image check validates runtime versions, schema references and `pip check`.
+Actual Cog readiness and inference must also pass before a hosted test.
 
-Do not submit another smoke prediction while an earlier one is nonterminal.
-A failed cancellation is not confirmation that the remote worker stopped.
+## Lazy weights
 
-For the prepared gin release context containing `models/.parts/manifest.json`,
-repackage the validated build before upload:
+`models/` is excluded from the image. Setup stays lightweight. Each prediction
+prepares only the weights needed for its input and requested stages, with a
+600-second download deadline, then runs inference under a separate 600-second
+deadline. Child process groups are terminated on timeout. Use the smoke test's
+`--deadline-minutes 20`; Replicate's setup timeout is independent.
 
-```sh
-python -m deploy.replicate.package_image sprute-replicate:test \
-  --tag sprute-replicate:release
-```
+`weights-manifest.json` pins repository revisions, sizes and SHA-256 hashes.
+The public Comfy-Org FLUX and VAE copies match the previously bundled files.
+Downloaded weights are verified and cached under `/src/models` for the lifetime
+of that worker. A new worker has its own cache. No credentials are embedded.
+`SPRUTE_LAZY_WEIGHTS=0` disables downloads for offline tests with mounted weights.
 
-This pins the base by digest, copies each bundled weight into its own layer,
-and excludes the full FLUX checkpoint when its split parts are present. It
-preserves Cog labels as Docker CLI arguments so `$ref` strings are not expanded.
+Only one prediction runs at a time. Previous outputs are removed when the next
+request starts, after Cog has serialized them. The cache is outside that cleanup.
+Do not submit another smoke prediction while an earlier one is nonterminal unless
+that specific stuck request has been explicitly acknowledged. A failed cancel
+call does not confirm that a worker stopped.
 
 ## Experimental Kimodo motion
 
@@ -106,35 +81,11 @@ connectivity, not faithful reproduction of every generated motion.
 The source-built dependency image also completed offline generation; all 81
 decoded RGBA frames matched the initial test using the prebuilt native module.
 
-Weights are **not downloaded at startup**. Prepare `models/` before publishing,
-using Sprute's pinned model manifest and ordinary Comfy category layout. With the
-Sprute dependencies installed in your development environment:
+## Local inference
 
-```sh
-PYTHONPATH=src python -c 'from sprute.setup import setup_models; setup_models(report=lambda state, message, **kw: print(message))'
-```
-
-The download size is reported by setup from the pinned model manifest. HF access to gated repositories must already be
-configured. Do not put credentials in the Docker build context. `.dockerignore`
-excludes local config and `.env` files; `models/` is intentionally included for
-publishing. Use real files: host symlinks pointing outside the build context will
-not make their targets available in a deployment.
-
-For gin tests, mount existing weights read-only instead of downloading them again.
-Mount any external symlink targets too, or use a directory with regular files.
-The pinned RMBG node rewrites `RMBG/BiRefNet/birefnet.py` on load: for real
-inference with read-only weights, overlay a writable copy of that file. Baked-in
-models use the container writable layer and do not need this extra mount.
-
-```sh
-docker run --rm --gpus all \
-  -v "$PWD:/src" -w /src \
-  -v /path/to/models:/weights:ro \
-  -e SPRUTE_MODELS_DIRECTORY=/weights \
-  sprute-replicate:test python -m unittest discover -s tests -p test_replicate.py
-```
-
-Once weights are in `models/`:
+For an offline test, mount a writable model directory and set
+`SPRUTE_LAZY_WEIGHTS=0`. RMBG patches its small Python helper in that directory.
+For a cold-download test, start with an empty writable directory instead.
 
 ```sh
 cog run -i prompt='A cheerful pink-haired adventurer' -i stop_after=generate -i seed=42
@@ -212,11 +163,12 @@ have those charges. See https://replicate.com/docs/topics/billing .
 
 ```sh
 python deploy/replicate/smoke.py --version EXACT_VERSION_HASH \
-  --token-file /secure/path/replicate-token --out /tmp/sprute-smoke-unique
+  --token-file /secure/path/replicate-token --out /tmp/sprute-smoke-unique \
+  --deadline-minutes 20
 ```
 
 This checks visibility and version, submits **one generate-only request**, includes
-server-side `Cancel-After: 10m`, records its ID/status, and requests cancellation
+server-side `Cancel-After: 20m` (10 minutes when the flag is omitted), records its ID/status, and requests cancellation
 on monitoring failure. It never retries submission, even if the response is lost.
 In that case inspect the account prediction list; the server deadline still applies.
 Run only one smoke script at a time. This is a request time limit, not a dollar
