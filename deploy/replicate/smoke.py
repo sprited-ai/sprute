@@ -87,6 +87,7 @@ def run(version, token, output, *, acknowledged_active_id=None):
             try:
                 canceled = request("/predictions/" + prediction["id"] + "/cancel", {})
                 (output / "cancellation.json").write_text(json.dumps(canceled, indent=2))
+                (output / "prediction.json").write_text(json.dumps(canceled, indent=2))
                 if canceled["status"] not in TERMINAL:
                     raise RuntimeError(f"Cancellation returned {canceled['status']}")
                 print("Confirmed terminal status:", canceled["status"], flush=True)

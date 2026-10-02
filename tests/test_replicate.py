@@ -94,9 +94,11 @@ class SmokeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, \
              patch.object(smoke.time, 'sleep'), \
              patch.object(smoke, 'urlopen', side_effect=responses + [OSError('network'), self.response({'status': 'canceled'})]) as http:
+            output = Path(directory) / 'test'
             with self.assertRaises(OSError):
-                smoke.run('v', 'test-token', Path(directory) / 'test')
+                smoke.run('v', 'test-token', output)
             self.assertTrue(http.call_args.args[0].full_url.endswith('/p/cancel'))
+            self.assertEqual(json.loads((output / 'prediction.json').read_text())['status'], 'canceled')
 
 
 class PredictorTests(unittest.TestCase):
