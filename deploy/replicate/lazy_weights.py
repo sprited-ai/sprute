@@ -93,7 +93,10 @@ def ensure_weights(inputs, directory, *, manifest=None):
             print(f"[weights] Verified {name} in {monotonic() - started:.1f}s", flush=True)
 
         started = monotonic()
-        with ThreadPoolExecutor(max_workers=3) as pool:
+        # Start the largest files together; otherwise full-pipeline requests
+        # leave SCAIL queued behind both AniSora checkpoints until near timeout.
+        missing.sort(key=lambda name: manifest[name]["size"], reverse=True)
+        with ThreadPoolExecutor(max_workers=5) as pool:
             list(pool.map(fetch, missing))
         print(f"[weights] Ready in {monotonic() - started:.1f}s", flush=True)
 

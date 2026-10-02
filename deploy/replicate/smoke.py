@@ -2,10 +2,12 @@
 import argparse
 import json
 import os
+import shutil
 from pathlib import Path
 import time
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
+from urllib.parse import urlparse
 
 API = "https://api.replicate.com/v1"
 MODEL = "sprited/sprute"
@@ -35,7 +37,7 @@ def validate_schema(schema):
     check(schema)
 
 
-def run(version, token, output, *, acknowledged_active_id=None, deadline_minutes=10):
+def run(version, token, output, *, acknowledged_active_id=None, deadline_minutes=10, inputs=None):
     if deadline_minutes not in (10, 20):
         raise ValueError("Test deadline must be 10 or 20 minutes")
     deadline_seconds = deadline_minutes * 60
@@ -62,7 +64,7 @@ def run(version, token, output, *, acknowledged_active_id=None, deadline_minutes
            for p in recent.get("results", [])):
         raise RuntimeError("An existing Sprute prediction is still active; inspect it first.")
 
-    payload = {"version": version, "input": {
+    payload = {"version": version, "input": inputs if inputs is not None else {
         "prompt": "pixelated retro pixel art cute NPC girl wearing a pink dress",
         "stop_after": "generate", "motions": "run", "seed": 42,
     }}
@@ -105,7 +107,16 @@ def run(version, token, output, *, acknowledged_active_id=None, deadline_minutes
                 ) from error
     if prediction["status"] != "succeeded":
         raise RuntimeError(f"Prediction {prediction['status']}: {prediction.get('error')}")
-    print("Succeeded. Outputs and peak-memory report URLs are in prediction.json.")
+    for index, url in enumerate(prediction.get("output") or []):
+        name = Path(urlparse(url).path).name
+        if not name or (output / name).exists():
+            name = f"output-{index}{Path(name).suffix}"
+        temporary = output / (name + ".partial")
+        with urlopen(Request(url, headers={"User-Agent": "sprute-replicate-smoke/0.2"}), timeout=60) as response, temporary.open("wb") as stream:
+            shutil.copyfileobj(response, stream)
+        temporary.replace(output / name)
+        print("Saved:", name, flush=True)
+    print("Succeeded. Outputs and peak-memory report saved locally.")
 
 
 if __name__ == "__main__":
@@ -115,7 +126,9 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--acknowledge-active-id", help="Explicitly acknowledged stuck prediction; other active requests still block testing")
     parser.add_argument("--deadline-minutes", type=int, choices=(10, 20), default=10)
+    parser.add_argument("--input-json", type=Path, help="Explicit prediction inputs for staged or full-pipeline testing")
     args = parser.parse_args()
     token = args.token_file.read_text().strip() if args.token_file else os.environ["REPLICATE_API_TOKEN"]
     run(args.version, token, args.out, acknowledged_active_id=args.acknowledge_active_id,
-        deadline_minutes=args.deadline_minutes)
+        deadline_minutes=args.deadline_minutes,
+        inputs=json.loads(args.input_json.read_text()) if args.input_json else None)

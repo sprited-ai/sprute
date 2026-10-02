@@ -1,5 +1,6 @@
 """Pipeline contracts without downloading models or running GPU inference."""
 import json
+from io import BytesIO
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +12,18 @@ from deploy.replicate import smoke
 
 
 class SmokeTests(unittest.TestCase):
+    def test_success_downloads_artifacts_before_urls_expire(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded',
+                                       'output': ['https://example.com/sprite.png']}]
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses] + [BytesIO(b'png-bytes')]) as http:
+            output = Path(directory) / 'test'
+            smoke.run('v', 'test-token', output)
+            self.assertEqual((output / 'sprite.png').read_bytes(), b'png-bytes')
+            self.assertFalse((output / 'sprite.png.partial').exists())
+            self.assertNotIn('Authorization', http.call_args.args[0].headers)
+
     def test_acknowledged_request_does_not_allow_other_active_jobs(self):
         responses = [self.response(r) for r in [
             {'visibility': 'public'},
@@ -86,6 +99,19 @@ class SmokeTests(unittest.TestCase):
             with self.assertRaises(TimeoutError):
                 smoke.run('v', 'test-token', Path(directory) / 'test')
             self.assertEqual(http.call_count, 4)
+
+    def test_explicit_stage_inputs_preserve_deadline_and_single_submission(self):
+        responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
+                     {'results': []}, {'id': 'p', 'status': 'succeeded'}]
+        inputs = {'image': 'https://example.com/strip.png', 'image_type': 'directions',
+                  'stop_after': 'animate', 'motions': 'idle,walk,run', 'seed': 42}
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(smoke, 'urlopen', side_effect=[self.response(r) for r in responses]) as http:
+            smoke.run('v', 'test-token', Path(directory) / 'test', inputs=inputs, deadline_minutes=20)
+            request = http.call_args.args[0]
+            self.assertEqual(json.loads(request.data)['input'], inputs)
+            self.assertEqual(request.get_header('Cancel-after'), '20m')
+            self.assertEqual(sum(c.args[0].get_method() == 'POST' for c in http.call_args_list), 1)
 
     def test_lazy_test_can_use_twenty_minute_server_deadline(self):
         responses = [{'visibility': 'public'}, {'id': 'v', 'openapi_schema': {'components': {'schemas': {'Input': {}, 'Output': {}}}}},
@@ -211,7 +237,8 @@ class PredictorTests(unittest.TestCase):
         previous = self.predictor.output
         (previous / 'old.png').touch()
         def worker(command, **kwargs):
-            self.assertEqual(kwargs['timeout'], 600)
+            self.assertGreater(kwargs['timeout'], 0)
+            self.assertLessEqual(kwargs['timeout'], 900)
             request = Path(command[-1])
             data = json.loads(request.read_text())
             self.assertEqual(data['scale'], 0.95)
@@ -231,6 +258,14 @@ class PredictorTests(unittest.TestCase):
         metrics = json.loads((self.predictor.output / 'metrics.json').read_text())
         self.assertEqual(metrics['status'], 'failed')
         self.assertEqual(metrics['stages'][0]['status'], 'failed')
+
+    def test_download_time_reduces_remaining_inference_budget(self):
+        with patch.dict('os.environ', {'SPRUTE_LAZY_WEIGHTS': '1'}), \
+             patch.object(predict, 'perf_counter', side_effect=[0, 500]), \
+             patch.object(predict, 'run_bounded') as worker:
+            self.predictor.predict(prompt='test', image=None, image_type='character',
+                stop_after='animate', motions='idle,walk,run', seed=42, scale=1.0)
+        self.assertEqual([call.kwargs['timeout'] for call in worker.call_args_list], [600, 700])
 
     def test_failed_lazy_download_never_starts_inference(self):
         with patch.dict('os.environ', {'SPRUTE_LAZY_WEIGHTS': '1'}), \

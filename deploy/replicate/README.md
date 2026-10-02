@@ -29,8 +29,11 @@ Actual Cog readiness and inference must also pass before a hosted test.
 
 `models/` is excluded from the image. Setup stays lightweight. Each prediction
 prepares only the weights needed for its input and requested stages, with a
-600-second download deadline, then runs inference under a separate 600-second
-deadline. Child process groups are terminated on timeout. Use the smoke test's
+600-second download deadline. Up to five files download concurrently, largest
+first so large animation checkpoints do not start at the end of the deadline.
+Inference gets up to 900 seconds within a 1200-second overall request budget;
+time spent downloading reduces that budget. Child process groups are terminated
+on timeout. Use the smoke test's
 `--deadline-minutes 20`; Replicate's setup timeout is independent.
 
 `weights-manifest.json` pins repository revisions, sizes and SHA-256 hashes.
@@ -47,6 +50,10 @@ request starts, after Cog has serialized them. The cache is outside that cleanup
 Do not submit another smoke prediction while an earlier one is nonterminal unless
 that specific stuck request has been explicitly acknowledged. A failed cancel
 call does not confirm that a worker stopped.
+
+The smoke test saves returned files immediately so API output expiry does not
+erase test evidence. Use `--input-json inputs.json` for explicit stage or full
+pipeline inputs, and run the monitor independently of SSH for long tests.
 
 ## Experimental Kimodo motion
 

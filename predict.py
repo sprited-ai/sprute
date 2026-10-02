@@ -62,6 +62,7 @@ class Predictor(BasePredictor):
             image_type=image_type, stop_after=stop_after, motions=motions,
             seed=seed, scale=scale,
         )))
+        deadline = perf_counter() + 1200
         try:
             if os.environ.get("SPRUTE_LAZY_WEIGHTS", "1") == "1":
                 print("[weights] Preparing requested stages (600s limit)", flush=True)
@@ -71,7 +72,7 @@ class Predictor(BasePredictor):
                 )
             run_bounded(
                 [sys.executable, "-u", "-m", "deploy.replicate.worker", str(request)],
-                timeout=600, cwd=ROOT,
+                timeout=min(900, max(1, deadline - perf_counter())), cwd=ROOT,
             )
         finally:
             request.unlink(missing_ok=True)
