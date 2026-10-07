@@ -13,7 +13,7 @@ WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
 def load(path: Path):
     """The glTF document and its binary buffer, from a .glb or a .gltf."""
-    if path.suffix == ".glb":
+    if path.suffix.lower() == ".glb":
         raw = path.read_bytes()
         size = struct.unpack_from("<I", raw, 12)[0]
         start = 20 + size

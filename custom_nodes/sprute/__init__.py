@@ -5,7 +5,7 @@ from pathlib import Path
 import comfy.model_management
 import folder_paths
 
-from . import layout, motion_file, renderer, retarget
+from . import kimodo, layout, motion_file, renderer, retarget
 
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "assets" / "template-kun" / "template-kun.glb"
@@ -43,6 +43,8 @@ class SpruteLoadMotion:
     def load(self, motion, animation):
         path = motion_path(motion)
         document, _ = motion_file.load(path)
+        if document["asset"].get("generator") == "sprute-kimodo":
+            return (kimodo.load_motion(path, MODEL),)
         if document["asset"].get("generator") == "sprute":
             return (motion_file.read(path),)
         return (retarget.retarget(path, animation.strip(), MODEL),)
@@ -123,7 +125,27 @@ class SpruteCellsToStrip:
         return (layout.cells_to_strip(image),)
 
 
+class SpruteKimodoToGLB:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "motion": ("KIMODO_MOTION",),
+            "sample_index": ("INT", {"default": 0, "min": 0, "max": 15}),
+        }}
+
+    RETURN_TYPES = ("FILE_3D_GLB",)
+    RETURN_NAMES = ("motion_glb",)
+    FUNCTION = "convert"
+    CATEGORY = "Sprute"
+
+    def convert(self, motion, sample_index=0):
+        from io import BytesIO
+        from comfy_api.latest import Types
+        return (Types.File3D(BytesIO(kimodo.to_glb(motion, sample_index)), file_format="glb"),)
+
+
 NODE_CLASS_MAPPINGS = {
+    "SpruteKimodoToGLB": SpruteKimodoToGLB,
     "SpruteLoadMotion": SpruteLoadMotion,
     "SpruteRenderDrivingVideo": SpruteRenderDrivingVideo,
     "SpruteStripToGrid": SpruteStripToGrid,
@@ -131,6 +153,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteCellsToStrip": SpruteCellsToStrip,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "SpruteKimodoToGLB": "Sprute Kimodo to GLB",
     "SpruteLoadMotion": "Sprute Load Motion",
     "SpruteRenderDrivingVideo": "Sprute Render Driving Video",
     "SpruteStripToGrid": "Sprute Strip To Grid",

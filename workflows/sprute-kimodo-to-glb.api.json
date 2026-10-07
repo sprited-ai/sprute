@@ -1,0 +1,71 @@
+{
+  "1": {
+    "inputs": {
+      "model": "Kimodo-SOMA-RP-v1",
+      "text_encoder_base_model": "raducius/Llama-3-8B-Instruct-LLM2Vec-mntp-merged",
+      "model_revision": "defbe1f34f5fd031eb0ccfe19f3f92a9880c287b",
+      "text_encoder_base_revision": "01417d622e8a85d6f4b308dac0e37d478a9a87d1",
+      "text_encoder_adapter_revision": "baa8ebf04a1c2500e61288e7dad65e8ae42601a7"
+    },
+    "class_type": "Kimodo_LoadModel"
+  },
+  "2": {
+    "inputs": {
+      "prompt": "A person runs straight forward at a steady pace with natural alternating arm swings.",
+      "model": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "Kimodo_TextEncode"
+  },
+  "3": {
+    "inputs": {
+      "duration": 3.5,
+      "seed": 42,
+      "num_samples": 1,
+      "diffusion_steps": 100,
+      "constraints_json": "",
+      "model": [
+        "1",
+        0
+      ],
+      "conditioning": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "Kimodo_Sampler"
+  },
+  "4": {
+    "inputs": {
+      "root_margin": 0.04,
+      "motion": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "Kimodo_PostProcess"
+  },
+  "5": {
+    "inputs": {
+      "sample_index": 0,
+      "motion": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "SpruteKimodoToGLB"
+  },
+  "6": {
+    "inputs": {
+      "filename_prefix": "kimodo/run",
+      "image": "",
+      "mesh": [
+        "5",
+        0
+      ]
+    },
+    "class_type": "SaveGLB"
+  }
+}

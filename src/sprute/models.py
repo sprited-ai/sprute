@@ -117,6 +117,50 @@ MODELS = {
         "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
         "destination": "RMBG/BiRefNet/config.json",
     },
+    # Motion: Kimodo and its LLM2Vec text encoder
+    **{
+        f"kimodo/{filename}": {
+            "repo_id": "nvidia/Kimodo-SOMA-RP-v1",
+            "filename": filename,
+            "revision": "defbe1f34f5fd031eb0ccfe19f3f92a9880c287b",
+            "destination": f"Kimodo/Kimodo-SOMA-RP-v1/{filename}",
+        }
+        for filename in (
+            "LICENSE",
+            "config.yaml",
+            "model.safetensors",
+            "stats/motion/body/mean.npy",
+            "stats/motion/body/std.npy",
+            "stats/motion/global_root/mean.npy",
+            "stats/motion/global_root/std.npy",
+            "stats/motion/local_root/mean.npy",
+            "stats/motion/local_root/std.npy",
+        )
+    },
+    **{
+        f"llm2vec-base/{filename}": {
+            "repo_id": "raducius/Llama-3-8B-Instruct-LLM2Vec-mntp-merged",
+            "filename": filename,
+            "revision": "01417d622e8a85d6f4b308dac0e37d478a9a87d1",
+            "destination": f"text_encoders/raducius/Llama-3-8B-Instruct-LLM2Vec-mntp-merged/{filename}",
+        }
+        for filename in (
+            "config.json",
+            "model.safetensors",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "chat_template.jinja",
+        )
+    },
+    **{
+        f"llm2vec-adapter/{filename}": {
+            "repo_id": "McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised",
+            "filename": filename,
+            "revision": "baa8ebf04a1c2500e61288e7dad65e8ae42601a7",
+            "destination": f"text_encoders/McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised/{filename}",
+        }
+        for filename in ("adapter_config.json", "adapter_model.safetensors")
+    },
 }
 
 def plan_model_downloads(

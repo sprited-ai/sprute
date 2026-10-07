@@ -1,4 +1,5 @@
 import json
+from PIL import Image
 import math
 import os
 import secrets
@@ -38,13 +39,18 @@ def animate(
     if seed is None:
         seed = secrets.randbits(32)
     name = directions.stem.removesuffix(".directions")
-    destination = out / f"{name}.{motion}.webp"
+    motion_name = motion_file.stem
+    destination = out / f"{name}.{motion_name}.webp"
     directions_name = input_name(directions)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["3"]["inputs"]["image"] = directions_name
-    if motion_file.suffix == ".glb":
+    if motion_file.suffix.lower() == ".glb":
         # The workflow reads a driving video, so a GLB is rendered first.
-        driving_video = render_motion(motion_file, on_event=on_event)
+        with Image.open(directions) as reference:
+            width, height = reference.size
+        if width % 8:
+            raise ValueError("Directions image must contain eight equal-width cells")
+        driving_video = render_motion(motion_file, cell_width=width // 8, cell_height=height, on_event=on_event)
     else:
         driving_video = motion_file.read_bytes()
     check_driving_video(driving_video, motion_file.name, directions)
@@ -53,7 +59,7 @@ def animate(
     graph["504"]["inputs"]["seed"] = seed
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale
-    graph["577"]["inputs"]["filename_prefix"] = motion
+    graph["577"]["inputs"]["filename_prefix"] = motion_name
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination
