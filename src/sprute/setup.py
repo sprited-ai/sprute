@@ -17,6 +17,10 @@ from sprute.models import MODELS, check_download_space, download_model, find_loc
 COMFY_VERSION = "0.37.0.1"
 COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
 CUSTOM_NODES = {
+    "ComfyUI-Kimodo": {
+        "repository": "https://github.com/sprited-ai/comfy-kimodo.git",
+        "revision": "401d81266b3388af8acb3ec87cca553c1a1f5d0b",
+    },
     "ComfyUI-KJNodes": {
         "repository": "https://github.com/kijai/ComfyUI-KJNodes.git",
         "revision": "d3cfe21625e5170126ce06fbfcfe1d88108688c3",
@@ -214,7 +218,7 @@ def setup_custom_nodes(*, report: Reporter, reinstall: bool = False) -> None:
         installed.unlink(missing_ok=True)
         if current_revision != revision or reinstall:
             run(
-                ["git", "fetch", "--depth", "1", "origin", revision],
+                ["git", "fetch", "--depth", "1", node["repository"], revision],
                 cwd=destination,
                 report=report,
             )

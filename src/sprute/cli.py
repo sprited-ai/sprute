@@ -3,13 +3,15 @@ import shutil
 import subprocess
 import sys
 import secrets
+import re
+import unicodedata
 from pathlib import Path
 from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
 from sprute.animate import MOTIONS, animate as _animate
-from sprute.motion import find_motion, render_motion as _render_motion
+from sprute.motion import generate_motion as _generate_motion, find_motion, render_motion as _render_motion
 from sprute.config import set_models_directory
 from tempfile import TemporaryDirectory
 from PIL import Image, ImageSequence
@@ -391,7 +393,7 @@ def turntable(
 @app.command("character-animate")
 def animate(
     directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
-    motion: str = typer.Option(..., help="Motion to apply, such as idle, walk or run."),
+    motion: str = typer.Option(..., help="Bundled motion name or a .glb/.webp file path."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
@@ -413,6 +415,28 @@ def animate(
         return animation
 
     run_with_panel("Animate", run, verbose=verbose)
+
+
+@app.command("motion-generate")
+def generate_motion(
+    prompt: str = typer.Argument(..., help="Describe the motion to generate."),
+    name: str | None = typer.Option(None, help="Filename without extension; defaults to a slug of the prompt."),
+    out: Path = typer.Option(Path("motions"), file_okay=False, help="Output directory."),
+    seed: int | None = typer.Option(None, min=0, max=2**32 - 1, help="Random when omitted."),
+    duration: float = typer.Option(3.5, min=0.5, max=10.0),
+    steps: int = typer.Option(100, min=10, max=500),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+):
+    """Generate a skeleton animation GLB with Kimodo."""
+    if name is None:
+        name = re.sub(r"[\W_]+", "-", unicodedata.normalize("NFKC", prompt).lower()).strip("-")
+        name = name.encode("utf-8")[:180].decode("utf-8", errors="ignore").rstrip("-") or "motion"
+    if not name.strip() or name in (".", "..") or any(c in name for c in ("/", "\\")) or name.lower().endswith(".glb"):
+        raise typer.BadParameter("Use a filename without a path or .glb extension.", param_hint="--name")
+    require_setup(models=False)
+    run_with_panel("Generate Motion", lambda on_event: _generate_motion(
+        prompt, out / f"{name}.glb", seed=seed, duration=duration, steps=steps, on_event=on_event,
+    ), verbose=verbose, prompt=prompt)
 
 
 @app.command("character-render-motion")

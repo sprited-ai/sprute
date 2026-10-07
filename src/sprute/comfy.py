@@ -32,7 +32,7 @@ def run_workflow(
     output_node_ids: tuple[str, ...],
     on_event: Callable[[Event], None] | None = None,
 ) -> dict[str, bytes]:
-    """Run an API workflow and return the first saved image of each output node, by node id."""
+    """Run an API workflow and return the first saved image or GLB of each output node, by node id."""
     def emit(event: Event) -> None:
         if on_event is not None:
             on_event(event)
@@ -134,8 +134,11 @@ def run_workflow(
 
 
 def _output_path(result: dict, node_id: str, *, output_directory: Path) -> Path:
-    """Resolve the first saved image, including animated WebP outputs."""
-    saved = result[node_id]["images"][0]
+    """Resolve the first saved image or GLB."""
+    files = result[node_id].get("images") or result[node_id].get("3d")
+    if not files:
+        raise ValueError(f"ComfyUI node {node_id} returned no saved image or GLB")
+    saved = files[0]
     path = (
         Path(saved["abs_path"])
         if saved.get("abs_path")

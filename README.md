@@ -125,6 +125,16 @@ sprute preview output/0001.run.webp
 
 Shows an output in iTerm2. Animated WebP files play in place.
 
+### Generate a motion
+
+```sh
+sprute motion-generate "Gangnam style dance"
+sprute character-animate output/0001.directions.png --motion gangnam-style-dance
+```
+
+The prompt becomes `motions/gangnam-style-dance.glb`. Use `--name` to choose
+another name and `--out` to change the directory. `--motion` also accepts a GLB path.
+
 ## Why Sprute?
 
 Making sprite animations is hard. Hard enough that creators often stop themselves from adding more animation states, more characters, more NPCs, or more enemies simply because of the amount of work involved.
