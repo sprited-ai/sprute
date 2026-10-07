@@ -426,6 +426,7 @@ def generate_motion(
     duration: float = typer.Option(3.5, min=0.5, max=10.0),
     steps: int = typer.Option(100, min=10, max=500),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
+    preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Generate a skeleton animation GLB with Kimodo."""
     if name is None:
@@ -434,9 +435,23 @@ def generate_motion(
     if not name.strip() or name in (".", "..") or any(c in name for c in ("/", "\\")) or name.lower().endswith(".glb"):
         raise typer.BadParameter("Use a filename without a path or .glb extension.", param_hint="--name")
     require_setup(models=False)
-    run_with_panel("Generate Motion", lambda on_event: _generate_motion(
-        prompt, out / f"{name}.glb", seed=seed, duration=duration, steps=steps, on_event=on_event,
-    ), verbose=verbose, prompt=prompt)
+    def run(on_event: Callable[[Event], None]) -> Path:
+        destination = out / f"{name}.glb"
+        suffix = 2
+        while destination.expanduser().exists():
+            destination = out / f"{name}-{suffix}.glb"
+            suffix += 1
+        motion = _generate_motion(
+            prompt, destination, seed=seed, duration=duration, steps=steps, on_event=on_event,
+        )
+        if preview:
+            with TemporaryDirectory(prefix="sprute-motion-preview-") as workspace:
+                video = Path(workspace) / f"{motion.stem}.webp"
+                video.write_bytes(_render_motion(motion, on_event=on_event))
+                on_event(Event("image", str(video)))
+        return motion
+
+    run_with_panel("Generate Motion", run, verbose=verbose, prompt=prompt)
 
 
 @app.command("character-render-motion")

@@ -134,6 +134,8 @@ sprute character-animate output/0001.directions.png --motion gangnam-style-dance
 
 The prompt becomes `motions/gangnam-style-dance.glb`. Use `--name` to choose
 another name and `--out` to change the directory. `--motion` also accepts a GLB path.
+Existing filenames get a numeric suffix, such as `gangnam-style-dance-2.glb`.
+An eight-direction motion preview is rendered by default. Use `--no-preview` to skip it.
 
 ## Why Sprute?
 
