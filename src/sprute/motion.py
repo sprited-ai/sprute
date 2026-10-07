@@ -13,7 +13,8 @@ MOTIONS = Path("motions")
 MINIMUM_FRAMES = 5
 
 def motions() -> list[str]:
-    return sorted({path.stem for suffix in ("webp", "glb") for path in MOTIONS.glob(f"*.{suffix}")})
+    return sorted({path.relative_to(MOTIONS).with_suffix("").as_posix()
+                   for suffix in ("webp", "glb") for path in MOTIONS.rglob(f"*.{suffix}")})
 
 def find_motion(motion: str) -> Path:
     """The motion's driving video if there is one, otherwise its GLB."""

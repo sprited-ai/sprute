@@ -15,7 +15,7 @@ for side in ("Left", "Right"):
 
 
 def to_glb(motion, sample_index=0):
-    """A glTF node hierarchy with animation, no character, mesh, skin or textures."""
+    """An animated skeleton with joint metadata, no character mesh or textures."""
     def array(value):
         if hasattr(value, "detach"):
             value = value.detach().cpu().numpy()
@@ -73,8 +73,13 @@ def to_glb(motion, sample_index=0):
             samplers.append({"input": time, "output": add(values, kind), "interpolation": "LINEAR"})
             channels.append({"sampler": len(samplers) - 1, "target": {"node": joint, "path": target}})
 
+    # Viewers identify bones through skins.joints, even without a skinned mesh.
+    inverse_bind = np.tile(np.eye(4), (joints, 1, 1))
+    inverse_bind[:, :3, 3] = -neutral
+    bind = add(inverse_bind.transpose(0, 2, 1).reshape(joints, 16), "MAT4")
     doc = {"asset": {"version": "2.0", "generator": "sprute-kimodo"},
            "scene": 0, "scenes": [{"nodes": roots}], "nodes": nodes,
+           "skins": [{"joints": list(range(joints)), "skeleton": roots[0], "inverseBindMatrices": bind}],
            "animations": [{"name": "kimodo", "samplers": samplers, "channels": channels,
                            "extras": {"fps": fps, "frames": frames, "loop": False, "source": "Kimodo",
                                       "model": motion.model_name, "skeleton": motion.skeleton_name}}],
