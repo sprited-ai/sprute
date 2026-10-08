@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation, Slerp
 from . import motion_file
+from .skeleton_profiles import QUATERNIUS
 
 FPS = 24
 PREFIXES = ("mixamorig:", "mixamorig_", "mixamorig")
@@ -50,12 +51,14 @@ class Skeleton:
         self.translation = np.array([n.get("translation", [0, 0, 0]) for n in nodes], float)
         self.rotation = np.array([n.get("rotation", [0, 0, 0, 1]) for n in nodes], float)
         self.scale = np.array([n.get("scale", [1, 1, 1]) for n in nodes], float)
+        source_names = {nodes[i]["name"] for i in self.doc["skins"][0]["joints"]}
+        mapping = QUATERNIUS if set(QUATERNIUS) <= source_names else {}
         self.bone = {}
         for index in self.doc["skins"][0]["joints"]:
             name = nodes[index]["name"]
             for prefix in PREFIXES:
                 name = name.removeprefix(prefix)
-            self.bone[name] = index
+            self.bone[mapping.get(name, name)] = index
         self.rest = self.world(self.translation, self.rotation)
         self.local = np.stack([self.rest[i] if self.parents[i] < 0 else np.linalg.inv(self.rest[self.parents[i]]) @ self.rest[i]
                                for i in range(len(nodes))])
@@ -96,6 +99,7 @@ class Skeleton:
         found = [a for a in available if name.lower() in a.get("name", "").lower()] if name else available[:1]
         if len(found) != 1:
             raise ValueError(f"animation {name!r} not found; the file has: {[a.get('name') for a in available]}")
+        self.selected_animation = found[0]
         channels = []
         for channel in found[0]["channels"]:
             sampler = found[0]["samplers"][channel["sampler"]]
@@ -108,7 +112,10 @@ class Skeleton:
         translation = np.repeat(self.translation[None], len(times), 0)
         rotation = np.repeat(self.rotation[None], len(times), 0)
         for node, path, interpolation, keys, values in channels:
-            if path == "scale" or len(keys) < 2:
+            if path == "scale":
+                continue
+            if len(keys) == 1:
+                (translation if path == "translation" else rotation)[:, node] = values[0]
                 continue
             at = np.clip(times, keys[0], keys[-1])
             if interpolation == "STEP":
@@ -176,4 +183,6 @@ def retarget(source_path: Path, animation: str, model_path: Path):
     turns = [{target.bone[name]: turn[f, index] for index, name in enumerate(BONES)} for f in range(len(turn))]
     rotations, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offset * scale)
     names = {index: name for name, index in target.bone.items()}
-    return animation, float(FPS), True, {names[node]: values for node, values in rotations.items()}, moved
+    selected = source.selected_animation
+    loop = bool(selected.get("extras", {}).get("loop", True))
+    return selected.get("name", animation), float(FPS), loop, {names[node]: values for node, values in rotations.items()}, moved
