@@ -93,10 +93,12 @@ sprute character-turntable output/0001.character.png
 This saves:
 
 - `0001.turntable.webp`: the rotating turntable animation
-- `0001.directions.png`: a strip of the eight directions (1536×256)
+- `0001.directions.png`: a strip of the eight directions (2048×256)
 - `0001.directions.webp`: the eight directions as an animation
 
 Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from south), in both the strip and the animations.
+
+Direction cells default to 256×256. Animation processes them at native resolution (`--scale 1.0`).
 
 Running it again overwrites these files. With the same `--seed` and the same input image, Sprute returns the existing files instead of rerunning.
 
@@ -106,7 +108,7 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 sprute character-animate output/0001.directions.png --motion run
 ```
 
-Motions are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (1536×256, 81 frames).
+Motions are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
 
 `--motion run` looks in `motions/` for `run.webp` first, then `run.glb`.
 

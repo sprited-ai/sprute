@@ -168,7 +168,7 @@ def sample_motion(model: Model, motion, frames: int, frame_rate: float):
     return [(dict(zip(bones, turned[f])), moved[f]) for f in range(frames)]
 
 
-def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 192, cell_height: int = 256):
+def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 256, cell_height: int = 256):
     """(frames, cell_height, 8 * cell_width, 4) RGBA in 0..1: the eight directions in a strip, like a sprute animation."""
     device = model.positions.device
     video = torch.zeros((frames, cell_height, cell_width * len(layout.STRIP), 4), device=device)

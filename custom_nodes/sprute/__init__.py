@@ -62,7 +62,7 @@ class SpruteRenderDrivingVideo:
             "motion": ("SPRUTE_MOTION",),
             "frames": ("INT", {"default": 81, "min": 1, "max": 1000, "tooltip": "SCAIL2 needs 4n+1 frames, such as 81."}),
             "fps": ("FLOAT", {"default": 24.0, "min": 1.0, "max": 120.0, "step": 1.0}),
-            "cell_width": ("INT", {"default": 192, "min": 32, "max": 1024, "step": 32}),
+            "cell_width": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
             "cell_height": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
         }}
 

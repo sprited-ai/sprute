@@ -85,7 +85,7 @@ def check_driving_video(video: bytes, name: str, directions: Path) -> None:
 def render_motion(
     motion: Path,
     *,
-    cell_width: int = 192,
+    cell_width: int = 256,
     cell_height: int = 256,
     on_event: Callable[[Event], None] | None = None,
 ) -> bytes:

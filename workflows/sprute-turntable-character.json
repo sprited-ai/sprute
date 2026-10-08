@@ -1285,11 +1285,11 @@
         "Node name for S&R": "PrimitiveInt"
       },
       "widgets_values": [
-        192,
+        256,
         "fixed"
       ],
       "widgets_values_named": {
-        "value": 192,
+        "value": 256,
         "fixed": "fixed"
       }
     },
