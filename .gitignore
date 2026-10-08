@@ -27,3 +27,7 @@ build/
 !/motions/idle.glb
 !/motions/walk.glb
 !/motions/run.glb
+!/motions/quaternius/
+
+# Downloaded source packs used for extraction and validation.
+/assets/quaternius/

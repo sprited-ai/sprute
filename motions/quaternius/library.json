@@ -1,0 +1,724 @@
+{
+  "source_file": "UAL1.glb",
+  "source_sha256": "d1cb4537efa4c06a953ca951e5935062f88c2580ac68e45045592d587bddb43d",
+  "conversion": "Animation split only; original skeleton, keys and timing preserved. No retargeting.",
+  "motions": [
+    {
+      "file": "backflip.glb",
+      "original_animation": "BackFlip",
+      "loop": false,
+      "sha256": "ecf09e793905cc5ec2607edf69656a2ad8513274b91bc6989c91c271f18a9f8f"
+    },
+    {
+      "file": "celebration.glb",
+      "original_animation": "Celebration",
+      "loop": false,
+      "sha256": "bcff86dccf974a8b6637897fa87b670de3803f4f5b602521e796bc78a462cdd4"
+    },
+    {
+      "file": "climb-down.glb",
+      "original_animation": "Climb_Down_Loop",
+      "loop": true,
+      "sha256": "9448a2afb126b9a3f27b8b92da592ee0fc2cd7823bdc11bff7dd2e1815ea4334"
+    },
+    {
+      "file": "climb-enter.glb",
+      "original_animation": "Climb_Enter",
+      "loop": false,
+      "sha256": "fd43d912af0db3e2b7603f52ec6bb50ad00c98131771bfa3c6e26316a2c36b3f"
+    },
+    {
+      "file": "climb-exit.glb",
+      "original_animation": "Climb_Exit",
+      "loop": false,
+      "sha256": "2b9bf63fd8ed30943cf524f499237db500f1e680c68a917f1be7210a7c33c04f"
+    },
+    {
+      "file": "climb-idle.glb",
+      "original_animation": "Climb_Idle_Loop",
+      "loop": true,
+      "sha256": "120e7561ad15f42f57d55c7c830fe77e41fd4cdb2c4dc362a91b8d71f782f723"
+    },
+    {
+      "file": "climb-left.glb",
+      "original_animation": "Climb_Left_Loop",
+      "loop": true,
+      "sha256": "6bb1e98df597ce4c8f83818e6d4b9cc1fd117cabaa4260373a307946e0884c54"
+    },
+    {
+      "file": "climb-right.glb",
+      "original_animation": "Climb_Right_Loop",
+      "loop": true,
+      "sha256": "dfa6c8d66b9569cfa7e1a3f7e3bf4699a4649ea022735d565a9c843a1dbc2dd2"
+    },
+    {
+      "file": "climb-up.glb",
+      "original_animation": "Climb_Up_Loop",
+      "loop": true,
+      "sha256": "e73356b12e628ece05cc1718a70b81980c0af22226274e8e4af3305e2ef039bd"
+    },
+    {
+      "file": "climbledge.glb",
+      "original_animation": "ClimbLedge",
+      "loop": false,
+      "sha256": "e8a274e6786e0fc261a8fd6135b19bec6bc4526c24436eb14860c7fbdd21be14"
+    },
+    {
+      "file": "counter-angry.glb",
+      "original_animation": "Counter_Angry",
+      "loop": false,
+      "sha256": "02d73c86f1e343490683bd7fdda8d020da1d7af8a36355de7de7bfee271df030"
+    },
+    {
+      "file": "counter-enter.glb",
+      "original_animation": "Counter_Enter",
+      "loop": false,
+      "sha256": "11a21c0de104da1ef51638cccc4b13218d1d02cae4ae2461b4b1c4210d0da4b7"
+    },
+    {
+      "file": "counter-exit.glb",
+      "original_animation": "Counter_Exit",
+      "loop": false,
+      "sha256": "9e0d8330dc2ce1bf38ccd787f6c9af5fb0bba0a6cb49eb80ee6c019873782d37"
+    },
+    {
+      "file": "counter-give.glb",
+      "original_animation": "Counter_Give",
+      "loop": false,
+      "sha256": "4d37e6b669637aaf9f8a9bafcb69a19df7e73072bebb4b879c7e1d3d5bed845f"
+    },
+    {
+      "file": "counter-idle.glb",
+      "original_animation": "Counter_Idle_Loop",
+      "loop": true,
+      "sha256": "30fa311030443dd319c340af10d70fd9bec935e0564b260286decf19501c6151"
+    },
+    {
+      "file": "counter-show.glb",
+      "original_animation": "Counter_Show",
+      "loop": false,
+      "sha256": "6c9cd822909967d59cb2ff6e4e408613eb3bf63cd5fe4e6538314fe65483504e"
+    },
+    {
+      "file": "crawl-bwd.glb",
+      "original_animation": "Crawl_Bwd_Loop",
+      "loop": true,
+      "sha256": "3df5ee2f4fd32a646719fb1edf026a644c7674e3e455b4a369c46d07eaa20d24"
+    },
+    {
+      "file": "crawl-enter.glb",
+      "original_animation": "Crawl_Enter",
+      "loop": false,
+      "sha256": "c754f4b344ddea32ad8cbd0ef55f3f06b63826f7c496649b78da003dedc36506"
+    },
+    {
+      "file": "crawl-exit.glb",
+      "original_animation": "Crawl_Exit",
+      "loop": false,
+      "sha256": "b7b535425424b18ea4a1509b7a369b70656fbeb58cfef10e0801bc8157af5894"
+    },
+    {
+      "file": "crawl-fwd.glb",
+      "original_animation": "Crawl_Fwd_Loop",
+      "loop": true,
+      "sha256": "b5f46996f916116ead311133501d8483f9ebc59728517dc0ec35f1d2e413d02f"
+    },
+    {
+      "file": "crawl-idle.glb",
+      "original_animation": "Crawl_Idle_Loop",
+      "loop": true,
+      "sha256": "f31a95ef78a263edc0cf49d26a354c608c7972ba64f236000bd9cf5a646235fb"
+    },
+    {
+      "file": "crawl-left.glb",
+      "original_animation": "Crawl_Left_Loop",
+      "loop": true,
+      "sha256": "07f868cc486f18f219dc9159e226897d4bd68e8161068f437bc5f3ed5b381536"
+    },
+    {
+      "file": "crawl-right.glb",
+      "original_animation": "Crawl_Right_Loop",
+      "loop": true,
+      "sha256": "5e7e03605c80163a3d0b902b99f99d8a90fac895eef4c842b1c5ee17c8d5965c"
+    },
+    {
+      "file": "crouch-bwd-l.glb",
+      "original_animation": "Crouch_Bwd_L_Loop",
+      "loop": true,
+      "sha256": "12a6c764274c8c00ff6a48029039643085b99527c9a4405d0081c00a0e3fb06d"
+    },
+    {
+      "file": "crouch-bwd.glb",
+      "original_animation": "Crouch_Bwd_Loop",
+      "loop": true,
+      "sha256": "a2d83e34785dc53a33ec466ff0e716e6cce430914d380d12ea2f45d1cae5bd5a"
+    },
+    {
+      "file": "crouch-bwd-r.glb",
+      "original_animation": "Crouch_Bwd_R_Loop",
+      "loop": true,
+      "sha256": "8ef6c853daf007392c0cf330e8f518db1a5e12d173ac445bfe1ba3f578a9f285"
+    },
+    {
+      "file": "crouch-enter.glb",
+      "original_animation": "Crouch_Enter",
+      "loop": false,
+      "sha256": "7b0898a94a7d8e40228895cc56d97f1f8caea81277a6c9313b4416854efda226"
+    },
+    {
+      "file": "crouch-exit.glb",
+      "original_animation": "Crouch_Exit",
+      "loop": false,
+      "sha256": "104177556c17b31d7d5a3365e3704be4bebd2cbb9778f46c695b888def6cdf65"
+    },
+    {
+      "file": "crouch-fwd-l.glb",
+      "original_animation": "Crouch_Fwd_L_Loop",
+      "loop": true,
+      "sha256": "b9f33235bd680d732fa42e3761cf266c805c39afa676bd18a0132f171fe4c28d"
+    },
+    {
+      "file": "crouch-fwd.glb",
+      "original_animation": "Crouch_Fwd_Loop",
+      "loop": true,
+      "sha256": "3d869b310b18a6487dee591e40a0dcff98e7240b743da551627d799e0e8396cc"
+    },
+    {
+      "file": "crouch-fwd-r.glb",
+      "original_animation": "Crouch_Fwd_R_Loop",
+      "loop": true,
+      "sha256": "5ee6374b260351171df489ebdc484a04018581ec3b5c0e0851ddfe3e4aa3cc66"
+    },
+    {
+      "file": "crouch-idle.glb",
+      "original_animation": "Crouch_Idle_Loop",
+      "loop": true,
+      "sha256": "311919d20436f93b6a1f2bad917c5dcee496b25ea6edb6288bfb448b806abfa9"
+    },
+    {
+      "file": "crouch-left.glb",
+      "original_animation": "Crouch_Left_Loop",
+      "loop": true,
+      "sha256": "1492dc09fd718eab20a4b158239d98a468a5d4f558c689d9a8be00609d2134ce"
+    },
+    {
+      "file": "crouch-right.glb",
+      "original_animation": "Crouch_Right_Loop",
+      "loop": true,
+      "sha256": "d5110cb94ee8132b77ff873edc9782fd771d0296fb4ff2a1db5958ce3682cc29"
+    },
+    {
+      "file": "crying.glb",
+      "original_animation": "Crying",
+      "loop": false,
+      "sha256": "b861b57b8afea1bae39aea2666e1655fd3a68c907ced6c1287f24a1742d2c1b0"
+    },
+    {
+      "file": "dance.glb",
+      "original_animation": "Dance_Loop",
+      "loop": true,
+      "sha256": "947a625ea3ac0d7ed3349c0fa88db3ea4bc679782788ee37e771cbfae3aa40ec"
+    },
+    {
+      "file": "death01.glb",
+      "original_animation": "Death01",
+      "loop": false,
+      "sha256": "1be2414abd4aaa5ef0d91a609f302bbc04da5e9c1ecb0c6d3628d4d8cb39cf16"
+    },
+    {
+      "file": "death02.glb",
+      "original_animation": "Death02",
+      "loop": false,
+      "sha256": "48744fc9c9ceab94293d06d026127ca586c01b6853e43096e8c08cd0e0450293"
+    },
+    {
+      "file": "dodge-left.glb",
+      "original_animation": "Dodge_Left",
+      "loop": false,
+      "sha256": "f8e4ff0a42c4005be7b640b500fc9c6241aa7766df744ad94808fb4c0f829bf4"
+    },
+    {
+      "file": "dodge-right.glb",
+      "original_animation": "Dodge_Right",
+      "loop": false,
+      "sha256": "25fc8d7c4cf4fc91886cca710ea1c9ea1e9ee1e96233b24a5cecede85406e5e5"
+    },
+    {
+      "file": "drink.glb",
+      "original_animation": "Drink",
+      "loop": false,
+      "sha256": "4a5c5f69cbc51a2b0235224f6ed631d9b6654131a9b68c322bdc2bea54c82080"
+    },
+    {
+      "file": "driving.glb",
+      "original_animation": "Driving_Loop",
+      "loop": true,
+      "sha256": "60af6f5cd3837247532ff29a92e7007cedbb8599b2532743db9a25055cb41a47"
+    },
+    {
+      "file": "fixing-kneeling.glb",
+      "original_animation": "Fixing_Kneeling",
+      "loop": false,
+      "sha256": "7c2be66fcc7cffe0ba245c2cee3ffa4bd85dbed4bac7d745cd9f2d647b86aa7a"
+    },
+    {
+      "file": "groundsit-enter.glb",
+      "original_animation": "GroundSit_Enter",
+      "loop": false,
+      "sha256": "3fd80ebcee359f9ab0b2605429db13dbc4c63754e54230d37faafb73b3570862"
+    },
+    {
+      "file": "groundsit-exit.glb",
+      "original_animation": "GroundSit_Exit",
+      "loop": false,
+      "sha256": "ef916b27d1edf3031b02377abaae838900c67554400dd36d4ed2418ba6bf0ec6"
+    },
+    {
+      "file": "groundsit-idle.glb",
+      "original_animation": "GroundSit_Idle_Loop",
+      "loop": true,
+      "sha256": "e456cb8bb1b491cbc3402e9f8a40e1654159d38f9c927489f8e0ea89f5fdde7e"
+    },
+    {
+      "file": "hit-chest.glb",
+      "original_animation": "Hit_Chest",
+      "loop": false,
+      "sha256": "cded12fd9093db7db2f77ab1d83c26c895c7632faf75757f2168d0e185d491cc"
+    },
+    {
+      "file": "hit-head.glb",
+      "original_animation": "Hit_Head",
+      "loop": false,
+      "sha256": "90381455b751ea63c8f4a46a1d7f0224846f9436307d4795ce8cde292008e65e"
+    },
+    {
+      "file": "hit-shoulder-l.glb",
+      "original_animation": "Hit_Shoulder_L",
+      "loop": false,
+      "sha256": "10b16225d6ceaa3fb7339018cf003eced91aa25f32da1819bcb735cca0ab5665"
+    },
+    {
+      "file": "hit-shoulder-r.glb",
+      "original_animation": "Hit_Shoulder_R",
+      "loop": false,
+      "sha256": "43c4bad281f044460bfea6e0f4242649a75e80e884438f7062c1ee8dc4d1500f"
+    },
+    {
+      "file": "hit-stomach.glb",
+      "original_animation": "Hit_Stomach",
+      "loop": false,
+      "sha256": "1d66a1261a5a1785573df0d63c0687923dfa48c3a0b0a16b03fc6be3fa5cd405"
+    },
+    {
+      "file": "idle-lookaround.glb",
+      "original_animation": "Idle_LookAround_Loop",
+      "loop": true,
+      "sha256": "63503f831408d395b546f7f6fd70207b0c71f3668897fce65a5e12053b9b6758"
+    },
+    {
+      "file": "idle.glb",
+      "original_animation": "Idle_Loop",
+      "loop": true,
+      "sha256": "d65e1df2d5275d23f2dd0119cda6d747f7773f9981386247286f5bd486e3d1da"
+    },
+    {
+      "file": "idle-paper.glb",
+      "original_animation": "Idle_Paper",
+      "loop": false,
+      "sha256": "b0ffb6827649c0146999ce75c0a91c382d90e6fdc256777c0e2c0d41fe287815"
+    },
+    {
+      "file": "idle-rock.glb",
+      "original_animation": "Idle_Rock",
+      "loop": false,
+      "sha256": "df4a2656eda26ce14f5317ba21f1165ff907b54d95150911a4101a8f99346eab"
+    },
+    {
+      "file": "idle-scissors.glb",
+      "original_animation": "Idle_Scissors",
+      "loop": false,
+      "sha256": "e33dac81d4ccdb3bdf3115175a64190f4a0268d5f6ca7647969a2b0d0eda7224"
+    },
+    {
+      "file": "idle-talking.glb",
+      "original_animation": "Idle_Talking_Loop",
+      "loop": true,
+      "sha256": "891eb340c84615a4841f89e0b271d2382b3c19a2e018b0f2bff9df9c6695c010"
+    },
+    {
+      "file": "idle-tired.glb",
+      "original_animation": "Idle_Tired_Loop",
+      "loop": true,
+      "sha256": "18f89c81106452b9eff69eac351af743e11d5304a05383243e6ec4bf1489739f"
+    },
+    {
+      "file": "idle-torch.glb",
+      "original_animation": "Idle_Torch_Loop",
+      "loop": true,
+      "sha256": "9b95d38fe007aa2f00749762c6d3924ad6b900affa356101e4323b724b5cee18"
+    },
+    {
+      "file": "interact.glb",
+      "original_animation": "Interact",
+      "loop": false,
+      "sha256": "b39413a2ae430c653f46684d2e6e946f68cd37db430975341a918406c61e1199"
+    },
+    {
+      "file": "jog-bwd-l.glb",
+      "original_animation": "Jog_Bwd_L_Loop",
+      "loop": true,
+      "sha256": "7ef4381ee5668459b805aed6665d098703b07bd7880029c6f160fb8596d14184"
+    },
+    {
+      "file": "jog-bwd.glb",
+      "original_animation": "Jog_Bwd_Loop",
+      "loop": true,
+      "sha256": "1ea201bf898a9e720a7f780066931e9207aab6df511afcbad46ba22319879a52"
+    },
+    {
+      "file": "jog-bwd-r.glb",
+      "original_animation": "Jog_Bwd_R_Loop",
+      "loop": true,
+      "sha256": "b76282257df3f42a3955c571a55e0370f167b55c7d6141a463a11f466125e448"
+    },
+    {
+      "file": "jog-fwd-l.glb",
+      "original_animation": "Jog_Fwd_L_Loop",
+      "loop": true,
+      "sha256": "d2965f73e765685144f5200e534677f573ef3207642102d4600fb20d4998e56d"
+    },
+    {
+      "file": "jog-fwd-leanl.glb",
+      "original_animation": "Jog_Fwd_LeanL_Loop",
+      "loop": true,
+      "sha256": "49aaed18548a37f4b5db310a34a9ebc2fdb89998b92408dfa767b2b5c8cc150d"
+    },
+    {
+      "file": "jog-fwd-leanr.glb",
+      "original_animation": "Jog_Fwd_LeanR_Loop",
+      "loop": true,
+      "sha256": "5e2256bfed34405db0f8249dcf33d93709462db106eaebcc6a5d541fc3e99931"
+    },
+    {
+      "file": "jog-fwd.glb",
+      "original_animation": "Jog_Fwd_Loop",
+      "loop": true,
+      "sha256": "450b569148cc50637343ed3ec5e4779723de53ae7d5d1ec5abffe9177245e80e"
+    },
+    {
+      "file": "jog-fwd-r.glb",
+      "original_animation": "Jog_Fwd_R_Loop",
+      "loop": true,
+      "sha256": "3312c3bb8f07e1c93fd92a4674e09655927b72c09e551461baa23764cb4428c5"
+    },
+    {
+      "file": "jog-left.glb",
+      "original_animation": "Jog_Left_Loop",
+      "loop": true,
+      "sha256": "4239c2876673d2f7d1fb91f4c3aa1d4345238517135fbacf050d18ba2c36404b"
+    },
+    {
+      "file": "jog-right.glb",
+      "original_animation": "Jog_Right_Loop",
+      "loop": true,
+      "sha256": "1b6a95b2bc28c7b5efea7f666249853335b2825bfcc596a27e1706486161f33e"
+    },
+    {
+      "file": "jump-land.glb",
+      "original_animation": "Jump_Land",
+      "loop": false,
+      "sha256": "49e61b0189814e1a6f0a559e147a40e4935d46d2f19b1f237e04c35f00ba456f"
+    },
+    {
+      "file": "jump.glb",
+      "original_animation": "Jump_Loop",
+      "loop": true,
+      "sha256": "317da6f51769a91070f03b2d5ee86a1fb85b56c0e95afe080661b78626956182"
+    },
+    {
+      "file": "jump-start.glb",
+      "original_animation": "Jump_Start",
+      "loop": false,
+      "sha256": "404b6a9ead4b29bc903be12ef7880c1b87552676c7c2b2053968f31cf64548df"
+    },
+    {
+      "file": "kick.glb",
+      "original_animation": "Kick",
+      "loop": false,
+      "sha256": "ae12b6d9899aa4943b447c67bdd1d5961754f01c24a4d510153bdf7379472dd9"
+    },
+    {
+      "file": "pickup-kneeling.glb",
+      "original_animation": "PickUp_Kneeling",
+      "loop": false,
+      "sha256": "5431314d539ea869c465b74703304eb69337d7fc139d8a039455fe272d64734b"
+    },
+    {
+      "file": "pickup-table.glb",
+      "original_animation": "PickUp_Table",
+      "loop": false,
+      "sha256": "16762c70c98d564e5fc8487b21ab7c99f2543cf00b3abc4df9e42e6d8a9e534e"
+    },
+    {
+      "file": "pistol-aim-down.glb",
+      "original_animation": "Pistol_Aim_Down",
+      "loop": false,
+      "sha256": "56f15777ec0aa419fe6d6d4873980a73bca40fc2b9092d5c62e411e645dde3d5"
+    },
+    {
+      "file": "pistol-aim-neutral.glb",
+      "original_animation": "Pistol_Aim_Neutral",
+      "loop": false,
+      "sha256": "6a3ca8333b006c87c26924e01930d85633b3621ce9ac9f59f3daa3c975195620"
+    },
+    {
+      "file": "pistol-aim-up.glb",
+      "original_animation": "Pistol_Aim_Up",
+      "loop": false,
+      "sha256": "0759353d23751a72cbc9f884613a80464b7dcad75793641910cd2cd6f0b89e3d"
+    },
+    {
+      "file": "pistol-idle.glb",
+      "original_animation": "Pistol_Idle_Loop",
+      "loop": true,
+      "sha256": "27a2d7a9deb11453a6ca6dfeae4e03a235068ca39f682e83af97c5d04f65763a"
+    },
+    {
+      "file": "pistol-reload.glb",
+      "original_animation": "Pistol_Reload",
+      "loop": false,
+      "sha256": "dfce8274b41eb060f7c86a132511ba332d99b45542bc9da4b3cb378bed939136"
+    },
+    {
+      "file": "pistol-shoot.glb",
+      "original_animation": "Pistol_Shoot",
+      "loop": false,
+      "sha256": "bf5dd19062086c8d686a24a5975ebff5edbd15377069e961bd59aae50af03afb"
+    },
+    {
+      "file": "punch-cross.glb",
+      "original_animation": "Punch_Cross",
+      "loop": false,
+      "sha256": "6b368e9c67f6c4d4a3bf58085d12c64d5bc45617414f7b209e732a1b94094e8a"
+    },
+    {
+      "file": "punch-jab.glb",
+      "original_animation": "Punch_Jab",
+      "loop": false,
+      "sha256": "5e2566f2753f1466c2819d1d7cc59fa9dcc21d4659baa2e1f1e667d68bfc9010"
+    },
+    {
+      "file": "punchkick-enter.glb",
+      "original_animation": "PunchKick_Enter",
+      "loop": false,
+      "sha256": "0e72c42c237be9a6024ec614973071cd686b7c25e5b636e79c85118ae2402fef"
+    },
+    {
+      "file": "punchkick-exit.glb",
+      "original_animation": "PunchKick_Exit",
+      "loop": false,
+      "sha256": "3bc3d1acc31d887ec36c173eeba651760ce8309c716d35404e8e2fd528567fcf"
+    },
+    {
+      "file": "push-enter.glb",
+      "original_animation": "Push_Enter",
+      "loop": false,
+      "sha256": "17a7d406b6353dc126853ef8341bf3a8af92d92d463cca9f0baf69e8a30605ff"
+    },
+    {
+      "file": "push-exit.glb",
+      "original_animation": "Push_Exit",
+      "loop": false,
+      "sha256": "8c18d519b79dab22d8cca52fc5c6497204462d4dce1f44dbb5cd0d2176fa8ea4"
+    },
+    {
+      "file": "push.glb",
+      "original_animation": "Push_Loop",
+      "loop": true,
+      "sha256": "88494b5a7a2a661edddea7bece4490e76d2cda67b8b2959ecd9bd7dd74ee3a73"
+    },
+    {
+      "file": "roll.glb",
+      "original_animation": "Roll",
+      "loop": false,
+      "sha256": "2721cffb48e97c5def30391d652727327ae8dbbeba1b13dd4c61c9ed4bcd3826"
+    },
+    {
+      "file": "sitting-enter.glb",
+      "original_animation": "Sitting_Enter",
+      "loop": false,
+      "sha256": "e5535ceea20db6b7d2ce563c0699ad47c71527ff28f3a114a481e762b986e120"
+    },
+    {
+      "file": "sitting-exit.glb",
+      "original_animation": "Sitting_Exit",
+      "loop": false,
+      "sha256": "b228e0824870613e4892d9af97cd21393aaa5fe68b6eecc82084dacae862e808"
+    },
+    {
+      "file": "sitting-idle02.glb",
+      "original_animation": "Sitting_Idle02_Loop",
+      "loop": true,
+      "sha256": "703e9cc6aa136b8114e8ea69049f606fe1a6c57dfe25bd8c372ff02352648d45"
+    },
+    {
+      "file": "sitting-idle03.glb",
+      "original_animation": "Sitting_Idle03_Loop",
+      "loop": true,
+      "sha256": "25b9a65d6f41d61807635dbceeabd411ddaafde460d260947c20140e8586d465"
+    },
+    {
+      "file": "sitting-idle.glb",
+      "original_animation": "Sitting_Idle_Loop",
+      "loop": true,
+      "sha256": "cafa281767bdf9a0fd7c3246c38df8feee5ca938b1396b0b77063fdfc946a1ed"
+    },
+    {
+      "file": "sitting-nodding.glb",
+      "original_animation": "Sitting_Nodding_Loop",
+      "loop": true,
+      "sha256": "0197db113ef90f3128f1634e2618bf98acca9193d40192f07a56eb1dce28e623"
+    },
+    {
+      "file": "sitting-talking.glb",
+      "original_animation": "Sitting_Talking_Loop",
+      "loop": true,
+      "sha256": "e1abaf3141cc2a84e9385cf94bd02515268ce0d250a3fbbec4e0b5eec68cf5c9"
+    },
+    {
+      "file": "spell-double-enter.glb",
+      "original_animation": "Spell_Double_Enter",
+      "loop": false,
+      "sha256": "de7a4a8ffc1e1083a865aa6b337fdafa914e897eea5a4c27867ea832d5c7bf1f"
+    },
+    {
+      "file": "spell-double-exit.glb",
+      "original_animation": "Spell_Double_Exit",
+      "loop": false,
+      "sha256": "89d7ab281a49d9da75eb3bbd78d22145b74526e180c3361fa9a8ce54d4ddb3cf"
+    },
+    {
+      "file": "spell-double-idle.glb",
+      "original_animation": "Spell_Double_Idle_Loop",
+      "loop": true,
+      "sha256": "3751b6b2e23b68e758c28167d170ba0e8ac5a8a502f17ad16ffe4d12591a5a60"
+    },
+    {
+      "file": "spell-double-shoot.glb",
+      "original_animation": "Spell_Double_Shoot_Loop",
+      "loop": true,
+      "sha256": "886d29b13937b317438fbebd128d60a984026b13ce76c45930d87cac43a157ea"
+    },
+    {
+      "file": "spell-simple-enter.glb",
+      "original_animation": "Spell_Simple_Enter",
+      "loop": false,
+      "sha256": "872aa29a8c81307befda78596b74f2a1b4fdd5d6fea0cd3e20c05402abf10a0b"
+    },
+    {
+      "file": "spell-simple-exit.glb",
+      "original_animation": "Spell_Simple_Exit",
+      "loop": false,
+      "sha256": "7b44ab3e72ab63488af141dfe5a36b92a372bba13f1c314b7bfafefd22541359"
+    },
+    {
+      "file": "spell-simple-idle.glb",
+      "original_animation": "Spell_Simple_Idle_Loop",
+      "loop": true,
+      "sha256": "e10ab82f1d9bfe431f5188035b3186c5522e28f6c9cb375377762070d2c7e2db"
+    },
+    {
+      "file": "spell-simple-shoot.glb",
+      "original_animation": "Spell_Simple_Shoot",
+      "loop": false,
+      "sha256": "20674887bed21b6e3f480a5f11dea02b8f0e015f31c154f58a5f3be1bcc6eae6"
+    },
+    {
+      "file": "sprint-enter.glb",
+      "original_animation": "Sprint_Enter",
+      "loop": false,
+      "sha256": "47ee3c4973ebbd9a6b7d8993326c5831b0dfdfd61e5709e0fe2ac7d827ac58da"
+    },
+    {
+      "file": "sprint-exit.glb",
+      "original_animation": "Sprint_Exit",
+      "loop": false,
+      "sha256": "450009e528d017ded821dbf57e075046b2084338dc89481081a6feab9a9d74c5"
+    },
+    {
+      "file": "sprint.glb",
+      "original_animation": "Sprint_Loop",
+      "loop": true,
+      "sha256": "97afdf08629ede93f78c1d0bfd15f02300ebb7fc73db7b2154a34079921cf129"
+    },
+    {
+      "file": "swim-fwd.glb",
+      "original_animation": "Swim_Fwd_Loop",
+      "loop": true,
+      "sha256": "ad92c3553a1986d081aa473f0e5f2dc24f45d41b87a47662c9c9fe3871db92a1"
+    },
+    {
+      "file": "swim-idle.glb",
+      "original_animation": "Swim_Idle_Loop",
+      "loop": true,
+      "sha256": "a4c2b844b9f0f2924dba31520d7ab530358d51528331b39305e9914ddd223188"
+    },
+    {
+      "file": "sword-attack.glb",
+      "original_animation": "Sword_Attack",
+      "loop": false,
+      "sha256": "dc96bbd9f10402df39817402e05bf37bc544b22a5423eff3e14e1ec2a458afeb"
+    },
+    {
+      "file": "sword-attack-standing.glb",
+      "original_animation": "Sword_Attack_Standing",
+      "loop": false,
+      "sha256": "e8a95d5478aa07b90edbae1c3aace866801f159e66e3d5b13eae6823b34ac2a8"
+    },
+    {
+      "file": "sword-enter.glb",
+      "original_animation": "Sword_Enter",
+      "loop": false,
+      "sha256": "9cb864d36b3248ceb542b4660cc8239239164abc010e9e0c01bc30ef7de1637f"
+    },
+    {
+      "file": "sword-exit.glb",
+      "original_animation": "Sword_Exit",
+      "loop": false,
+      "sha256": "102d09fa71830e7075130598c3de9f5be69b3048b58e50b1e3a7c98160904f25"
+    },
+    {
+      "file": "sword-idle.glb",
+      "original_animation": "Sword_Idle",
+      "loop": false,
+      "sha256": "5c7678ab60f05eb2c3abb47b3ab0c766e19a5e3ac4f128028bf18fd0386fff2e"
+    },
+    {
+      "file": "turn90-l.glb",
+      "original_animation": "Turn90_L",
+      "loop": false,
+      "sha256": "c5793368b1015b30876424f76df71d50041208988b9f07299e4cc3520f9d0b90"
+    },
+    {
+      "file": "turn90-r.glb",
+      "original_animation": "Turn90_R",
+      "loop": false,
+      "sha256": "4d770c1413c733b087ea761ed30192f9de7989c4f3f886853b184f1c8cf09bb9"
+    },
+    {
+      "file": "walk-formal.glb",
+      "original_animation": "Walk_Formal_Loop",
+      "loop": true,
+      "sha256": "cad963330c633c0d9a416395215f4d2ca20311b74b7502904ff723c6a91892f4"
+    },
+    {
+      "file": "walk.glb",
+      "original_animation": "Walk_Loop",
+      "loop": true,
+      "sha256": "5632e24b1cb29ad241890784277f861257a306a7cf45f8a66529963a2118099f"
+    }
+  ],
+  "source": "https://quaternius.itch.io/universal-animation-library",
+  "license": "CC0-1.0",
+  "pack": "Universal Animation Library Pro"
+}
