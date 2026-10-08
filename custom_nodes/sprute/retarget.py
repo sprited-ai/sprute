@@ -6,8 +6,7 @@ import json, struct
 from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation, Slerp
-from . import motion_file
-from .skeleton_profiles import QUATERNIUS
+from . import motion_file, skeleton_profiles
 
 FPS = 24
 PREFIXES = ("mixamorig:", "mixamorig_", "mixamorig")
@@ -26,8 +25,8 @@ WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
 
 class Skeleton:
-    def __init__(self, path: Path):
-        if path.suffix == ".glb":
+    def __init__(self, path: Path, mapping=None):
+        if path.suffix.lower() == ".glb":
             raw = path.read_bytes()
             size = struct.unpack_from("<I", raw, 12)[0]
             self.doc = json.loads(raw[20:20 + size])
@@ -51,14 +50,33 @@ class Skeleton:
         self.translation = np.array([n.get("translation", [0, 0, 0]) for n in nodes], float)
         self.rotation = np.array([n.get("rotation", [0, 0, 0, 1]) for n in nodes], float)
         self.scale = np.array([n.get("scale", [1, 1, 1]) for n in nodes], float)
-        source_names = {nodes[i]["name"] for i in self.doc["skins"][0]["joints"]}
-        mapping = QUATERNIUS if set(QUATERNIUS) <= source_names else {}
+        for index, node in enumerate(nodes):
+            if "matrix" not in node:
+                continue
+            matrix = np.asarray(node["matrix"], float).reshape(4, 4).T
+            scale = np.linalg.norm(matrix[:3, :3], axis=0)
+            if not np.isfinite(matrix).all() or np.any(scale < 1e-8):
+                raise ValueError(f"Invalid or singular transform at node {index}")
+            rotation = matrix[:3, :3] / scale
+            if not np.allclose(rotation.T @ rotation, np.eye(3), atol=1e-6) or np.linalg.det(rotation) < 0:
+                raise ValueError(f"Sheared or mirrored transforms are unsupported at node {index}")
+            if not np.allclose(matrix[3], [0, 0, 0, 1]):
+                raise ValueError(f"Non-affine transform at node {index}")
+            self.translation[index] = matrix[:3, 3]
+            self.rotation[index] = Rotation.from_matrix(rotation).as_quat()
+            self.scale[index] = scale
+        joints = (self.doc.get("skins") or [{}])[0].get("joints", list(range(len(nodes))))
+        names = [nodes[i].get("name", str(i)) for i in joints]
+        self.profile, mapped = skeleton_profiles.roles(names, mapping)
         self.bone = {}
-        for index in self.doc["skins"][0]["joints"]:
-            name = nodes[index]["name"]
-            for prefix in PREFIXES:
-                name = name.removeprefix(prefix)
-            self.bone[mapping.get(name, name)] = index
+        for index, name in zip(joints, names):
+            if name in mapped:
+                role = mapped[name]
+                if role in self.bone:
+                    raise ValueError(f"Ambiguous joint role: {role}")
+                self.bone[role] = index
+        if "Hips" not in self.bone:
+            raise ValueError("Unknown skeleton: map source joints to humanoid roles; missing Hips")
         self.rest = self.world(self.translation, self.rotation)
         self.local = np.stack([self.rest[i] if self.parents[i] < 0 else np.linalg.inv(self.rest[self.parents[i]]) @ self.rest[i]
                                for i in range(len(nodes))])
@@ -113,6 +131,8 @@ class Skeleton:
         rotation = np.repeat(self.rotation[None], len(times), 0)
         for node, path, interpolation, keys, values in channels:
             if path == "scale":
+                if not np.allclose(values, self.scale[node]):
+                    raise ValueError("Animated scale is not supported for retargeting")
                 continue
             if len(keys) == 1:
                 (translation if path == "translation" else rotation)[:, node] = values[0]
@@ -126,6 +146,8 @@ class Skeleton:
             else:
                 rotation[:, node] = Slerp(keys, Rotation.from_quat(values))(at).as_quat()
         frames = np.stack([self.world(translation[f], rotation[f]) for f in range(len(times))])
+        if len(frames) < 2:
+            return frames
         step = np.abs(frames[1, :, :3, :3] - frames[0, :, :3, :3]).max()
         closing = np.abs(frames[-1, :, :3, :3] - frames[0, :, :3, :3]).max()
         return frames[:-1] if closing < 0.25 * step else frames
@@ -158,17 +180,35 @@ def rest_corrections(source: Skeleton, target: Skeleton, align: bool):
     return correction
 
 
-def retarget(source_path: Path, animation: str, model_path: Path):
+def body_basis(skeleton):
+    point = lambda role: skeleton.rest[skeleton.bone[role], :3, 3]
+    up = point("Neck") - point("Hips")
+    right = point("LeftUpLeg") - point("RightUpLeg")
+    if np.linalg.norm(up) < 1e-8:
+        raise ValueError("Degenerate rest skeleton: hips and neck coincide")
+    up /= np.linalg.norm(up)
+    right -= up * np.dot(right, up)
+    if np.linalg.norm(right) < 1e-8:
+        raise ValueError("Degenerate rest skeleton: cannot establish left/right axis")
+    right /= np.linalg.norm(right)
+    return np.column_stack((right, up, np.cross(right, up)))
+
+
+def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     """name, fps, loop, {bone name: (frames, 4) local quaternions}, (frames, 3) hips positions, on Template-kun."""
-    source, target = Skeleton(source_path), Skeleton(model_path)
+    source, target = Skeleton(source_path, mapping), Skeleton(model_path)
     missing = [name for name in BONES if name not in source.bone]
     if missing:
-        raise ValueError(f"{source_path.name}: no bones named {', '.join(missing)}. Bones are matched by Mixamo names.")
-    facing = lambda s: s.rest[s.bone["LeftUpLeg"], 0, 3] - s.rest[s.bone["RightUpLeg"], 0, 3]
-    if facing(source) * facing(target) <= 0:
-        raise ValueError(f"{source_path.name}: the character faces away from +Z")
-    correction = rest_corrections(source, target, True)
+        raise ValueError(f"{source_path.name}: no bones named {', '.join(missing)}. Provide an explicit source-joint to humanoid-role mapping.")
     frames = source.animation(animation)
+    # Derive a right-handed body basis from the rest skeleton. This normalizes
+    # source orientation without changing the saved source or guessing from names.
+    alignment = body_basis(target) @ body_basis(source).T
+    transform = np.eye(4)
+    transform[:3, :3] = alignment
+    source.rest = transform @ source.rest
+    frames = transform @ frames
+    correction = rest_corrections(source, target, True)
     rest = pure(np.stack([source.rest[source.bone[name]] for name in BONES]))
     posed = pure(np.stack([frames[:, source.bone[name]] for name in BONES], 1))
     turn = posed @ np.swapaxes(rest, -1, -2)
@@ -177,8 +217,9 @@ def retarget(source_path: Path, animation: str, model_path: Path):
             turn[:, index] = turn[:, index] @ correction[name].T
     ground = min(source.rest[i, 1, 3] for i in source.bone.values())
     offset = frames[:, source.hips, :3, 3] - source.rest[source.hips, :3, 3]
-    # Driving videos play in place: drop where the clip stands, keep the sway and the vertical movement.
-    offset[:, [0, 2]] -= offset[:, [0, 2]].mean(0)
+    # Anchor the starting location while retaining the complete horizontal path.
+    # In-place conversion belongs to the common renderer, not source retargeting.
+    offset[:, [0, 2]] -= offset[0, [0, 2]]
     scale = target.rest[target.hips, 1, 3] / (source.rest[source.hips, 1, 3] - ground)
     turns = [{target.bone[name]: turn[f, index] for index, name in enumerate(BONES)} for f in range(len(turn))]
     rotations, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offset * scale)

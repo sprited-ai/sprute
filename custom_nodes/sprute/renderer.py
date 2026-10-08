@@ -151,7 +151,7 @@ def render_cell(model: Model, positions, normals, direction: int, cell_width: in
     return torch.cat([(colour / alpha.clamp(min=1e-6))[0], alpha[0]], 0).permute(1, 2, 0).clamp(0, 1)
 
 
-def sample_motion(model: Model, motion, frames: int, frame_rate: float):
+def sample_motion(model: Model, motion, frames: int, frame_rate: float, in_place: bool = True):
     """Local bone rotations and hips positions for `frames` frames at `frame_rate`."""
     name, fps, loop, rotations, hips = motion
     count = len(hips)
@@ -165,14 +165,27 @@ def sample_motion(model: Model, motion, frames: int, frame_rate: float):
     bones = [model.bone[bone] for bone in rotations]
     turned = np.stack([Slerp(keys, Rotation.from_quat(close(values)))(position).as_matrix() for values in rotations.values()], 1)
     moved = np.stack([np.interp(position, keys, close(hips)[:, axis]) for axis in range(3)], 1)
-    return [(dict(zip(bones, turned[f])), moved[f]) for f in range(frames)]
+    poses = []
+    for frame in range(frames):
+        rotations = dict(zip(bones, turned[frame]))
+        hips = moved[frame].copy()
+        if in_place:
+            # Work in world space so rotated/scaled parents cannot turn a local
+            # horizontal lock into a vertical change. Never mutate source keys.
+            world = model.world(rotations, hips)
+            position = world[model.hips, :, 3].copy()
+            position[[0, 2]] = model.rest[model.hips, [0, 2], 3]
+            parent = model.parents[model.hips]
+            hips = (position if parent < 0 else np.linalg.solve(world[parent], position))[:3]
+        poses.append((rotations, hips))
+    return poses
 
 
-def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 256, cell_height: int = 256):
+def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 256, cell_height: int = 256, in_place: bool = True):
     """(frames, cell_height, 8 * cell_width, 4) RGBA in 0..1: the eight directions in a strip, like a sprute animation."""
     device = model.positions.device
     video = torch.zeros((frames, cell_height, cell_width * len(layout.STRIP), 4), device=device)
-    for frame, (rotations, hips) in enumerate(sample_motion(model, motion, frames, frame_rate)):
+    for frame, (rotations, hips) in enumerate(sample_motion(model, motion, frames, frame_rate, in_place=in_place)):
         positions, normals = model.skinned(model.world(rotations, hips))
         for direction in range(len(layout.STRIP)):
             left = direction * cell_width

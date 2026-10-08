@@ -126,8 +126,8 @@ def load_motion(path, model_path):
     scale = target.rest[target.hips, 1, 3] / height
     offsets = np.array(roots, dtype=float, copy=True)
     offsets[:, 1] -= height
-    # Driving frames keep the character centered; the saved GLB retains root travel.
-    offsets[:, [0, 2]] = 0
+    # Retain horizontal travel; the common renderer chooses in-place or moving.
+    offsets[:, [0, 2]] -= offsets[0, [0, 2]]
     mapping = [(names.index(src), target.bone[dst]) for src, dst in MAPPING.items()]
     turns = [{dst: frame[src] for src, dst in mapping} for frame in rotations]
     local, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offsets * scale)
