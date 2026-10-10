@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 
 import comfy.model_management
+import torch
 import folder_paths
 
 from . import kimodo, layout, motion_file, renderer, retarget
@@ -125,6 +126,25 @@ class SpruteCellsToStrip:
         return (layout.cells_to_strip(image),)
 
 
+class SpruteHoldFirstFrame:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "image": ("IMAGE",),
+            "mask": ("MASK",),
+            "count": ("INT", {"default": 5, "min": 1, "max": 64}),
+        }}
+
+    RETURN_TYPES = ("IMAGE", "MASK")
+    FUNCTION = "hold"
+    CATEGORY = "Sprute"
+    DESCRIPTION = ("Repeats the first frame `count` times in front of the video. With the reference as SCAIL2's previous frames, "
+                   "those frames are pinned to the reference, so every direction starts from its own view.")
+
+    def hold(self, image, mask, count):
+        return (torch.cat([image[:1].repeat(count, 1, 1, 1), image]), torch.cat([mask[:1].repeat(count, 1, 1), mask]))
+
+
 class SpruteKimodoToGLB:
     @classmethod
     def INPUT_TYPES(cls):
@@ -151,6 +171,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteStripToGrid": SpruteStripToGrid,
     "SpruteGridToCells": SpruteGridToCells,
     "SpruteCellsToStrip": SpruteCellsToStrip,
+    "SpruteHoldFirstFrame": SpruteHoldFirstFrame,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteKimodoToGLB": "Sprute Kimodo to GLB",
@@ -159,4 +180,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteStripToGrid": "Sprute Strip To Grid",
     "SpruteGridToCells": "Sprute Grid To Cells",
     "SpruteCellsToStrip": "Sprute Cells To Strip",
+    "SpruteHoldFirstFrame": "Sprute Hold First Frame",
 }
