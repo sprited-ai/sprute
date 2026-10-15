@@ -34,9 +34,6 @@ def generate(
     if name is not None:
         if not name.strip() or name in (".", "..") or any(c in name for c in '/\\\0'):
             raise ValueError("Name must be a filename, without directory separators.")
-        named_output = out / f"{name}.character.png"
-        if named_output.exists() or named_output.is_symlink():
-            raise FileExistsError(f"Character already exists: {named_output}")
     data = run_workflow(
         graph,
         input_files={template_name: template},
@@ -45,12 +42,11 @@ def generate(
     )["114"]
     index = 1
     while True:
-        destination = out / (f"{name}.character.png" if name is not None else f"{index:04d}.character.png")
+        output_name = name if index == 1 else f"{name}-{index}"
+        destination = out / (f"{output_name}.character.png" if name is not None else f"{index:04d}.character.png")
         try:
             target = destination.open("xb")
         except FileExistsError:
-            if name is not None:
-                raise FileExistsError(f"Character already exists: {destination}") from None
             index += 1
             continue
         try:

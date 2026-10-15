@@ -28,6 +28,16 @@ build/
 !/motions/walk.glb
 !/motions/run.glb
 !/motions/quaternius/
+*.cached.webp
 
 # Downloaded source packs used for extraction and validation.
 /assets/quaternius/
+
+# LaTeX build output; keep manuscript sources and research notes.
+/docs/paper/*.aux
+/docs/paper/*.log
+/docs/paper/*.out
+/docs/paper/*.fls
+/docs/paper/*.fdb_latexmk
+/docs/paper/*.synctex.gz
+/docs/paper/sprute-paper.pdf

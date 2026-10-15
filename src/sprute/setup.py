@@ -19,7 +19,7 @@ COMFY_INDEX_URL = "https://nodes.appmana.com/simple/"
 CUSTOM_NODES = {
     "ComfyUI-Kimodo": {
         "repository": "https://github.com/sprited-ai/comfy-kimodo.git",
-        "revision": "401d81266b3388af8acb3ec87cca553c1a1f5d0b",
+        "revision": "d8ad78a3cfd9d1b0063b07dec24c291fc00af0b4",
     },
     "ComfyUI-KJNodes": {
         "repository": "https://github.com/kijai/ComfyUI-KJNodes.git",

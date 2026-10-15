@@ -61,10 +61,10 @@ Setup reports the required download size. Any models already in the models direc
 ### 4. Make a character
 
 ```bash
-sprute character "a knight in silver armor"
+sprute create character --prompt "a knight in silver armor"
 
 # Start from your own character image instead
-sprute character --image hero.png
+sprute create character --image hero.png
 ```
 
 This runs every step below: generate, eight directions, and the `idle`, `walk`, and `run` animations. `--motions idle,run` picks which ones, and `--seed` is used for every step. The rest of this section covers each step on its own.
@@ -73,28 +73,28 @@ This runs every step below: generate, eight directions, and the `idle`, `walk`, 
 
 ```bash
 # Random character
-sprute character-generate
+sprute generate character
 
 # From a text prompt
-sprute character-generate "a girl wearing a dress"
+sprute generate character --prompt "a girl wearing a dress"
 
 # Named, with a fixed seed
-sprute character-generate "a knight" --name knight --seed 42
+sprute generate character --prompt "a knight" --name knight --seed 42
 ```
 
-Characters are saved as `output/<name>.character.png`, numbered `0001`, `0002`, … when no name is given.
+Characters are saved as `output/<name>.character.png`, using a slug of the prompt when no name is given. Empty prompts use `character`. Existing names receive a suffix such as `knight-2`.
 
 ### 6. Generate eight directions
 
 ```bash
-sprute character-turntable output/0001.character.png
+sprute turntable character --character knight
 ```
 
 This saves:
 
-- `0001.turntable.webp`: the rotating turntable animation
-- `0001.directions.png`: a strip of the eight directions (2048×256)
-- `0001.directions.webp`: the eight directions as an animation
+- `knight.turntable.webp`: the rotating turntable animation
+- `knight.directions.png`: a strip of the eight directions (2048×256)
+- `knight.directions.webp`: the eight directions as an animation
 
 Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from south), in both the strip and the animations.
 
@@ -105,10 +105,10 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 ### 7. Animate
 
 ```bash
-sprute character-animate output/0001.directions.png --motion run
+sprute animate character --character knight --motion run
 ```
 
-Motions are `idle`, `walk`, and `run`. This saves `0001.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
+Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
 
 `--motion run` looks in `motions/` for `run.webp` first, then `run.glb`.
 
@@ -122,7 +122,7 @@ As with turntable, the same `--seed` and input return the existing file instead 
 ### Preview
 
 ```bash
-sprute preview output/0001.run.webp
+sprute preview output/knight.run.webp
 ```
 
 Shows an output in iTerm2. Animated WebP files play in place.
@@ -130,8 +130,8 @@ Shows an output in iTerm2. Animated WebP files play in place.
 ### Generate a motion
 
 ```sh
-sprute motion-generate "Gangnam style dance"
-sprute character-animate output/0001.directions.png --motion gangnam-style-dance
+sprute generate motion --prompt "Gangnam style dance"
+sprute animate character --character knight --motion gangnam-style-dance
 ```
 
 The prompt becomes `motions/gangnam-style-dance.glb`. Use `--name` to choose
@@ -164,3 +164,12 @@ Sprute is licensed under the [MIT License](LICENSE).
 Sprute does not claim ownership of the sprites or animations you generate, and does not require attribution or royalties for those outputs.
 
 You may use generated assets in personal or commercial projects, subject to the terms of the models and services used and any rights associated with your reference images. 
+
+Render a GLB as an eight-direction driving video:
+
+```bash
+sprute render motion --motion walk
+```
+
+The render is cached beside the GLB as `motions/walk.cached.webp`.
+`--character` accepts a name in `--out` (default `output/`) or an image path.

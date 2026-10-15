@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-14",
+  "status": "source inspection only; no inference executed",
+  "git_head": "ee7392f69143c9d17aca1045670ab5727fcbfde0",
+  "working_tree_modifications_observed": [
+    "custom_nodes/sprute/__init__.py",
+    "custom_nodes/sprute/layout.py",
+    "workflows/sprute-animate-character.json"
+  ],
+  "files": {
+    "src/sprute/generate.py": {
+      "sha256": "27bb29a1d6b36d9cc534814fff1dc7e02222ed504b9b5685c69849736356c99f",
+      "bytes": 2380
+    },
+    "src/sprute/turntable.py": {
+      "sha256": "76dec510a943cd01d0a22321d3e7c9414a5a9a9a57c81f19dff98afb04681798",
+      "bytes": 2731
+    },
+    "src/sprute/animate.py": {
+      "sha256": "f4705ef2906022b74579e4eb9bdf37534b55deef46c82583ad74cceab786eb17",
+      "bytes": 3342
+    },
+    "src/sprute/motion.py": {
+      "sha256": "2205a7a775d2c67e04ef49cd9d7a715829c81852cae6dfc1950d3415c4876050",
+      "bytes": 4641
+    },
+    "src/sprute/comfy.py": {
+      "sha256": "2ca8544fcdc6825b55fa3065d74effa0771f7390e25c8e085acc559efd4bffdf",
+      "bytes": 6666
+    },
+    "src/sprute/setup.py": {
+      "sha256": "0f26f1e59a53622651ee469ce6a5c25873c45cb8226157b129c5da6d33444750",
+      "bytes": 18680
+    },
+    "src/sprute/models.py": {
+      "sha256": "793f725c585456b8e5900d7eae698852c38cd90c964ea787239a5f9d32752129",
+      "bytes": 10115
+    },
+    "custom_nodes/sprute/layout.py": {
+      "sha256": "dfd4127bf74b445bcd9419f804fbeb02e5e7fc74c4a0a148278c9ac467d8fc05",
+      "bytes": 2385
+    },
+    "custom_nodes/sprute/renderer.py": {
+      "sha256": "0c508f7ab09cc4efa7375dfb8136a86b5b777b739154dd63299bdc92933bd680",
+      "bytes": 10540
+    },
+    "custom_nodes/sprute/__init__.py": {
+      "sha256": "762ad74d8788adcc712727440f5b3c7ca121eba9d065c8a249aaf41b47095b6f",
+      "bytes": 7218
+    },
+    "custom_nodes/sprute/retarget.py": {
+      "sha256": "d29dcc76e42da434f82779be9ecce125f0a3341bac0b0532d87b2f22c4cc8ffa",
+      "bytes": 12503
+    },
+    "custom_nodes/sprute/motion_file.py": {
+      "sha256": "6670a21cd459a73ac847860962d48a6ed7c7caf5cb6403f116606ecf981511dc",
+      "bytes": 5800
+    },
+    "workflows/sprute-turntable-character.api.json": {
+      "sha256": "c327a999d46269b2c8e77bfb0e5d490899f3fdad6d9b728f2c62e50ffd20c2e0",
+      "bytes": 9175
+    },
+    "workflows/sprute-animate-character.api.json": {
+      "sha256": "93bfd86307891cc21bd98435e1ea20516b8eda38a1547242ba1faccfeb2786dd",
+      "bytes": 13327
+    },
+    "workflows/alts/sprute-animate-character.anchor.api.json": {
+      "sha256": "c9ccc440f5602089f17d304b1b70a798e6cc48c0f7b43375151036e395623145",
+      "bytes": 14089
+    },
+    "workflows/sprute-render-motion.api.json": {
+      "sha256": "e52a6fd9ea342e83210d3056d8f449b94aee116ecb52b2ddb4d6fe0d0b31a249",
+      "bytes": 772
+    },
+    "workflows/alts/sprute-animate-character.anchor.md": {
+      "sha256": "f2179b1d3089bd3f8cc1ab3b8ac85af8f6e01f6c9c79ba7f7d566c19e960e336",
+      "bytes": 1121
+    },
+    "workflows/alts/sprute-animate-native-parity.md": {
+      "sha256": "05a7b13365937aa57c67a2335988147ad3f3920710cbfbf84bf9235227056bed",
+      "bytes": 2152
+    },
+    "assets/template-kun/template-kun.glb": {
+      "sha256": "6f4302d300c387945237da38c2aef7af2eb67102bbde5d3f4f3bb95e976759e9",
+      "bytes": 5321832
+    },
+    "motions/idle.glb": {
+      "sha256": "c4dac0cde49c0ac5228cdccbbebdcb026c3526096d15627ce2d6d65ef4920676",
+      "bytes": 49216
+    },
+    "motions/walk.glb": {
+      "sha256": "802a6661bb49a03738dd18f91ac17ad841eb2cd715abe50533437f2514f289aa",
+      "bytes": 38920
+    },
+    "motions/run.glb": {
+      "sha256": "1b9c7b05a619bd2e07aeca09eb520a09c741ae1122695592a26f4d6df977cf91",
+      "bytes": 36336
+    },
+    "workflows/sprute-animate-character.json": {
+      "sha256": "09efc4a5a51f2c360e1b585cec31a46a9c3f4aaee0b46f31974d0c0f467dd406",
+      "bytes": 59151
+    }
+  },
+  "declared_static_model_registry": {
+    "flux-fill": {
+      "repo_id": "black-forest-labs/FLUX.1-Fill-dev",
+      "filename": "flux1-fill-dev.safetensors",
+      "revision": "358293da0354175698b67ec8299acf928313a78a",
+      "destination": "diffusion_models/flux1-fill-dev.safetensors"
+    },
+    "clip-l": {
+      "repo_id": "comfyanonymous/flux_text_encoders",
+      "filename": "clip_l.safetensors",
+      "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+      "destination": "text_encoders/clip_l.safetensors"
+    },
+    "t5-xxl": {
+      "repo_id": "comfyanonymous/flux_text_encoders",
+      "filename": "t5xxl_fp16.safetensors",
+      "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
+      "destination": "text_encoders/t5xxl_fp16.safetensors"
+    },
+    "flux-vae": {
+      "repo_id": "black-forest-labs/FLUX.1-Fill-dev",
+      "filename": "ae.safetensors",
+      "revision": "358293da0354175698b67ec8299acf928313a78a",
+      "destination": "vae/ae.safetensors"
+    },
+    "anisora-high": {
+      "repo_id": "Kijai/WanVideo_comfy_fp8_scaled",
+      "filename": "I2V/AniSora/Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+      "revision": "033a4e487f60220b3d6e469599a6aebc46e13cee",
+      "destination": "diffusion_models/Wan2_2-I2V_AniSoraV3_2_HIGH_14B_fp8_e4m3fn_scaled_KJ.safetensors"
+    },
+    "anisora-low": {
+      "repo_id": "Kijai/WanVideo_comfy_fp8_scaled",
+      "filename": "I2V/AniSora/Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors",
+      "revision": "033a4e487f60220b3d6e469599a6aebc46e13cee",
+      "destination": "diffusion_models/Wan2_2-I2V_AniSoraV3_2_LOW_14B_fp8_e4m3fn_scaled_KJ.safetensors"
+    },
+    "umt5-xxl": {
+      "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+      "filename": "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+      "destination": "text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+    },
+    "clip-vision-h": {
+      "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+      "filename": "split_files/clip_vision/clip_vision_h.safetensors",
+      "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+      "destination": "clip_vision/clip_vision_h.safetensors"
+    },
+    "wan-vae": {
+      "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+      "filename": "split_files/vae/wan_2.1_vae.safetensors",
+      "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
+      "destination": "vae/wan_2.1_vae.safetensors"
+    },
+    "wan-vae-bf16": {
+      "repo_id": "Kijai/WanVideo_comfy",
+      "filename": "Wan2_1_VAE_bf16.safetensors",
+      "revision": "8260d429d19fd7a72304cad059160b95d843913f",
+      "destination": "vae/Wan2_1_VAE_bf16.safetensors"
+    },
+    "scail2": {
+      "repo_id": "Comfy-Org/SCAIL-2",
+      "filename": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+      "revision": "fe3c728bc793ba21ca674688f822afb709ad44fb",
+      "destination": "diffusion_models/wan2.1_14B_SCAIL_2_fp8_scaled.safetensors"
+    },
+    "scail2-dpo": {
+      "repo_id": "Comfy-Org/SCAIL-2",
+      "filename": "loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors",
+      "revision": "fe3c728bc793ba21ca674688f822afb709ad44fb",
+      "destination": "loras/wan2.1_SCAIL_2_DPO_lora_bf16.safetensors"
+    },
+    "lightx2v": {
+      "repo_id": "Kijai/WanVideo_comfy",
+      "filename": "Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
+      "revision": "8260d429d19fd7a72304cad059160b95d843913f",
+      "destination": "loras/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors"
+    },
+    "toonout": {
+      "repo_id": "1038lab/BiRefNet",
+      "filename": "BiRefNet_toonout.safetensors",
+      "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+      "destination": "RMBG/BiRefNet/BiRefNet_toonout.safetensors"
+    },
+    "birefnet-code": {
+      "repo_id": "1038lab/BiRefNet",
+      "filename": "birefnet.py",
+      "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+      "destination": "RMBG/BiRefNet/birefnet.py"
+    },
+    "birefnet-config-code": {
+      "repo_id": "1038lab/BiRefNet",
+      "filename": "BiRefNet_config.py",
+      "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+      "destination": "RMBG/BiRefNet/BiRefNet_config.py"
+    },
+    "birefnet-config": {
+      "repo_id": "1038lab/BiRefNet",
+      "filename": "config.json",
+      "revision": "4d000788a9698c7f8d67c8c6ce2b40c768f5b909",
+      "destination": "RMBG/BiRefNet/config.json"
+    }
+  },
+  "registry_scope": "Static entries only. Kimodo/text-encoder dictionary comprehensions omitted; full registry source is hashed above.",
+  "declared_custom_nodes": {
+    "ComfyUI-Kimodo": {
+      "repository": "https://github.com/sprited-ai/comfy-kimodo.git",
+      "revision": "401d81266b3388af8acb3ec87cca553c1a1f5d0b"
+    },
+    "ComfyUI-KJNodes": {
+      "repository": "https://github.com/kijai/ComfyUI-KJNodes.git",
+      "revision": "d3cfe21625e5170126ce06fbfcfe1d88108688c3"
+    },
+    "ComfyUI-RMBG": {
+      "repository": "https://github.com/kndlt/ComfyUI-RMBG.git",
+      "revision": "7f02fab3f33aee806002c9b349cc9ea763f4d2e7"
+    },
+    "comfyui-fitsize": {
+      "repository": "https://github.com/bronkula/comfyui-fitsize.git",
+      "revision": "dff0221df4859a6de4a7ef26d5a3900a153818e1"
+    },
+    "ComfyUI-Custom-Scripts": {
+      "repository": "https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git",
+      "revision": "609f3afaa74b2f88ef9ce8d939626065e3247469"
+    },
+    "ComfyUI-VideoHelperSuite": {
+      "repository": "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git",
+      "revision": "4d907bee61e92c2e65af3bd6383a4e4d356126d1"
+    }
+  },
+  "declared_comfy_version": "0.37.0.1",
+  "baseline_sampler": {
+    "seed": 42,
+    "steps": 8,
+    "cfg": 1,
+    "sampler_name": "uni_pc",
+    "scheduler": "simple",
+    "denoise": 1,
+    "model": [
+      "506",
+      0
+    ],
+    "positive": [
+      "425",
+      0
+    ],
+    "negative": [
+      "425",
+      1
+    ],
+    "latent_image": [
+      "425",
+      2
+    ]
+  },
+  "baseline_positive_prompt": {
+    "text": "",
+    "clip": [
+      "416",
+      0
+    ]
+  },
+  "baseline_negative_prompt": {
+    "text": "",
+    "clip": [
+      "416",
+      0
+    ]
+  },
+  "anchor_graph_changes": {
+    "425": {
+      "baseline": {
+        "inputs": {
+          "width": [
+            "439",
+            0
+          ],
+          "height": [
+            "439",
+            1
+          ],
+          "length": [
+            "439",
+            2
+          ],
+          "batch_size": 1,
+          "pose_strength": 1,
+          "pose_start": 0,
+          "pose_end": 1,
+          "video_frame_offset": 0,
+          "previous_frame_count": 5,
+          "replacement_mode": [
+            "423",
+            0
+          ],
+          "positive": [
+            "419",
+            0
+          ],
+          "negative": [
+            "421",
+            0
+          ],
+          "vae": [
+            "417",
+            0
+          ],
+          "pose_video": [
+            "493",
+            0
+          ],
+          "pose_video_mask": [
+            "431",
+            0
+          ],
+          "reference_image": [
+            "489",
+            0
+          ],
+          "reference_image_mask": [
+            "482",
+            0
+          ],
+          "clip_vision_output": [
+            "422",
+            0
+          ]
+        },
+        "class_type": "WanSCAILToVideo",
+        "_meta": {
+          "title": "WanSCAILToVideo"
+        }
+      },
+      "anchor": {
+        "inputs": {
+          "width": [
+            "439",
+            0
+          ],
+          "height": [
+            "439",
+            1
+          ],
+          "length": [
+            "439",
+            2
+          ],
+          "batch_size": 1,
+          "pose_strength": 1,
+          "pose_start": 0,
+          "pose_end": 1,
+          "video_frame_offset": 0,
+          "previous_frame_count": 5,
+          "replacement_mode": [
+            "423",
+            0
+          ],
+          "positive": [
+            "419",
+            0
+          ],
+          "negative": [
+            "421",
+            0
+          ],
+          "vae": [
+            "417",
+            0
+          ],
+          "pose_video": [
+            "493",
+            0
+          ],
+          "pose_video_mask": [
+            "431",
+            0
+          ],
+          "reference_image": [
+            "489",
+            0
+          ],
+          "reference_image_mask": [
+            "482",
+            0
+          ],
+          "clip_vision_output": [
+            "422",
+            0
+          ],
+          "previous_frames": [
+            "601",
+            0
+          ]
+        },
+        "class_type": "WanSCAILToVideo",
+        "_meta": {
+          "title": "WanSCAILToVideo"
+        }
+      }
+    },
+    "583": {
+      "baseline": {
+        "inputs": {
+          "image": [
+            "4",
+            0
+          ],
+          "mask": [
+            "4",
+            1
+          ]
+        },
+        "class_type": "SpruteStripToGrid",
+        "_meta": {
+          "title": "Sprute Strip To Grid (Driving Video)"
+        }
+      },
+      "anchor": {
+        "inputs": {
+          "image": [
+            "600",
+            0
+          ],
+          "mask": [
+            "600",
+            1
+          ]
+        },
+        "class_type": "SpruteStripToGrid",
+        "_meta": {
+          "title": "Sprute Strip To Grid (Driving Video)"
+        }
+      }
+    },
+    "592": {
+      "baseline": {
+        "inputs": {
+          "input": [
+            "505",
+            0
+          ],
+          "resize_type": "match size",
+          "resize_type.match": [
+            "583",
+            0
+          ],
+          "resize_type.crop": "disabled",
+          "scale_method": "lanczos"
+        },
+        "class_type": "ResizeImageMaskNode",
+        "_meta": {
+          "title": "Resize Image/Mask (Back To Full Size)"
+        }
+      },
+      "anchor": {
+        "inputs": {
+          "input": [
+            "602",
+            0
+          ],
+          "resize_type": "match size",
+          "resize_type.match": [
+            "583",
+            0
+          ],
+          "resize_type.crop": "disabled",
+          "scale_method": "lanczos"
+        },
+        "class_type": "ResizeImageMaskNode",
+        "_meta": {
+          "title": "Resize Image/Mask (Back To Full Size)"
+        }
+      }
+    },
+    "600": {
+      "baseline": null,
+      "anchor": {
+        "class_type": "SpruteHoldFirstFrame",
+        "inputs": {
+          "image": [
+            "4",
+            0
+          ],
+          "mask": [
+            "4",
+            1
+          ],
+          "count": 5
+        },
+        "_meta": {
+          "title": "Sprute Hold First Frame"
+        }
+      }
+    },
+    "601": {
+      "baseline": null,
+      "anchor": {
+        "class_type": "RepeatImageBatch",
+        "inputs": {
+          "image": [
+            "489",
+            0
+          ],
+          "amount": 5
+        },
+        "_meta": {
+          "title": "Reference As Previous Frames"
+        }
+      }
+    },
+    "602": {
+      "baseline": null,
+      "anchor": {
+        "class_type": "ImageFromBatch",
+        "inputs": {
+          "image": [
+            "505",
+            0
+          ],
+          "batch_index": 5,
+          "length": 4096
+        },
+        "_meta": {
+          "title": "Drop Pinned Frames"
+        }
+      }
+    }
+  },
+  "unverified": [
+    "installed package versions",
+    "actual checkpoint file hashes and runtime dtypes",
+    "GPU execution and resource costs",
+    "historical run artifacts and labels",
+    "held-out character identities and redistribution permissions",
+    "decoded output time alignment"
+  ],
+  "pilot": {
+    "status": "specified, not queued",
+    "development_characters": 2,
+    "development_jobs": 4,
+    "evaluation_characters": 10,
+    "motions": [
+      "idle",
+      "walk",
+      "run"
+    ],
+    "seeds": [
+      17,
+      42,
+      101
+    ],
+    "arms": [
+      "baseline",
+      "anchor5"
+    ],
+    "evaluation_jobs": 180,
+    "direction_clips": 1440,
+    "independent_character_clusters": 10
+  }
+}
