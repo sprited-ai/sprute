@@ -91,7 +91,8 @@ class SpruteStripToGrid:
     FUNCTION = "arrange"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Arranges a strip of eight directions (S, SE, E, NE, N, NW, W, SW) as the 3x3 grid SCAIL2 reads: "
-                   "NW N NE / W - E / SW S SE. The centre is empty and transparent.")
+                   "NW N NE / W - E / SW S SE. Each direction is centred in a square cell with transparent padding, "
+                   "without cropping or stretching. The centre is empty and transparent.")
 
     def arrange(self, image, mask):
         return (layout.strip_to_grid(image, empty=0.0), layout.strip_to_grid(mask, empty=1.0))

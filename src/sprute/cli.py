@@ -25,6 +25,16 @@ from time import monotonic
 from collections import deque
 
 app = typer.Typer(no_args_is_help=True)
+generate_app = typer.Typer(no_args_is_help=True)
+turntable_app = typer.Typer(no_args_is_help=True)
+animate_app = typer.Typer(no_args_is_help=True)
+render_app = typer.Typer(no_args_is_help=True)
+create_app = typer.Typer(no_args_is_help=True)
+app.add_typer(create_app, name="create", help="Run a complete creation pipeline.")
+app.add_typer(generate_app, name="generate", help="Generate a character or motion.")
+app.add_typer(turntable_app, name="turntable", help="Create directional views.")
+app.add_typer(animate_app, name="animate", help="Animate a character.")
+app.add_typer(render_app, name="render", help="Render a driving motion.")
 
 console = Console(
     stderr=True,
@@ -230,12 +240,12 @@ def run_with_panel[T](
     console.print(f"{title} completed in {duration(monotonic() - command_started_at)}", style="dim")
     return result
 
-@app.command("character")
+@create_app.command("character")
 def spawn(
-    prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
+    prompt: str = typer.Option("", "--prompt", help="Text prompt; random character when omitted."),
     image: Path | None = typer.Option(None, exists=True, dir_okay=False, help="Start from this character image instead of generating one."),
     motions: str = typer.Option(",".join(MOTIONS), help="Comma-separated motions to animate."),
-    name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
+    name: str | None = typer.Option(None, help="Character name; defaults to a slug of the prompt."),
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
@@ -248,6 +258,7 @@ def spawn(
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Generate a character, its eight directions, and its animations in one go."""
+    name = name or prompt_slug(prompt, "character")
     chosen = [motion.strip() for motion in motions.split(",") if motion.strip()]
     try:
         for motion in chosen or [""]:
@@ -277,10 +288,10 @@ def spawn(
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
 
-@app.command("character-generate")
+@generate_app.command("character")
 def generate(
-    prompt: str = typer.Argument("", help="Text prompt; random character when omitted."),
-    name: str | None = typer.Option(None, help="Character name; numbered automatically when omitted."),
+    prompt: str = typer.Option("", "--prompt", help="Text prompt; random character when omitted."),
+    name: str | None = typer.Option(None, help="Character name; defaults to a slug of the prompt."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
     batch: int = typer.Option(1, min=1, help="Number of characters to generate sequentially."),
@@ -292,6 +303,7 @@ def generate(
     preview: bool = typer.Option(True, "--preview/--no-preview", help="Show the sprite with imgcat in an interactive terminal."),
 ):
     """Generate a character from a text prompt."""
+    name = name or prompt_slug(prompt, "character")
     set_models_directory(models_directory)
     require_setup()
     def generate_batch(on_event: Callable[[Event], None]) -> None:
@@ -363,9 +375,9 @@ def webp_frame_durations(image: Path) -> list[int]:
 
 
 
-@app.command("character-turntable")
+@turntable_app.command("character")
 def turntable(
-    image: Path = typer.Argument(..., exists=True, dir_okay=False, help="Character reference image."),
+    character: str = typer.Option(..., "--character", help="Character name or reference image path."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
@@ -376,6 +388,7 @@ def turntable(
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Generate a turntable and extract eight directional views."""
+    image = character_file(character, out, "character")
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
@@ -390,9 +403,9 @@ def turntable(
     run_with_panel("Turntable", run, verbose=verbose)
 
 
-@app.command("character-animate")
+@animate_app.command("character")
 def animate(
-    directions: Path = typer.Argument(..., exists=True, dir_okay=False, help="Eight-direction strip from turntable."),
+    character: str = typer.Option(..., "--character", help="Character name or eight-direction image path."),
     motion: str = typer.Option(..., help="Bundled motion name or a .glb/.webp file path."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
@@ -406,6 +419,7 @@ def animate(
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Animate the eight directions with a motion."""
+    directions = character_file(character, out, "directions")
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
@@ -417,9 +431,9 @@ def animate(
     run_with_panel("Animate", run, verbose=verbose)
 
 
-@app.command("motion-generate")
+@generate_app.command("motion")
 def generate_motion(
-    prompt: str = typer.Argument(..., help="Describe the motion to generate."),
+    prompt: str = typer.Option(..., "--prompt", help="Describe the motion to generate."),
     name: str | None = typer.Option(None, help="Filename without extension; defaults to a slug of the prompt."),
     out: Path = typer.Option(Path("motions"), file_okay=False, help="Output directory."),
     seed: int | None = typer.Option(None, min=0, max=2**32 - 1, help="Random when omitted."),
@@ -430,8 +444,7 @@ def generate_motion(
 ):
     """Generate a skeleton animation GLB with Kimodo."""
     if name is None:
-        name = re.sub(r"[\W_]+", "-", unicodedata.normalize("NFKC", prompt).lower()).strip("-")
-        name = name.encode("utf-8")[:180].decode("utf-8", errors="ignore").rstrip("-") or "motion"
+        name = prompt_slug(prompt, "motion")
     if not name.strip() or name in (".", "..") or any(c in name for c in ("/", "\\")) or name.lower().endswith(".glb"):
         raise typer.BadParameter("Use a filename without a path or .glb extension.", param_hint="--name")
     require_setup(models=False)
@@ -454,26 +467,46 @@ def generate_motion(
     run_with_panel("Generate Motion", run, verbose=verbose, prompt=prompt)
 
 
-@app.command("character-render-motion")
+@render_app.command("motion")
 def render_motion(
-    motion: Path = typer.Argument(..., exists=True, dir_okay=False, help="Motion to render, a .glb file."),
-    out: Path = Path("output"),
+    motion: str = typer.Option(..., "--motion", help="Motion name or GLB file path."),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
     """Render a motion into a driving video: Template-kun performing it in eight directions."""
+    try:
+        motion_file = find_motion(motion)
+    except ValueError as error:
+        raise typer.BadParameter(str(error), param_hint="--motion") from None
+    if motion_file.suffix.lower() != ".glb":
+        raise typer.BadParameter("Rendering requires a GLB motion.", param_hint="--motion")
     # Rendering a motion needs ComfyUI, not the models.
     require_setup(models=False)
     def run(on_event: Callable[[Event], None]) -> Path:
-        video = (out.expanduser() / f"{motion.stem}.webp").resolve()
+        video = motion_file.resolve().with_suffix(".cached.webp")
         video.parent.mkdir(parents=True, exist_ok=True)
-        video.write_bytes(_render_motion(motion, on_event=on_event))
+        _render_motion(motion_file, on_event=on_event)
         on_event(Event("completed", f"Driving video saved: {video}"))
         if preview:
             on_event(Event("image", str(video)))
         return video
 
     run_with_panel("Render Motion", run, verbose=verbose)
+
+
+def prompt_slug(prompt: str, fallback: str) -> str:
+    slug = re.sub(r"[\W_]+", "-", unicodedata.normalize("NFKC", prompt).lower()).strip("-")
+    return slug.encode("utf-8")[:180].decode("utf-8", errors="ignore").rstrip("-") or fallback
+
+
+def character_file(character: str, directory: Path, stage: str) -> Path:
+    path = Path(character).expanduser()
+    if path.is_file():
+        return path
+    path = directory.expanduser() / f"{character}.{stage}.png"
+    if not path.is_file():
+        raise typer.BadParameter(f"Character image not found: {path}", param_hint="--character")
+    return path
 
 
 def require_setup(*, models: bool = True) -> None:

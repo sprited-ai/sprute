@@ -6,14 +6,18 @@ GRID = ("NW", "N", "NE", "W", None, "E", "SW", "S", "SE")     # row by row, arou
 
 
 def strip_to_grid(strip: torch.Tensor, empty: float) -> torch.Tensor:
-    """(frames, height, 8 * width, ...) to (frames, 3 * height, 3 * width, ...). The centre is filled with `empty`."""
+    """Centre each direction in a square cell, padding with `empty`, then arrange a 3x3 grid."""
     frames, height, width = strip.shape[0], strip.shape[1], strip.shape[2] // len(STRIP)
     if strip.shape[2] != width * len(STRIP):
         raise ValueError(f"A strip's width must divide by {len(STRIP)}; this one is {strip.shape[2]} wide")
-    grid = torch.full((frames, height * 3, width * 3, *strip.shape[3:]), empty, dtype=strip.dtype, device=strip.device)
+    side = max(height, width)
+    top_padding, left_padding = (side - height) // 2, (side - width) // 2
+    grid = torch.full((frames, side * 3, side * 3, *strip.shape[3:]), empty, dtype=strip.dtype, device=strip.device)
     for cell, name in enumerate(GRID):
         if name is not None:
-            top, left, source = (cell // 3) * height, (cell % 3) * width, STRIP.index(name) * width
+            top = (cell // 3) * side + top_padding
+            left = (cell % 3) * side + left_padding
+            source = STRIP.index(name) * width
             grid[:, top:top + height, left:left + width] = strip[:, :, source:source + width]
     return grid
 

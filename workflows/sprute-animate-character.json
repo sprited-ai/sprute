@@ -2334,6 +2334,15 @@
           "link": 887
         },
         {
+          "localized_name": "resize_type",
+          "name": "resize_type",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "resize_type"
+          },
+          "link": null
+        },
+        {
           "localized_name": "multiplier",
           "name": "resize_type.multiplier",
           "type": "FLOAT",
@@ -2341,6 +2350,15 @@
             "name": "resize_type.multiplier"
           },
           "link": 888
+        },
+        {
+          "localized_name": "scale_method",
+          "name": "scale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_method"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -2392,6 +2410,15 @@
           "link": 889
         },
         {
+          "localized_name": "resize_type",
+          "name": "resize_type",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "resize_type"
+          },
+          "link": null
+        },
+        {
           "localized_name": "multiplier",
           "name": "resize_type.multiplier",
           "type": "FLOAT",
@@ -2399,6 +2426,15 @@
             "name": "resize_type.multiplier"
           },
           "link": 890
+        },
+        {
+          "localized_name": "scale_method",
+          "name": "scale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_method"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -2450,6 +2486,15 @@
           "link": 891
         },
         {
+          "localized_name": "resize_type",
+          "name": "resize_type",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "resize_type"
+          },
+          "link": null
+        },
+        {
           "localized_name": "multiplier",
           "name": "resize_type.multiplier",
           "type": "FLOAT",
@@ -2457,6 +2502,15 @@
             "name": "resize_type.multiplier"
           },
           "link": 892
+        },
+        {
+          "localized_name": "scale_method",
+          "name": "scale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_method"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -2508,6 +2562,15 @@
           "link": 893
         },
         {
+          "localized_name": "resize_type",
+          "name": "resize_type",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "resize_type"
+          },
+          "link": null
+        },
+        {
           "localized_name": "multiplier",
           "name": "resize_type.multiplier",
           "type": "FLOAT",
@@ -2515,6 +2578,15 @@
             "name": "resize_type.multiplier"
           },
           "link": 894
+        },
+        {
+          "localized_name": "scale_method",
+          "name": "scale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_method"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -2565,10 +2637,37 @@
           "link": 902
         },
         {
+          "localized_name": "resize_type",
+          "name": "resize_type",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "widget": {
+            "name": "resize_type"
+          },
+          "link": null
+        },
+        {
           "localized_name": "match",
           "name": "resize_type.match",
           "type": "IMAGE,MASK",
           "link": 903
+        },
+        {
+          "localized_name": "crop",
+          "name": "resize_type.crop",
+          "type": "COMBO",
+          "widget": {
+            "name": "resize_type.crop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scale_method",
+          "name": "scale_method",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_method"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -3115,7 +3214,7 @@
       587,
       0,
       588,
-      1,
+      2,
       "FLOAT"
     ],
     [
@@ -3131,7 +3230,7 @@
       587,
       0,
       589,
-      1,
+      2,
       "FLOAT"
     ],
     [
@@ -3147,7 +3246,7 @@
       587,
       0,
       590,
-      1,
+      2,
       "FLOAT"
     ],
     [
@@ -3163,7 +3262,7 @@
       587,
       0,
       591,
-      1,
+      2,
       "FLOAT"
     ],
     [
@@ -3235,7 +3334,7 @@
       583,
       0,
       592,
-      1,
+      2,
       "IMAGE"
     ],
     [
