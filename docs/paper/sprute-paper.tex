@@ -1,0 +1,211 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black}
+\urlstyle{same}
+\setlength{\emergencystretch}{2em}
+\newcommand{\pending}{\textit{Not yet measured}}
+\title{Sprute: Evaluating Directional Reliability\\in Generative Sprite Animation}
+\author{Author names and affiliations to be confirmed}
+\date{Working draft --- October 15, 2026}
+
+\begin{document}
+\maketitle
+\begin{center}
+\small\textbf{Draft status.} System description and proposed evaluation only.\\
+The planned study has not been executed; this draft reports no experimental findings.
+\end{center}
+
+\begin{abstract}
+Character assets for directional games must remain recognizable across viewpoints and actions while following the intended motion. A visually convincing animation can nevertheless be unusable if a rear-facing character turns toward the viewer, an action becomes static, or a single direction breaks the consistency of the asset set. We describe Sprute, a pipeline that combines directional character references, rendered motion drivers, and an existing video-generation model to produce eight-direction animated sprites. We formulate an evaluation centered on directional reliability and motion preservation, with complete-set usability as a complementary outcome. The initial study will compare the current pipeline with a reference-history anchoring configuration on a fixed collection of characters, motions, and seeds. The protocol separates input-view errors, animation failures, and segmentation or export defects, and treats characters as the units of statistical replication. This draft specifies the system and study design; whether anchoring improves useful animation yield remains an open empirical question.
+\end{abstract}
+
+\section{Introduction}
+Directional character animation requires a coordinated collection of assets. A character that walks convincingly in one direction may still be unsuitable for a game if its appearance changes in another direction or if switching from idle to running produces a discontinuity. The relevant object of evaluation is therefore both the individual clip and the collection of clips that a developer must use together.
+
+Existing research has investigated reference-conditioned sprite generation, motion transfer, and multi-view character animation~\cite{spritesheet,mvanimate,scail2}. These capabilities motivate an application-level question: under a fixed production configuration, how often does a generated character retain its intended facing direction while performing the requested action? This question is particularly relevant when a generative model interprets several views of the same character as a single visual context.
+
+Sprute arranges eight directional references and their corresponding driving videos in a shared spatial grid. An existing alternative configuration supplies copies of the reference grid as initial history frames. This may help preserve the intended orientation, but it may also constrain movement or delay the transition into the driving motion. We investigate the joint requirement rather than assuming that better appearance consistency implies better animation.
+
+The intended contributions of this study are: (1) a reproducible description of a multi-directional sprite pipeline built from existing components; (2) a protocol that measures facing correctness together with motion fidelity and complete-set usability; and (3) a controlled comparison of a reference-history configuration with the current pipeline. The third contribution remains to be established experimentally. We do not claim a new foundation model or that sprite generation, multi-view conditioning, or history-frame conditioning originates with this work.
+
+\section{Related Work}
+\paragraph{Sprite synthesis.}
+Sprite Sheet Diffusion adapts a character-animation framework to reference-and-pose-conditioned sprite sequences and evaluates image similarity and subject consistency~\cite{spritesheet}. Wong and Volino examine the ordering of motion generation and pixelation in a portrait-to-sprite pipeline~\cite{wong}. These works establish sprite generation and pipeline design as existing research topics. Our proposed focus is the reliability of a fixed set of game-facing directions and motions. Sprute's output is stylized raster animation; it is not restricted to pixel art or guaranteed to satisfy a discrete palette or pixel-grid constraint.
+
+\paragraph{Multi-view animation and visual driving.}
+MVAnimate combines multi-view guidance with character-animation optimization~\cite{mvanimate}. SCAIL-2, the animation model used by the inspected Sprute configuration, provides visual driving and character-binding mechanisms, and incorporates history latents for long generation~\cite{scail2}. The official implementation also documents experimental multi-reference inference~\cite{scailcode}. Consequently, reference anchoring in this study is an inference configuration of an upstream model, whose value must be assessed empirically. Its use alone does not establish methodological novelty.
+
+\paragraph{Evaluation.}
+VBench separates dimensions including subject consistency, temporal behavior, and motion~\cite{vbench}. We similarly keep orientation and movement distinct. Our additional concern is whether all required clips satisfy an explicit asset-use contract. This proposed rubric still needs validation against independent developer judgments. The present literature review is targeted rather than exhaustive; broader baseline selection and coverage of cyclic and multi-view generation remain necessary before submission.
+
+\section{Task Definition}
+Let $c$ denote a character, $d\in\mathcal{D}$ a direction, $m\in\mathcal{M}$ a motion, and $s\in\mathcal{S}$ a sampling seed. We use
+\begin{align}
+\mathcal{D}&=\{S,SE,E,NE,N,NW,W,SW\},\\
+\mathcal{M}&=\{\mathrm{idle},\mathrm{walk},\mathrm{run}\}.
+\end{align}
+Given a validated directional reference collection $R_c=\{R_{c,d}\}_{d\in\mathcal{D}}$ and driving clips $V_m=\{V_{m,d}\}_{d\in\mathcal{D}}$, a configuration $a$ produces an animation collection
+\begin{equation}
+\widehat{Y}^{(a)}_{c,m,s}=F_a(R_c,V_m;s).
+\end{equation}
+Each result contains eight directional clips. A complete character set for one seed contains 24 clips across the three motions.
+
+The initial experiment is conditional on validated directional references. It does not estimate the success rate of the entire prompt-to-character process. Errors introduced while generating unseen character views must be recorded separately from failures introduced by animation.
+
+\section{System}
+\subsection{Directional references and motion drivers}
+The inspected turntable workflow generates a character rotation using AniSora and selects eight temporally spaced frames after reversing the sequence. Temporal spacing does not guarantee equal angular spacing. Before evaluation, the selected views must therefore be checked for intended direction and identity consistency.
+
+For animation, a skeletal motion in GLB format is rendered on Sprute's Template-kun mannequin from eight camera directions. The inspected default requests 81 frames at 24 frames per second. The same frozen driver bytes are used in both experimental configurations. A looping source motion does not guarantee that this finite output window contains an integer number of motion cycles.
+
+\subsection{Joint grid inference and export}
+The reference strip and driver strip are rearranged into a $3\times3$ grid:
+\[
+\begin{array}{ccc}
+NW & N & NE\\
+W & \varnothing & E\\
+SW & S & SE
+\end{array}.
+\]
+At the planned 256-pixel square cell resolution, the inference grid is $768\times768$. The empty center is retained. The model receives reference and driving imagery together with their masks. The inspected configuration uses SCAIL-2 with FP8 weights, DPO and LightX2V adapters, and eight sampling steps.
+
+After decoding, the workflow restores the output dimensions, separates the eight cells, removes backgrounds with BiRefNet ToonOut, and joins the results into an animated RGBA strip. The experiment will retain both pre-removal RGB and final RGBA outputs so that segmentation defects can be distinguished from generative failures. This pipeline description documents an implementation, not a claim that each component is new or that the joint grid outperforms separate-view inference.
+
+\subsection{Reference-history anchoring}
+The baseline configuration $B$ uses the current CLI API graph. The alternative $A$ prepends five copies of the driver's first frame and supplies five copies of the reference grid as history frames. It then removes the first five decoded frames from the exported sequence.
+
+This intervention changes both conditioning and temporal context. The existing workflow note describes an 80-frame export, compared with the baseline's 81-frame request. Actual frame counts, timestamps, and alignment must be verified on the evaluation runtime. The comparison therefore measures the effect of the whole configuration. A prefix-only control and a length-matched follow-up would be required to isolate the effect of reference history itself.
+
+\section{Proposed Evaluation}
+\subsection{Sample and execution plan}
+The setup check will use two development characters, one walking motion, seed 42, and both configurations, for four jobs. Its purpose is to validate temporal alignment, output decoding, review procedures, and resource requirements.
+
+The evaluation pilot will use ten different characters, three motions, seeds $\{17,42,101\}$, and two configurations. This produces 180 joint animation jobs, 90 paired motion-strip cases, and 1,440 directional clips. The independent character sample remains ten; additional views and frames do not increase it.
+
+The planned sample includes two characters from each of five challenge groups: simple silhouettes, asymmetric clothing or accessories, long hair or coats, bulky armor or occlusion, and stylized non-human biped proportions. Characters previously used for workflow tuning are excluded from evaluation. Inputs and their provenance will be fixed before outputs are inspected. This convenience sample is not representative of all game characters.
+
+\subsection{Controls and temporal alignment}
+Both configurations will use the same references, rendered drivers, model files, adapter strengths, sampler settings, resolution, and export settings. Job order will be randomized reproducibly within paired cases. Model hashes, installed software versions, hardware, runtime precision, and workflow hashes will be recorded. Matching numeric seeds do not imply identical noise when latent dimensions differ.
+
+The primary comparison will use the common generated interval after removing the pinned prefix. This interval must be established on development data using driver landmarks and decoded timestamps. If alignment cannot be established, evaluation will be deferred until it can. No pinned reference frame will count as generated success. Full exports will be preserved, and loop behavior will be reported separately because different durations confound a direct loop-quality comparison.
+
+\subsection{Review criteria}
+Two reviewers will independently inspect anonymized clips with the corresponding directional reference and aligned driver. Review will include playback and frame scrubbing, at native and enlarged sizes, against multiple backgrounds. Criteria are summarized in Table~\ref{tab:rubric}. Labels are pass, fail, or uncertain, with failure intervals retained. If only one reviewer is available, the study will be described as a formative single-developer assessment.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}p{0.20\linewidth}X@{}}
+\toprule
+Criterion & Proposed interpretation\\
+\midrule
+Orientation & Body facing follows the intended driver view. Wrong-facing intervals totaling at least 250 ms fail. Legitimate head turns are distinguished from body-facing errors.\\
+Motion & Requested action and major movement follow the driver. An unrequested freeze of at least 500 ms during active driving, a different action, or persistent phase failure fails.\\
+Identity/anatomy & Character features remain recognizable without persistent structural or outfit changes requiring redraw.\\
+Alpha/framing & Segmentation and framing preserve the character without visible background leakage or clipped extremities that prevent use.\\
+Loop & The full exported last-to-first transition is usable without a noticeable pose or position jump.\\
+Set continuity & Identity, scale, and ground contact remain compatible when switching directions and actions.\\
+\bottomrule
+\end{tabularx}
+\caption{Draft rubric. Time thresholds require development calibration and are not validated perceptual constants.}\label{tab:rubric}
+\end{table}
+
+The rubric will be calibrated on development clips and frozen before held-out evaluation. Idle motion will be calibrated separately to avoid treating intentional low movement as failure. Independent labels and disagreement rates will be retained before adjudication. Unresolved uncertainty will count as non-pass in conservative yield, with a sensitivity analysis using the opposite assignment.
+
+\subsection{Outcomes and statistical unit}
+Let $O^{(a)}_{c,m,s,d}$ and $M^{(a)}_{c,m,s,d}$ indicate orientation and motion passes. The primary per-character outcome is
+\begin{equation}
+q_c^{(a)}=\frac{1}{|\mathcal{M}|\,|\mathcal{S}|\,|\mathcal{D}|}
+\sum_{m,s,d}O^{(a)}_{c,m,s,d}M^{(a)}_{c,m,s,d}.
+\end{equation}
+For $C=10$ characters, the primary contrast is
+\begin{equation}
+\widehat{\Delta}=\frac{1}{C}\sum_{c=1}^{C}\left(q_c^{(A)}-q_c^{(B)}\right).
+\end{equation}
+All per-character differences will accompany the aggregate. A descriptive 95\% interval will be estimated with 10,000 character-cluster bootstrap draws, retaining all paired conditions within each sampled character. With ten clusters, this is an exploratory estimate rather than a powered confirmatory test.
+
+Secondary outcomes include orientation-error duration, freeze incidence, identity and alpha failures, eight-direction strip yield, and complete-set yield. A complete set passes only if every required clip passes the clip-level criteria and the set passes continuity review. Complete-set usability is descriptive in this pilot because export durations differ.
+
+All scheduled cases remain in operational-yield denominators. Execution failures count as non-pass there; orientation-specific completed-case rates will be accompanied by missing counts. Only documented transient execution failures may be retried with unchanged settings, and first-attempt and eventual yield will both be reported. Visually poor results will not be rerolled.
+
+\subsection{Diagnostics and cost}
+Foreground occupancy, border contact, frame differences, motion energy, and boundary discontinuity may support diagnosis but will not replace human labels. A static sequence can exhibit strong appearance consistency, and a character with a coat need not match the mannequin's silhouette. Pixel similarity against a differently shaped driver is therefore not a ground-truth animation metric.
+
+The study will report stage and end-to-end wall time, peak memory, retries, and output sizes. Claims about labor savings require a separate timed editing exercise. The present protocol does not measure manual cleanup time or establish cost superiority to another production workflow.
+
+\section{Results: Pending Evaluation}
+No new experiment has been conducted for this manuscript. Table~\ref{tab:results} specifies the reporting structure without inserting estimated or historical values. Earlier internal workflow notes are hypothesis-generating observations and are excluded from the results because their raw paired records and scoring procedure have not been audited for this study.
+
+\begin{table}[ht]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}Xll@{}}
+\toprule
+Outcome & Baseline & Anchored\\
+\midrule
+Orientation-and-motion yield & \pending & \pending\\
+Orientation failure rate & \pending & \pending\\
+Motion failure rate & \pending & \pending\\
+Complete-set yield & \pending & \pending\\
+Wall time and peak memory & \pending & \pending\\
+\bottomrule
+\end{tabularx}
+\caption{Reporting template, not experimental results. Paired differences, uncertainty intervals, execution failures, and per-character outcomes will be added after evaluation.}\label{tab:results}
+\end{table}
+
+\section{Discussion and Limitations}
+If anchoring improves orientation-and-motion yield across characters, it would justify a more focused study of prefix length and reference/driver alignment. If orientation improves while movement degrades, the result would identify a tradeoff rather than a successful default. Failures already present in directional references would motivate view construction work; defects introduced only after background removal would motivate export improvements.
+
+The proposed study has several limits. Its small biped character sample restricts generalization. Validated inputs exclude part of the end-to-end generation problem. The rubric and its thresholds require validation, while human review introduces judgment and disagreement. Temporal context differs between configurations. Finally, the initial comparison contains no external method and cannot establish state-of-the-art performance. Independent-view inference, upstream reference configurations, and compatible external baselines remain follow-up work.
+
+\section{Reproducibility and Responsible Reporting}
+Each attempt will preserve the resolved workflow, source and model hashes, input hashes, seed, runtime information, timestamps, output hashes, and execution status. Review labels will be stored independently of the anonymous-to-configuration mapping. Any shared character or motion asset must have documented permission for the intended redistribution. Software licensing does not automatically confer rights to model weights or input artwork.
+
+This manuscript was drafted with assistance from an AI coding and writing assistant. Human authorship, affiliations, source verification, final claims, and submission responsibility remain to be confirmed. No empirical finding should be inferred from the presence of a completed manuscript structure.
+
+\section{Conclusion}
+Sprute provides a concrete setting for studying whether generated directional sprite animations remain both correctly oriented and meaningfully animated. This draft describes the pipeline and a paired evaluation protocol that connects individual failures to complete asset-set usability. The next step is to execute the setup check, freeze the evaluation inputs and rubric, and test whether the anchoring configuration produces a reproducible improvement. The outcome, including a negative or inconclusive result, will determine the scope of the final paper.
+
+\begin{thebibliography}{9}
+\bibitem{spritesheet}
+Cheng-An Hsieh, Jing Zhang, and Ava Yan.
+\newblock Sprite Sheet Diffusion: Generate Game Character for Animation.
+\newblock arXiv:2412.03685, version 2, 2025.
+\newblock \url{https://arxiv.org/html/2412.03685v2}.
+
+\bibitem{wong}
+Hei Lit Wong and Marco Volino.
+\newblock Sprite Sheet Generation using a Diffusion Model.
+\newblock Author-hosted one-page research document, 2025.
+\newblock \url{https://marcovolino.github.io/docs/papers/2025-wong-cvmp.pdf}.
+
+\bibitem{mvanimate}
+Tianyu Sun, Zhoujie Fu, Bang Zhang, and Guosheng Lin.
+\newblock MVAnimate: Enhancing Character Animation with Multi-View Optimization.
+\newblock arXiv:2602.08753, 2026.
+\newblock \url{https://arxiv.org/html/2602.08753v1}.
+
+\bibitem{scail2}
+Wenhao Yan, Fengjia Guo, Zhuoyi Yang, and Jie Tang.
+\newblock SCAIL-2: Unifying Controlled Character Animation with End-to-end In-Context Conditioning.
+\newblock arXiv:2606.10804, 2026.
+\newblock \url{https://arxiv.org/html/2606.10804v1}.
+
+\bibitem{scailcode}
+Z.ai.
+\newblock SCAIL-2: Official implementation.
+\newblock Repository documentation, accessed October 14, 2026.
+\newblock \url{https://github.com/zai-org/SCAIL-2}.
+
+\bibitem{vbench}
+VBench contributors.
+\newblock VBench: Official evaluation repository.
+\newblock Repository documentation, accessed October 14, 2026.
+\newblock \url{https://github.com/Vchitect/VBench}.
+\end{thebibliography}
+\end{document}
