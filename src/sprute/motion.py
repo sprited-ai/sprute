@@ -4,7 +4,7 @@ from io import BytesIO
 from collections.abc import Callable
 from pathlib import Path
 from PIL import Image
-from sprute.comfy import input_name, run_workflow
+from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 from sprute.events import Event
 
 WORKFLOW = Path("workflows/sprute-render-motion.api.json")
@@ -14,7 +14,8 @@ MINIMUM_FRAMES = 5
 
 def motions() -> list[str]:
     return sorted({path.relative_to(MOTIONS).with_suffix("").as_posix()
-                   for suffix in ("webp", "glb") for path in MOTIONS.rglob(f"*.{suffix}")})
+                   for suffix in ("webp", "glb") for path in MOTIONS.rglob(f"*.{suffix}")
+                   if not path.name.endswith(".cached.webp")})
 
 def find_motion(motion: str) -> Path:
     """The motion's driving video if there is one, otherwise its GLB."""
@@ -89,19 +90,24 @@ def render_motion(
     cell_height: int = 256,
     on_event: Callable[[Event], None] | None = None,
 ) -> bytes:
-    """Render a GLB the way animate sees it: Template-kun in eight directions, as an animated WebP."""
+    """Render a GLB in eight directions, reusing its .cached.webp when the inputs match."""
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["1"]["inputs"]["motion"] = input_name(motion)
     graph["2"]["inputs"].update(cell_width=cell_width, cell_height=cell_height)
+    cache = motion.with_suffix(".cached.webp")
+    if cache.is_file() and same_workflow(saved_workflow(cache), graph):
+        report("completed", f"Using cached motion: {cache}")
+        return cache.read_bytes()
     report("started", f"Rendering {motion.name}", timed=True)
     data = run_workflow(
         graph,
-        input_files={input_name(motion): motion},
+        input_files={graph["1"]["inputs"]["motion"]: motion},
         output_node_ids=("4",),
         on_event=on_event,
     )["4"]
+    cache.write_bytes(data)
     report("completed", f"Rendered {motion.name}")
     return data

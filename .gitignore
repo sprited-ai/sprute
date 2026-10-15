@@ -28,6 +28,7 @@ build/
 !/motions/walk.glb
 !/motions/run.glb
 !/motions/quaternius/
+*.cached.webp
 
 # Downloaded source packs used for extraction and validation.
 /assets/quaternius/
