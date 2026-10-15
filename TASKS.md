@@ -1,6 +1,11 @@
 # Tasks
 
 - [x] Sprute 1.0 Release
+- [ ] Find a way to generate better character (Flux replacement)
+- [ ] Action Forge Study
+- [ ] poring
+- [ ] props
+- [ ] loops
 - [ ] BYO character reference
 - [ ] Search for NBP Alternative
 - [ ] Sprute 2.0 File Structure
