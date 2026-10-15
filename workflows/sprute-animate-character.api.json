@@ -133,7 +133,7 @@
     },
     "class_type": "PrimitiveBoolean",
     "_meta": {
-      "title": "Boolean \uff08Replace Mode\uff09"
+      "title": "Boolean （Replace Mode）"
     }
   },
   "425": {
@@ -201,7 +201,7 @@
   "427": {
     "inputs": {
       "mask": [
-        "589",
+        "594",
         0
       ]
     },
@@ -343,7 +343,7 @@
   "484": {
     "inputs": {
       "mask": [
-        "591",
+        "596",
         0
       ]
     },
@@ -482,7 +482,7 @@
   "499": {
     "inputs": {
       "mask": [
-        "589",
+        "594",
         0
       ]
     },
@@ -709,94 +709,125 @@
     }
   },
   "588": {
+    "class_type": "ImageScaleBy",
     "inputs": {
-      "input": [
+      "image": [
         "583",
         0
       ],
-      "resize_type": "scale by multiplier",
-      "resize_type.multiplier": [
+      "upscale_method": "area",
+      "scale_by": [
         "587",
         0
-      ],
-      "scale_method": "area"
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "Resize Image/Mask (Driving Video)"
+      ]
     }
   },
   "589": {
+    "class_type": "ImageScaleBy",
     "inputs": {
-      "input": [
-        "583",
-        1
-      ],
-      "resize_type": "scale by multiplier",
-      "resize_type.multiplier": [
-        "587",
+      "image": [
+        "593",
         0
       ],
-      "scale_method": "area"
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "Resize Image/Mask (Driving Mask)"
+      "upscale_method": "area",
+      "scale_by": [
+        "587",
+        0
+      ]
     }
   },
   "590": {
+    "class_type": "ImageScaleBy",
     "inputs": {
-      "input": [
+      "image": [
         "584",
         0
       ],
-      "resize_type": "scale by multiplier",
-      "resize_type.multiplier": [
+      "upscale_method": "area",
+      "scale_by": [
         "587",
         0
-      ],
-      "scale_method": "area"
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "Resize Image/Mask (Directions)"
+      ]
     }
   },
   "591": {
+    "class_type": "ImageScaleBy",
     "inputs": {
-      "input": [
-        "584",
-        1
-      ],
-      "resize_type": "scale by multiplier",
-      "resize_type.multiplier": [
-        "587",
+      "image": [
+        "595",
         0
       ],
-      "scale_method": "area"
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "Resize Image/Mask (Directions Mask)"
+      "upscale_method": "area",
+      "scale_by": [
+        "587",
+        0
+      ]
     }
   },
   "592": {
+    "class_type": "ImageScale",
     "inputs": {
-      "input": [
+      "image": [
         "505",
         0
       ],
-      "resize_type": "match size",
-      "resize_type.match": [
-        "583",
+      "upscale_method": "lanczos",
+      "width": [
+        "597",
         0
       ],
-      "resize_type.crop": "disabled",
-      "scale_method": "lanczos"
-    },
-    "class_type": "ResizeImageMaskNode",
-    "_meta": {
-      "title": "Resize Image/Mask (Back To Full Size)"
+      "height": [
+        "597",
+        1
+      ],
+      "crop": "disabled"
+    }
+  },
+  "593": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "583",
+        1
+      ]
+    }
+  },
+  "594": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "image": [
+        "589",
+        0
+      ],
+      "channel": "red"
+    }
+  },
+  "595": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "584",
+        1
+      ]
+    }
+  },
+  "596": {
+    "class_type": "ImageToMask",
+    "inputs": {
+      "image": [
+        "591",
+        0
+      ],
+      "channel": "red"
+    }
+  },
+  "597": {
+    "class_type": "GetImageSize",
+    "inputs": {
+      "image": [
+        "583",
+        0
+      ]
     }
   }
 }

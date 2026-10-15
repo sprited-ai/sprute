@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 592,
-  "last_link_id": 904,
+  "last_node_id": 597,
+  "last_link_id": 910,
   "nodes": [
     {
       "id": 416,
@@ -1263,7 +1263,7 @@
           ]
         }
       ],
-      "title": "Boolean \uff08Replace Mode\uff09",
+      "title": "Boolean （Replace Mode）",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.24.0",
@@ -2136,14 +2136,14 @@
           "type": "IMAGE",
           "links": [
             887,
-            903
+            909
           ]
         },
         {
           "name": "MASK",
           "type": "MASK",
           "links": [
-            889
+            905
           ]
         }
       ],
@@ -2191,7 +2191,7 @@
           "name": "MASK",
           "type": "MASK",
           "links": [
-            893
+            907
           ]
         }
       ],
@@ -2313,7 +2313,7 @@
     },
     {
       "id": 588,
-      "type": "ResizeImageMaskNode",
+      "type": "ImageScaleBy",
       "title": "Resize Image/Mask (Driving Video)",
       "pos": [
         820,
@@ -2328,44 +2328,23 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "input",
-          "name": "input",
-          "type": "IMAGE,MASK",
+          "name": "image",
+          "type": "IMAGE",
           "link": 887
         },
         {
-          "localized_name": "resize_type",
-          "name": "resize_type",
-          "type": "COMFY_DYNAMICCOMBO_V3",
-          "widget": {
-            "name": "resize_type"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "multiplier",
-          "name": "resize_type.multiplier",
+          "name": "scale_by",
           "type": "FLOAT",
           "widget": {
-            "name": "resize_type.multiplier"
+            "name": "scale_by"
           },
           "link": 888
-        },
-        {
-          "localized_name": "scale_method",
-          "name": "scale_method",
-          "type": "COMBO",
-          "widget": {
-            "name": "scale_method"
-          },
-          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "resized",
-          "name": "resized",
-          "type": "IMAGE,MASK",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
             895,
             896
@@ -2373,23 +2352,16 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "Node name for S&R": "ResizeImageMaskNode"
+        "Node name for S&R": "ImageScaleBy"
       },
       "widgets_values": [
-        "scale by multiplier",
-        1.0,
-        "area"
-      ],
-      "widgets_values_named": {
-        "resize_type": "scale by multiplier",
-        "resize_type.multiplier": 1.0,
-        "scale_method": "area"
-      }
+        "area",
+        1.0
+      ]
     },
     {
       "id": 589,
-      "type": "ResizeImageMaskNode",
+      "type": "ImageScaleBy",
       "title": "Resize Image/Mask (Driving Mask)",
       "pos": [
         820,
@@ -2404,68 +2376,39 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "input",
-          "name": "input",
-          "type": "IMAGE,MASK",
+          "name": "image",
+          "type": "IMAGE",
           "link": 889
         },
         {
-          "localized_name": "resize_type",
-          "name": "resize_type",
-          "type": "COMFY_DYNAMICCOMBO_V3",
-          "widget": {
-            "name": "resize_type"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "multiplier",
-          "name": "resize_type.multiplier",
+          "name": "scale_by",
           "type": "FLOAT",
           "widget": {
-            "name": "resize_type.multiplier"
+            "name": "scale_by"
           },
           "link": 890
-        },
-        {
-          "localized_name": "scale_method",
-          "name": "scale_method",
-          "type": "COMBO",
-          "widget": {
-            "name": "scale_method"
-          },
-          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "resized",
-          "name": "resized",
-          "type": "IMAGE,MASK",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
-            897,
-            898
+            906
           ]
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "Node name for S&R": "ResizeImageMaskNode"
+        "Node name for S&R": "ImageScaleBy"
       },
       "widgets_values": [
-        "scale by multiplier",
-        1.0,
-        "area"
-      ],
-      "widgets_values_named": {
-        "resize_type": "scale by multiplier",
-        "resize_type.multiplier": 1.0,
-        "scale_method": "area"
-      }
+        "area",
+        1.0
+      ]
     },
     {
       "id": 590,
-      "type": "ResizeImageMaskNode",
+      "type": "ImageScaleBy",
       "title": "Resize Image/Mask (Directions)",
       "pos": [
         1180,
@@ -2480,44 +2423,23 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "input",
-          "name": "input",
-          "type": "IMAGE,MASK",
+          "name": "image",
+          "type": "IMAGE",
           "link": 891
         },
         {
-          "localized_name": "resize_type",
-          "name": "resize_type",
-          "type": "COMFY_DYNAMICCOMBO_V3",
-          "widget": {
-            "name": "resize_type"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "multiplier",
-          "name": "resize_type.multiplier",
+          "name": "scale_by",
           "type": "FLOAT",
           "widget": {
-            "name": "resize_type.multiplier"
+            "name": "scale_by"
           },
           "link": 892
-        },
-        {
-          "localized_name": "scale_method",
-          "name": "scale_method",
-          "type": "COMBO",
-          "widget": {
-            "name": "scale_method"
-          },
-          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "resized",
-          "name": "resized",
-          "type": "IMAGE,MASK",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
             899,
             900
@@ -2525,23 +2447,16 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "Node name for S&R": "ResizeImageMaskNode"
+        "Node name for S&R": "ImageScaleBy"
       },
       "widgets_values": [
-        "scale by multiplier",
-        1.0,
-        "area"
-      ],
-      "widgets_values_named": {
-        "resize_type": "scale by multiplier",
-        "resize_type.multiplier": 1.0,
-        "scale_method": "area"
-      }
+        "area",
+        1.0
+      ]
     },
     {
       "id": 591,
-      "type": "ResizeImageMaskNode",
+      "type": "ImageScaleBy",
       "title": "Resize Image/Mask (Directions Mask)",
       "pos": [
         1180,
@@ -2556,67 +2471,39 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "input",
-          "name": "input",
-          "type": "IMAGE,MASK",
+          "name": "image",
+          "type": "IMAGE",
           "link": 893
         },
         {
-          "localized_name": "resize_type",
-          "name": "resize_type",
-          "type": "COMFY_DYNAMICCOMBO_V3",
-          "widget": {
-            "name": "resize_type"
-          },
-          "link": null
-        },
-        {
-          "localized_name": "multiplier",
-          "name": "resize_type.multiplier",
+          "name": "scale_by",
           "type": "FLOAT",
           "widget": {
-            "name": "resize_type.multiplier"
+            "name": "scale_by"
           },
           "link": 894
-        },
-        {
-          "localized_name": "scale_method",
-          "name": "scale_method",
-          "type": "COMBO",
-          "widget": {
-            "name": "scale_method"
-          },
-          "link": null
         }
       ],
       "outputs": [
         {
-          "localized_name": "resized",
-          "name": "resized",
-          "type": "IMAGE,MASK",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
-            901
+            908
           ]
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "Node name for S&R": "ResizeImageMaskNode"
+        "Node name for S&R": "ImageScaleBy"
       },
       "widgets_values": [
-        "scale by multiplier",
-        1.0,
-        "area"
-      ],
-      "widgets_values_named": {
-        "resize_type": "scale by multiplier",
-        "resize_type.multiplier": 1.0,
-        "scale_method": "area"
-      }
+        "area",
+        1.0
+      ]
     },
     {
       "id": 592,
-      "type": "ResizeImageMaskNode",
+      "type": "ImageScale",
       "title": "Resize Image/Mask (Back To Full Size)",
       "pos": [
         2200,
@@ -2631,69 +2518,237 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "input",
-          "name": "input",
-          "type": "IMAGE,MASK",
+          "name": "image",
+          "type": "IMAGE",
           "link": 902
         },
         {
-          "localized_name": "resize_type",
-          "name": "resize_type",
-          "type": "COMFY_DYNAMICCOMBO_V3",
+          "name": "width",
+          "type": "INT",
           "widget": {
-            "name": "resize_type"
+            "name": "width"
           },
-          "link": null
-        },
-        {
-          "localized_name": "match",
-          "name": "resize_type.match",
-          "type": "IMAGE,MASK",
           "link": 903
         },
         {
-          "localized_name": "crop",
-          "name": "resize_type.crop",
-          "type": "COMBO",
+          "name": "height",
+          "type": "INT",
           "widget": {
-            "name": "resize_type.crop"
+            "name": "height"
           },
-          "link": null
-        },
-        {
-          "localized_name": "scale_method",
-          "name": "scale_method",
-          "type": "COMBO",
-          "widget": {
-            "name": "scale_method"
-          },
-          "link": null
+          "link": 910
         }
       ],
       "outputs": [
         {
-          "localized_name": "resized",
-          "name": "resized",
-          "type": "IMAGE,MASK",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
             904
           ]
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "Node name for S&R": "ResizeImageMaskNode"
+        "Node name for S&R": "ImageScale"
       },
       "widgets_values": [
-        "match size",
-        "disabled",
-        "lanczos"
+        "lanczos",
+        768,
+        768,
+        "disabled"
+      ]
+    },
+    {
+      "id": 593,
+      "type": "MaskToImage",
+      "pos": [
+        1430,
+        1100
       ],
-      "widgets_values_named": {
-        "resize_type": "match size",
-        "resize_type.crop": "disabled",
-        "scale_method": "lanczos"
-      }
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 905
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            889
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 594,
+      "type": "ImageToMask",
+      "pos": [
+        1100,
+        1260
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 906
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            897,
+            898
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageToMask"
+      },
+      "widgets_values": [
+        "red"
+      ]
+    },
+    {
+      "id": 595,
+      "type": "MaskToImage",
+      "pos": [
+        1430,
+        1420
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 907
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            893
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 596,
+      "type": "ImageToMask",
+      "pos": [
+        1100,
+        1580
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 908
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            901
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageToMask"
+      },
+      "widgets_values": [
+        "red"
+      ]
+    },
+    {
+      "id": 597,
+      "type": "GetImageSize",
+      "pos": [
+        1430,
+        1740
+      ],
+      "size": [
+        280,
+        80
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 909
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            903
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            910
+          ]
+        },
+        {
+          "name": "batch_size",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetImageSize"
+      },
+      "widgets_values": []
     }
   ],
   "links": [
@@ -3210,28 +3265,12 @@
       "IMAGE"
     ],
     [
-      888,
-      587,
-      0,
-      588,
-      2,
-      "FLOAT"
-    ],
-    [
       889,
-      583,
-      1,
-      589,
-      0,
-      "MASK"
-    ],
-    [
-      890,
-      587,
+      593,
       0,
       589,
-      2,
-      "FLOAT"
+      0,
+      "IMAGE"
     ],
     [
       891,
@@ -3242,28 +3281,12 @@
       "IMAGE"
     ],
     [
-      892,
-      587,
-      0,
-      590,
-      2,
-      "FLOAT"
-    ],
-    [
       893,
-      584,
-      1,
-      591,
-      0,
-      "MASK"
-    ],
-    [
-      894,
-      587,
+      595,
       0,
       591,
-      2,
-      "FLOAT"
+      0,
+      "IMAGE"
     ],
     [
       895,
@@ -3283,7 +3306,7 @@
     ],
     [
       897,
-      589,
+      594,
       0,
       427,
       0,
@@ -3291,7 +3314,7 @@
     ],
     [
       898,
-      589,
+      594,
       0,
       499,
       0,
@@ -3315,7 +3338,7 @@
     ],
     [
       901,
-      591,
+      596,
       0,
       484,
       0,
@@ -3330,20 +3353,100 @@
       "IMAGE"
     ],
     [
-      903,
-      583,
-      0,
-      592,
-      2,
-      "IMAGE"
-    ],
-    [
       904,
       592,
       0,
       585,
       0,
       "IMAGE"
+    ],
+    [
+      888,
+      587,
+      0,
+      588,
+      1,
+      "FLOAT"
+    ],
+    [
+      890,
+      587,
+      0,
+      589,
+      1,
+      "FLOAT"
+    ],
+    [
+      892,
+      587,
+      0,
+      590,
+      1,
+      "FLOAT"
+    ],
+    [
+      894,
+      587,
+      0,
+      591,
+      1,
+      "FLOAT"
+    ],
+    [
+      903,
+      597,
+      0,
+      592,
+      1,
+      "INT"
+    ],
+    [
+      905,
+      583,
+      1,
+      593,
+      0,
+      "MASK"
+    ],
+    [
+      906,
+      589,
+      0,
+      594,
+      0,
+      "IMAGE"
+    ],
+    [
+      907,
+      584,
+      1,
+      595,
+      0,
+      "MASK"
+    ],
+    [
+      908,
+      591,
+      0,
+      596,
+      0,
+      "IMAGE"
+    ],
+    [
+      909,
+      583,
+      0,
+      597,
+      0,
+      "IMAGE"
+    ],
+    [
+      910,
+      597,
+      1,
+      592,
+      2,
+      "INT"
     ]
   ],
   "groups": [],

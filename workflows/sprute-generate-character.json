@@ -789,7 +789,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            82
+            83
           ]
         }
       ],
@@ -1281,68 +1281,6 @@
         "ver": "0.37.0",
         "Node name for S&R": "PreviewImage"
       }
-    },
-    {
-      "id": 210,
-      "type": "ImageCropV2",
-      "pos": [
-        440,
-        900
-      ],
-      "size": [
-        300,
-        450
-      ],
-      "flags": {
-        "collapsed": true
-      },
-      "order": 24,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 82
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            83
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.37.0",
-        "Node name for S&R": "ImageCropV2"
-      },
-      "widgets_values": [
-        {
-          "x": 80,
-          "y": 0,
-          "width": 480,
-          "height": 640
-        },
-        80,
-        0,
-        480,
-        640
-      ],
-      "widgets_values_named": {
-        "crop_region": {
-          "x": 80,
-          "y": 0,
-          "width": 480,
-          "height": 640
-        },
-        "x": 80,
-        "y": 0,
-        "width": 480,
-        "height": 640
-      }
     }
   ],
   "links": [
@@ -1627,16 +1565,8 @@
       "IMAGE"
     ],
     [
-      82,
-      119,
-      0,
-      210,
-      0,
-      "IMAGE"
-    ],
-    [
       83,
-      210,
+      119,
       0,
       114,
       0,

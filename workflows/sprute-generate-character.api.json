@@ -191,7 +191,7 @@
     "inputs": {
       "filename_prefix": "sprite-dx/local-fill/transparent",
       "images": [
-        "210",
+        "119",
         0
       ]
     },
@@ -383,24 +383,6 @@
     "class_type": "PreviewImage",
     "_meta": {
       "title": "Preview Image"
-    }
-  },
-  "210": {
-    "inputs": {
-      "crop_region": {
-        "x": 80,
-        "y": 0,
-        "width": 480,
-        "height": 640
-      },
-      "image": [
-        "119",
-        0
-      ]
-    },
-    "class_type": "ImageCropV2",
-    "_meta": {
-      "title": "Crop Image"
     }
   }
 }
