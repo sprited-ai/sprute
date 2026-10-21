@@ -20,3 +20,9 @@ sprute = "sprute.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

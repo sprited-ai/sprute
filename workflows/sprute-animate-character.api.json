@@ -629,12 +629,15 @@
   "577": {
     "inputs": {
       "filename_prefix": "ComfyUI",
-      "fps": 24,
+      "fps": [
+        "600",
+        1
+      ],
       "lossless": true,
       "quality": 80,
       "method": "default",
       "images": [
-        "586",
+        "599",
         0
       ]
     },
@@ -828,6 +831,45 @@
         "583",
         0
       ]
+    }
+  },
+  "598": {
+    "inputs": {
+      "value": 2
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Every Nth Frame"
+    }
+  },
+  "599": {
+    "inputs": {
+      "images": [
+        "586",
+        0
+      ],
+      "select_every_nth": [
+        "598",
+        0
+      ],
+      "skip_first_images": 0
+    },
+    "class_type": "VHS_SelectEveryNthImage",
+    "_meta": {
+      "title": "Select Every Nth Image"
+    }
+  },
+  "600": {
+    "inputs": {
+      "expression": "24 / a",
+      "a": [
+        "598",
+        0
+      ]
+    },
+    "class_type": "MathExpression|pysssss",
+    "_meta": {
+      "title": "Saved FPS"
     }
   }
 }

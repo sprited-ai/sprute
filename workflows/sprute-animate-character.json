@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 597,
-  "last_link_id": 910,
+  "last_node_id": 600,
+  "last_link_id": 915,
   "nodes": [
     {
       "id": 416,
@@ -2073,7 +2073,15 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 886
+          "link": 913
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "widget": {
+            "name": "fps"
+          },
+          "link": 915
         }
       ],
       "outputs": [
@@ -2263,7 +2271,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            886
+            912
           ]
         }
       ],
@@ -2749,6 +2757,158 @@
         "Node name for S&R": "GetImageSize"
       },
       "widgets_values": []
+    },
+    {
+      "id": 598,
+      "type": "PrimitiveInt",
+      "title": "Int (Every Nth Frame)",
+      "pos": [
+        1560,
+        1100
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            911,
+            914
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        2,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 2
+      }
+    },
+    {
+      "id": 599,
+      "type": "VHS_SelectEveryNthImage",
+      "title": "Select Every Nth Image",
+      "pos": [
+        1880,
+        1100
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 912
+        },
+        {
+          "name": "select_every_nth",
+          "type": "INT",
+          "widget": {
+            "name": "select_every_nth"
+          },
+          "link": 911
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            913
+          ]
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "Node name for S&R": "VHS_SelectEveryNthImage"
+      },
+      "widgets_values": [
+        2,
+        0
+      ],
+      "widgets_values_named": {
+        "select_every_nth": 2,
+        "skip_first_images": 0
+      }
+    },
+    {
+      "id": 600,
+      "type": "MathExpression|pysssss",
+      "title": "Saved FPS",
+      "pos": [
+        1880,
+        1260
+      ],
+      "size": [
+        300,
+        140
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "a",
+          "type": "*",
+          "link": 914
+        },
+        {
+          "name": "b",
+          "type": "*",
+          "link": null
+        },
+        {
+          "name": "c",
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            915
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "Node name for S&R": "MathExpression|pysssss"
+      },
+      "widgets_values": [
+        "24 / a"
+      ],
+      "widgets_values_named": {
+        "expression": "24 / a"
+      }
     }
   ],
   "links": [
@@ -3249,14 +3409,6 @@
       "IMAGE"
     ],
     [
-      886,
-      586,
-      0,
-      577,
-      0,
-      "IMAGE"
-    ],
-    [
       887,
       583,
       0,
@@ -3447,6 +3599,46 @@
       592,
       2,
       "INT"
+    ],
+    [
+      911,
+      598,
+      0,
+      599,
+      1,
+      "INT"
+    ],
+    [
+      912,
+      586,
+      0,
+      599,
+      0,
+      "IMAGE"
+    ],
+    [
+      913,
+      599,
+      0,
+      577,
+      0,
+      "IMAGE"
+    ],
+    [
+      914,
+      598,
+      0,
+      600,
+      0,
+      "INT"
+    ],
+    [
+      915,
+      600,
+      1,
+      577,
+      1,
+      "FLOAT"
     ]
   ],
   "groups": [],
