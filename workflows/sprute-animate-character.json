@@ -2763,8 +2763,8 @@
       "type": "PrimitiveInt",
       "title": "Int (Every Nth Frame)",
       "pos": [
-        1560,
-        1100
+        2200,
+        1480
       ],
       "size": [
         300,
@@ -2801,8 +2801,8 @@
       "type": "VHS_SelectEveryNthImage",
       "title": "Select Every Nth Image",
       "pos": [
-        1880,
-        1100
+        2520,
+        1480
       ],
       "size": [
         300,
@@ -2858,8 +2858,8 @@
       "type": "ComfyMathExpression",
       "title": "Saved FPS",
       "pos": [
-        1880,
-        1260
+        2840,
+        1480
       ],
       "size": [
         300,
