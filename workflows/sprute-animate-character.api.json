@@ -12,7 +12,7 @@
     "inputs": {
       "image": "walk.webp"
     },
-    "class_type": "LoadImage",
+    "class_type": "SpruteLoadDrivingVideo",
     "_meta": {
       "title": "Load Image (Driving Video)"
     }
@@ -133,7 +133,7 @@
     },
     "class_type": "PrimitiveBoolean",
     "_meta": {
-      "title": "Boolean （Replace Mode）"
+      "title": "Boolean \uff08Replace Mode\uff09"
     }
   },
   "425": {
@@ -627,20 +627,20 @@
     }
   },
   "577": {
+    "class_type": "SaveAnimatedWEBP",
     "inputs": {
+      "images": [
+        "599",
+        0
+      ],
+      "fps": [
+        "601",
+        1
+      ],
       "filename_prefix": "ComfyUI",
-      "fps": 24,
       "lossless": true,
       "quality": 80,
-      "method": "default",
-      "images": [
-        "586",
-        0
-      ]
-    },
-    "class_type": "SaveAnimatedWEBP",
-    "_meta": {
-      "title": "Save Animated WEBP"
+      "method": "default"
     }
   },
   "583": {
@@ -828,6 +828,64 @@
         "583",
         0
       ]
+    }
+  },
+  "598": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": [
+        "586",
+        0
+      ],
+      "batch_index": 0,
+      "length": [
+        "600",
+        0
+      ]
+    }
+  },
+  "599": {
+    "class_type": "VHS_SelectEveryNthImage",
+    "inputs": {
+      "images": [
+        "598",
+        0
+      ],
+      "select_every_nth": [
+        "602",
+        0
+      ],
+      "skip_first_images": 0
+    }
+  },
+  "600": {
+    "class_type": "MathExpression|pysssss",
+    "inputs": {
+      "expression": "iif(a > 0, a, 4096)",
+      "a": [
+        "4",
+        2
+      ]
+    }
+  },
+  "601": {
+    "class_type": "MathExpression|pysssss",
+    "inputs": {
+      "expression": "a / b",
+      "a": [
+        "4",
+        4
+      ],
+      "b": [
+        "602",
+        0
+      ]
+    }
+  },
+  "602": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 2
     }
   }
 }

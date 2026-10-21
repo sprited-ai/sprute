@@ -10,7 +10,7 @@ from sprute.events import Event
 WORKFLOW = Path("workflows/sprute-render-motion.api.json")
 GENERATE_WORKFLOW = Path("workflows/sprute-kimodo-to-glb.api.json")
 MOTIONS = Path("motions")
-MINIMUM_FRAMES = 5
+MINIMUM_FRAMES = 1
 
 def motions() -> list[str]:
     return sorted({path.relative_to(MOTIONS).with_suffix("").as_posix()
@@ -76,7 +76,7 @@ def check_driving_video(video: bytes, name: str, directions: Path) -> None:
         frames = getattr(image, "n_frames", 1)
         if image.size != size:
             raise ValueError(f"{name} is {image.size[0]}x{image.size[1]}; it must be {size[0]}x{size[1]}, like {directions.name}")
-        # SCAIL2 works on 4n+1 frames and drops up to three at the end to get there.
+        # The Comfy loader expands the source clip to SCAIL2’s 4n+1 input length.
         if frames < MINIMUM_FRAMES:
             raise ValueError(f"{name} has {frames} frames; it must have at least {MINIMUM_FRAMES}")
         # An alpha channel alone is not enough: the first frame must have pixels that are see-through.
@@ -98,7 +98,7 @@ def render_motion(
     graph["1"]["inputs"]["motion"] = input_name(motion)
     graph["2"]["inputs"].update(cell_width=cell_width, cell_height=cell_height)
     cache = motion.with_suffix(".cached.webp")
-    if cache.is_file() and same_workflow(saved_workflow(cache), graph):
+    if cache.is_file() and driving_timing(cache.read_bytes()) is not None and same_workflow(saved_workflow(cache), graph):
         report("completed", f"Using cached motion: {cache}")
         return cache.read_bytes()
     report("started", f"Rendering {motion.name}", timed=True)
@@ -111,3 +111,18 @@ def render_motion(
     cache.write_bytes(data)
     report("completed", f"Rendered {motion.name}")
     return data
+
+
+def driving_timing(video: bytes) -> dict | None:
+    """Read timing embedded in the exact driving video being used."""
+    try:
+        with Image.open(BytesIO(video)) as image:
+            timing = json.loads(image.getexif().get(0x010E, "{}" )).get("sprute_motion_timing")
+        if not isinstance(timing, dict) or timing.get("version") != 1:
+            return None
+        fps = timing.get("render_fps")
+        if not isinstance(fps, (int, float)) or not 0 < fps <= 1000:
+            return None
+        return timing
+    except (OSError, ValueError, AttributeError, TypeError):
+        return None

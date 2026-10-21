@@ -13,7 +13,7 @@
         "1",
         0
       ],
-      "frames": 81,
+      "frames": 0,
       "fps": 24.0,
       "cell_width": 256,
       "cell_height": 256
@@ -33,17 +33,25 @@
     }
   },
   "4": {
-    "class_type": "SaveAnimatedWEBP",
+    "class_type": "SpruteSaveDrivingVideo",
     "inputs": {
       "images": [
         "3",
         0
       ],
       "filename_prefix": "motion",
-      "fps": 24.0,
-      "lossless": true,
-      "quality": 90,
-      "method": "default"
+      "loop_frames": [
+        "2",
+        2
+      ],
+      "loop": [
+        "2",
+        3
+      ],
+      "fps": [
+        "2",
+        4
+      ]
     }
   }
 }

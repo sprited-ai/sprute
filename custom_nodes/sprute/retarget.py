@@ -225,5 +225,5 @@ def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     rotations, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offset * scale)
     names = {index: name for name, index in target.bone.items()}
     selected = source.selected_animation
-    loop = bool(selected.get("extras", {}).get("loop", True))
+    loop = bool(selected.get("extras", {}).get("loop", False))
     return selected.get("name", animation), float(FPS), loop, {names[node]: values for node, values in rotations.items()}, moved

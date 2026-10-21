@@ -19,9 +19,13 @@ def animate(
     seed: int | None = None,
     draft: bool = False,
     scale: float = 1.0,
+    every: int = 2,
+    cut_loop: bool = True,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
+    if isinstance(every, bool) or not isinstance(every, int) or every < 1:
+        raise ValueError("every must be a positive integer")
     if not math.isfinite(scale) or scale <= 0:
         raise ValueError("scale must be a finite number greater than zero")
     if draft:
@@ -60,6 +64,8 @@ def animate(
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale
     graph["577"]["inputs"]["filename_prefix"] = motion_name
+    graph["602"]["inputs"]["value"] = every
+    graph["600"]["inputs"]["expression"] = "iif(a > 0, a, 4096)" if cut_loop else "4096"
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination

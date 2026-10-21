@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 597,
-  "last_link_id": 910,
+  "last_node_id": 602,
+  "last_link_id": 925,
   "nodes": [
     {
       "id": 416,
@@ -1263,7 +1263,7 @@
           ]
         }
       ],
-      "title": "Boolean （Replace Mode）",
+      "title": "Boolean \uff08Replace Mode\uff09",
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.24.0",
@@ -1439,7 +1439,7 @@
         {
           "name": "video_frame_offset",
           "type": "INT",
-          "links": []
+          "links": null
         }
       ],
       "properties": {
@@ -1584,7 +1584,7 @@
     },
     {
       "id": 4,
-      "type": "LoadImage",
+      "type": "SpruteLoadDrivingVideo",
       "pos": [
         820,
         200
@@ -1611,16 +1611,34 @@
           "links": [
             873
           ]
+        },
+        {
+          "name": "loop_frames",
+          "type": "INT",
+          "links": [
+            921
+          ]
+        },
+        {
+          "name": "loop",
+          "type": "BOOLEAN",
+          "links": null
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "links": [
+            922
+          ]
         }
       ],
       "properties": {
-        "Node name for S&R": "LoadImage"
+        "Node name for S&R": "SpruteLoadDrivingVideo"
       },
       "widgets_values": [
-        "walk.webp",
-        "image"
+        "walk.webp"
       ],
-      "title": "Load Image (Driving Video)"
+      "title": "Load Driving Video + Timing"
     },
     {
       "id": 3,
@@ -2067,13 +2085,21 @@
         320
       ],
       "flags": {},
-      "order": 45,
+      "order": 46,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 886
+          "link": 924
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "link": 925,
+          "widget": {
+            "name": "fps"
+          }
         }
       ],
       "outputs": [
@@ -2084,24 +2110,15 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.37.0",
         "Node name for S&R": "SaveAnimatedWEBP"
       },
       "widgets_values": [
         "ComfyUI",
-        24,
+        12,
         true,
         80,
         "default"
-      ],
-      "widgets_values_named": {
-        "filename_prefix": "ComfyUI",
-        "fps": 24,
-        "lossless": true,
-        "quality": 80,
-        "method": "default"
-      }
+      ]
     },
     {
       "id": 583,
@@ -2263,7 +2280,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            886
+            917
           ]
         }
       ],
@@ -2742,13 +2759,231 @@
         {
           "name": "batch_size",
           "type": "INT",
-          "links": []
+          "links": null
         }
       ],
       "properties": {
         "Node name for S&R": "GetImageSize"
       },
       "widgets_values": []
+    },
+    {
+      "id": 598,
+      "type": "ImageFromBatch",
+      "pos": [
+        2100,
+        680
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 917
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "link": 918,
+          "widget": {
+            "name": "length"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            919
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageFromBatch"
+      },
+      "widgets_values": [
+        0,
+        4096
+      ]
+    },
+    {
+      "id": 599,
+      "type": "VHS_SelectEveryNthImage",
+      "pos": [
+        2460,
+        680
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 919
+        },
+        {
+          "name": "select_every_nth",
+          "type": "INT",
+          "link": 920,
+          "widget": {
+            "name": "select_every_nth"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            924
+          ]
+        },
+        {
+          "name": "count",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_SelectEveryNthImage"
+      },
+      "widgets_values": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": 600,
+      "type": "MathExpression|pysssss",
+      "pos": [
+        1760,
+        680
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "a",
+          "type": "*",
+          "link": 921
+        }
+      ],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            918
+          ]
+        },
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MathExpression|pysssss"
+      },
+      "widgets_values": [
+        "iif(a > 0, a, 4096)"
+      ]
+    },
+    {
+      "id": 601,
+      "type": "MathExpression|pysssss",
+      "pos": [
+        2460,
+        900
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "a",
+          "type": "*",
+          "link": 922
+        },
+        {
+          "name": "b",
+          "type": "*",
+          "link": 923
+        }
+      ],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            925
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MathExpression|pysssss"
+      },
+      "widgets_values": [
+        "a / b"
+      ]
+    },
+    {
+      "id": 602,
+      "type": "PrimitiveInt",
+      "pos": [
+        2100,
+        940
+      ],
+      "size": [
+        300,
+        150
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            920,
+            923
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        2
+      ]
     }
   ],
   "links": [
@@ -3249,14 +3484,6 @@
       "IMAGE"
     ],
     [
-      886,
-      586,
-      0,
-      577,
-      0,
-      "IMAGE"
-    ],
-    [
       887,
       583,
       0,
@@ -3447,6 +3674,78 @@
       592,
       2,
       "INT"
+    ],
+    [
+      917,
+      586,
+      0,
+      598,
+      0,
+      "IMAGE"
+    ],
+    [
+      918,
+      600,
+      0,
+      598,
+      1,
+      "INT"
+    ],
+    [
+      919,
+      598,
+      0,
+      599,
+      0,
+      "IMAGE"
+    ],
+    [
+      920,
+      602,
+      0,
+      599,
+      1,
+      "INT"
+    ],
+    [
+      921,
+      4,
+      2,
+      600,
+      0,
+      "*"
+    ],
+    [
+      922,
+      4,
+      4,
+      601,
+      0,
+      "*"
+    ],
+    [
+      923,
+      602,
+      0,
+      601,
+      1,
+      "*"
+    ],
+    [
+      924,
+      599,
+      0,
+      577,
+      0,
+      "IMAGE"
+    ],
+    [
+      925,
+      601,
+      1,
+      577,
+      1,
+      "FLOAT"
     ]
   ],
   "groups": [],

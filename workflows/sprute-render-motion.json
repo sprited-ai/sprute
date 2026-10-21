@@ -2,7 +2,7 @@
   "id": "3fdab992-c479-4fd5-a683-cd0a31fefc33",
   "revision": 0,
   "last_node_id": 5,
-  "last_link_id": 4,
+  "last_link_id": 8,
   "nodes": [
     {
       "id": 1,
@@ -71,13 +71,34 @@
           "links": [
             3
           ]
+        },
+        {
+          "name": "loop_frames",
+          "type": "INT",
+          "links": [
+            6
+          ]
+        },
+        {
+          "name": "loop",
+          "type": "BOOLEAN",
+          "links": [
+            7
+          ]
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "links": [
+            8
+          ]
         }
       ],
       "properties": {
         "Node name for S&R": "SpruteRenderDrivingVideo"
       },
       "widgets_values": [
-        81,
+        0,
         24,
         256,
         256
@@ -125,7 +146,7 @@
     },
     {
       "id": 4,
-      "type": "SaveAnimatedWEBP",
+      "type": "SpruteSaveDrivingVideo",
       "pos": [
         1120,
         0
@@ -142,36 +163,59 @@
           "name": "images",
           "type": "IMAGE",
           "link": 4
-        }
-      ],
-      "outputs": [
+        },
         {
-          "name": "images",
-          "type": "IMAGE",
-          "links": null
+          "name": "loop_frames",
+          "type": "INT",
+          "link": 6,
+          "widget": {
+            "name": "loop_frames"
+          }
+        },
+        {
+          "name": "loop",
+          "type": "BOOLEAN",
+          "link": 7,
+          "widget": {
+            "name": "loop"
+          }
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "link": 8,
+          "widget": {
+            "name": "fps"
+          }
         }
       ],
+      "outputs": [],
       "properties": {
-        "Node name for S&R": "SaveAnimatedWEBP"
+        "Node name for S&R": "SpruteSaveDrivingVideo"
       },
       "widgets_values": [
-        "motion",
+        0,
+        false,
         24,
-        true,
-        90,
-        "default"
-      ]
+        "motion"
+      ],
+      "widgets_values_named": {
+        "loop_frames": 0,
+        "loop": false,
+        "fps": 24,
+        "filename_prefix": "motion"
+      }
     },
     {
       "id": 5,
       "type": "Note",
       "pos": [
         0,
-        170
+        230
       ],
       "size": [
         740,
-        200
+        280
       ],
       "flags": {},
       "order": 4,
@@ -182,7 +226,7 @@
         "Node name for S&R": "Note"
       },
       "widgets_values": [
-        "Renders Template-kun performing a motion, in eight directions.\n\nLoad Motion: 'sprute/...' are the bundled motions. Any animated GLB placed in ComfyUI's input folder is listed too, and gets retargeted onto Template-kun. For a GLB with several animations, type the animation's name, e.g. run.\n\nIn the animate workflow, Render Driving Video replaces the driving video's Load Image: connect its IMAGE and MASK where that node's outputs went."
+        "Renders Template-kun performing a motion, in eight directions.\n\nLoad Motion: 'sprute/...' are the bundled motions. Any animated GLB placed in ComfyUI's input folder is listed too, and gets retargeted onto Template-kun. For a GLB with several animations, type the animation's name, e.g. run.\n\nIn the animate workflow, Render Driving Video replaces the driving video's Load Image: connect its IMAGE and MASK where that node's outputs went.\n\nSave Driving Video embeds timing in the WebP itself. Its loop_frames, loop and fps inputs come from Render Driving Video, so frame rate and cycle length stay synchronized. No separate JSON export is needed. Final loop cutting and every-Nth selection run in the animate workflow Save Animation node.\n\nFrames=0 renders the complete source clip: one cycle for declared loops. The CLI repeats it to 4n+1 frames for SCAIL2; non-loop clips hold their final pose instead."
       ]
     }
   ],
@@ -218,6 +262,30 @@
       4,
       0,
       "IMAGE"
+    ],
+    [
+      6,
+      2,
+      2,
+      4,
+      1,
+      "INT"
+    ],
+    [
+      7,
+      2,
+      3,
+      4,
+      2,
+      "BOOLEAN"
+    ],
+    [
+      8,
+      2,
+      4,
+      4,
+      3,
+      "FLOAT"
     ]
   ],
   "groups": [],
