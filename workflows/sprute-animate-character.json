@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 600,
-  "last_link_id": 915,
+  "last_node_id": 604,
+  "last_link_id": 924,
   "nodes": [
     {
       "id": 416,
@@ -1101,6 +1101,14 @@
           "shape": 7,
           "type": "MASK",
           "link": null
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "widget": {
+            "name": "fps"
+          },
+          "link": 921
         }
       ],
       "outputs": [],
@@ -1143,6 +1151,14 @@
           "shape": 7,
           "type": "MASK",
           "link": null
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "widget": {
+            "name": "fps"
+          },
+          "link": 922
         }
       ],
       "outputs": [],
@@ -1763,6 +1779,14 @@
           "shape": 7,
           "type": "MASK",
           "link": null
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "widget": {
+            "name": "fps"
+          },
+          "link": 923
         }
       ],
       "outputs": [],
@@ -2026,6 +2050,14 @@
           "name": "images",
           "type": "IMAGE",
           "link": 810
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "widget": {
+            "name": "fps"
+          },
+          "link": 924
         }
       ],
       "outputs": [
@@ -2271,7 +2303,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            912
+            916
           ]
         }
       ],
@@ -2815,7 +2847,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 912
+          "link": 917
         },
         {
           "name": "select_every_nth",
@@ -2873,11 +2905,18 @@
           "label": "a",
           "name": "values.a",
           "type": "FLOAT,INT,BOOLEAN",
-          "link": 914
+          "link": 920
         },
         {
           "label": "b",
           "name": "values.b",
+          "shape": 7,
+          "type": "FLOAT,INT,BOOLEAN",
+          "link": 914
+        },
+        {
+          "label": "c",
+          "name": "values.c",
           "shape": 7,
           "type": "FLOAT,INT,BOOLEAN",
           "link": null
@@ -2915,10 +2954,181 @@
         "Node name for S&R": "ComfyMathExpression"
       },
       "widgets_values": [
-        "24 / a"
+        "a / b"
       ],
       "widgets_values_named": {
-        "expression": "24 / a"
+        "expression": "a / b"
+      }
+    },
+    {
+      "id": 601,
+      "type": "PrimitiveFloat",
+      "title": "Time Scale",
+      "pos": [
+        2200,
+        1660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        1.0
+      ],
+      "widgets_values_named": {
+        "value": 1.0
+      }
+    },
+    {
+      "id": 602,
+      "type": "PrimitiveInt",
+      "title": "Cycle Frames",
+      "pos": [
+        2520,
+        1660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            918
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        81,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 81
+      }
+    },
+    {
+      "id": 603,
+      "type": "ImageFromBatch",
+      "title": "Keep One Cycle",
+      "pos": [
+        2840,
+        1660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 916
+        },
+        {
+          "name": "batch_index",
+          "type": "INT",
+          "widget": {
+            "name": "batch_index"
+          },
+          "link": null
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": 918
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            917
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ImageFromBatch"
+      },
+      "widgets_values": [
+        0,
+        81
+      ],
+      "widgets_values_named": {
+        "batch_index": 0,
+        "length": 81
+      }
+    },
+    {
+      "id": 604,
+      "type": "PrimitiveFloat",
+      "title": "Source FPS",
+      "pos": [
+        2200,
+        1810
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            920,
+            921,
+            922,
+            923,
+            924
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        24.0
+      ],
+      "widgets_values_named": {
+        "value": 24.0
       }
     }
   ],
@@ -3620,14 +3830,6 @@
       "INT"
     ],
     [
-      912,
-      586,
-      0,
-      599,
-      0,
-      "IMAGE"
-    ],
-    [
       913,
       599,
       0,
@@ -3640,7 +3842,7 @@
       598,
       0,
       600,
-      0,
+      1,
       "INT"
     ],
     [
@@ -3648,6 +3850,70 @@
       600,
       0,
       577,
+      1,
+      "FLOAT"
+    ],
+    [
+      916,
+      586,
+      0,
+      603,
+      0,
+      "IMAGE"
+    ],
+    [
+      917,
+      603,
+      0,
+      599,
+      0,
+      "IMAGE"
+    ],
+    [
+      918,
+      602,
+      0,
+      603,
+      2,
+      "INT"
+    ],
+    [
+      920,
+      604,
+      0,
+      600,
+      0,
+      "FLOAT"
+    ],
+    [
+      921,
+      604,
+      0,
+      502,
+      2,
+      "FLOAT"
+    ],
+    [
+      922,
+      604,
+      0,
+      503,
+      2,
+      "FLOAT"
+    ],
+    [
+      923,
+      604,
+      0,
+      507,
+      2,
+      "FLOAT"
+    ],
+    [
+      924,
+      604,
+      0,
+      554,
       1,
       "FLOAT"
     ]

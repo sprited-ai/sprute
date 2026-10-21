@@ -1,4 +1,5 @@
 import json
+from io import BytesIO
 from PIL import Image
 import math
 import os
@@ -8,6 +9,7 @@ from pathlib import Path
 from sprute.comfy import content_name, input_name, run_workflow, same_workflow, saved_workflow
 from sprute.events import Event
 from sprute.motion import check_driving_video, find_motion, render_motion
+from sprute.timing import glb_cycle, plan
 
 WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 MOTIONS = ("idle", "walk", "run")
@@ -53,9 +55,14 @@ def animate(
             width, height = reference.size
         if width % 8:
             raise ValueError("Directions image must contain eight equal-width cells")
-        driving_video = render_motion(motion_file, cell_width=width // 8, cell_height=height, on_event=on_event)
+        timing = plan(*glb_cycle(motion_file), every)
+        driving_video = render_motion(motion_file, frames=timing.frames, fps=timing.fps,
+                                      cell_width=width // 8, cell_height=height, on_event=on_event)
+        keep, scale = timing.keep, timing.scale
     else:
         driving_video = motion_file.read_bytes()
+        with Image.open(BytesIO(driving_video)) as video:
+            keep, scale = getattr(video, "n_frames", 1), 1.0
     check_driving_video(driving_video, motion_file.name, directions)
     driving_video_name = content_name(driving_video, ".webp")
     graph["4"]["inputs"]["image"] = driving_video_name
@@ -64,6 +71,10 @@ def animate(
     graph["587"]["inputs"]["value"] = scale
     graph["577"]["inputs"]["filename_prefix"] = motion_name
     graph["598"]["inputs"]["value"] = every
+    # A loop keeps one cycle, snapped to a multiple of every frames and played at 24 fps.
+    # Time Scale is only a record: how much longer that plays than the motion lasts.
+    graph["602"]["inputs"]["value"] = keep
+    graph["601"]["inputs"]["value"] = scale
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination

@@ -493,7 +493,10 @@
   },
   "502": {
     "inputs": {
-      "fps": 24,
+      "fps": [
+        "604",
+        0
+      ],
       "images": [
         "431",
         0
@@ -506,7 +509,10 @@
   },
   "503": {
     "inputs": {
-      "fps": 24,
+      "fps": [
+        "604",
+        0
+      ],
       "images": [
         "493",
         0
@@ -578,7 +584,10 @@
   },
   "507": {
     "inputs": {
-      "fps": 24,
+      "fps": [
+        "604",
+        0
+      ],
       "images": [
         "505",
         0
@@ -612,7 +621,10 @@
   "554": {
     "inputs": {
       "filename_prefix": "ComfyUI",
-      "fps": 24,
+      "fps": [
+        "604",
+        0
+      ],
       "lossless": true,
       "quality": 85,
       "method": "default",
@@ -845,7 +857,7 @@
   "599": {
     "inputs": {
       "images": [
-        "586",
+        "603",
         0
       ],
       "select_every_nth": [
@@ -861,8 +873,12 @@
   },
   "600": {
     "inputs": {
-      "expression": "24 / a",
+      "expression": "a / b",
       "values.a": [
+        "604",
+        0
+      ],
+      "values.b": [
         "598",
         0
       ]
@@ -870,6 +886,50 @@
     "class_type": "ComfyMathExpression",
     "_meta": {
       "title": "Saved FPS"
+    }
+  },
+  "601": {
+    "inputs": {
+      "value": 1.0
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Time Scale"
+    }
+  },
+  "602": {
+    "inputs": {
+      "value": 81
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Cycle Frames"
+    }
+  },
+  "603": {
+    "inputs": {
+      "image": [
+        "586",
+        0
+      ],
+      "batch_index": 0,
+      "length": [
+        "602",
+        0
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "Keep One Cycle"
+    }
+  },
+  "604": {
+    "inputs": {
+      "value": 24.0
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Source FPS"
     }
   }
 }
