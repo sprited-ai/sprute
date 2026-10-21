@@ -1,7 +1,7 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 600,
+  "last_node_id": 601,
   "last_link_id": 915,
   "nodes": [
     {
@@ -2919,6 +2919,40 @@
       ],
       "widgets_values_named": {
         "expression": "24 / a"
+      }
+    },
+    {
+      "id": 601,
+      "type": "PrimitiveFloat",
+      "title": "Time Scale",
+      "pos": [
+        2200,
+        1660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        1.0
+      ],
+      "widgets_values_named": {
+        "value": 1.0
       }
     }
   ],

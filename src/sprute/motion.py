@@ -86,6 +86,7 @@ def check_driving_video(video: bytes, name: str, directions: Path) -> None:
 def render_motion(
     motion: Path,
     *,
+    fps: float = 24.0,
     cell_width: int = 256,
     cell_height: int = 256,
     on_event: Callable[[Event], None] | None = None,
@@ -96,7 +97,7 @@ def render_motion(
             on_event(Event(state, message, timed=timed))
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["1"]["inputs"]["motion"] = input_name(motion)
-    graph["2"]["inputs"].update(cell_width=cell_width, cell_height=cell_height)
+    graph["2"]["inputs"].update(fps=fps, cell_width=cell_width, cell_height=cell_height)
     cache = motion.with_suffix(".cached.webp")
     if cache.is_file() and same_workflow(saved_workflow(cache), graph):
         report("completed", f"Using cached motion: {cache}")

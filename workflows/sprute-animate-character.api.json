@@ -871,5 +871,14 @@
     "_meta": {
       "title": "Saved FPS"
     }
+  },
+  "601": {
+    "inputs": {
+      "value": 1.0
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Time Scale"
+    }
   }
 }

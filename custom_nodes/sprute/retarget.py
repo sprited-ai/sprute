@@ -112,7 +112,7 @@ class Skeleton:
         return world
 
     def animation(self, name):
-        """World matrices per frame at FPS, without a duplicated closing frame."""
+        """World matrices per frame and their frame rate (about FPS), without a duplicated closing frame."""
         available = self.doc.get("animations", [])
         found = [a for a in available if name.lower() in a.get("name", "").lower()] if name else available[:1]
         if len(found) != 1:
@@ -126,7 +126,10 @@ class Skeleton:
             channels.append((channel["target"]["node"], channel["target"]["path"], sampler.get("interpolation", "LINEAR"),
                              self.accessor(sampler["input"]).ravel().astype(float), self.accessor(sampler["output"]).astype(float)))
         start = min(c[3][0] for c in channels); end = max(c[3][-1] for c in channels)
-        times = start + np.arange(int(round((end - start) * FPS)) + 1) / FPS
+        # Whole steps across the clip, so a loop's closing frame lands exactly on its first.
+        steps = max(1, round((end - start) * FPS))
+        fps = steps / (end - start) if end > start else float(FPS)
+        times = start + np.arange(steps + 1) / fps
         translation = np.repeat(self.translation[None], len(times), 0)
         rotation = np.repeat(self.rotation[None], len(times), 0)
         for node, path, interpolation, keys, values in channels:
@@ -147,10 +150,10 @@ class Skeleton:
                 rotation[:, node] = Slerp(keys, Rotation.from_quat(values))(at).as_quat()
         frames = np.stack([self.world(translation[f], rotation[f]) for f in range(len(times))])
         if len(frames) < 2:
-            return frames
+            return frames, fps
         step = np.abs(frames[1, :, :3, :3] - frames[0, :, :3, :3]).max()
         closing = np.abs(frames[-1, :, :3, :3] - frames[0, :, :3, :3]).max()
-        return frames[:-1] if closing < 0.25 * step else frames
+        return (frames[:-1] if closing < 0.25 * step else frames), fps
 
 
 def pure(matrix):
@@ -200,7 +203,7 @@ def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     missing = [name for name in BONES if name not in source.bone]
     if missing:
         raise ValueError(f"{source_path.name}: no bones named {', '.join(missing)}. Provide an explicit source-joint to humanoid-role mapping.")
-    frames = source.animation(animation)
+    frames, fps = source.animation(animation)
     # Derive a right-handed body basis from the rest skeleton. This normalizes
     # source orientation without changing the saved source or guessing from names.
     alignment = body_basis(target) @ body_basis(source).T
@@ -226,4 +229,4 @@ def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     names = {index: name for name, index in target.bone.items()}
     selected = source.selected_animation
     loop = bool(selected.get("extras", {}).get("loop", True))
-    return selected.get("name", animation), float(FPS), loop, {names[node]: values for node, values in rotations.items()}, moved
+    return selected.get("name", animation), fps, loop, {names[node]: values for node, values in rotations.items()}, moved
