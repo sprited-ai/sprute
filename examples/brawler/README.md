@@ -20,7 +20,7 @@ Open http://localhost:8765.
 
 ## How the sprites get in
 
-`characters/hero` is character `0001` animated with Quaternius motions (`sprute animate character --motion quaternius/...`).
+`characters/hero` is character `0001` animated with Quaternius motions (`sprute animate character --motion quaternius/...`). The enemies `thug`, `pirate` and `ninja` were made with `make_character.sh`.
 
 A sprute animation is a strip: eight direction cells side by side (S, SE, E, NE, N, NW, W, SW), one strip per frame. `pack.py` turns each strip into an atlas the game can index:
 
