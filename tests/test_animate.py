@@ -46,9 +46,9 @@ def saved_fps_expression(graph):
     """The saved fps as an expression of the same `every` value that picks frames."""
     fps = graph["577"]["inputs"]["fps"]
     node = graph[fps[0]]
-    assert node["class_type"] == "MathExpression|pysssss"
+    assert node["class_type"] == "ComfyMathExpression"
     select = graph[graph["577"]["inputs"]["images"][0]]
-    assert node["inputs"]["a"] == select["inputs"]["select_every_nth"]
+    assert node["inputs"]["values.a"] == select["inputs"]["select_every_nth"]
     return node["inputs"]["expression"]
 
 

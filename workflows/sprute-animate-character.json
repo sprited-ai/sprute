@@ -2855,7 +2855,7 @@
     },
     {
       "id": 600,
-      "type": "MathExpression|pysssss",
+      "type": "ComfyMathExpression",
       "title": "Saved FPS",
       "pos": [
         1880,
@@ -2870,38 +2870,49 @@
       "mode": 0,
       "inputs": [
         {
-          "name": "a",
-          "type": "*",
+          "label": "a",
+          "name": "values.a",
+          "type": "FLOAT,INT,BOOLEAN",
           "link": 914
         },
         {
-          "name": "b",
-          "type": "*",
+          "label": "b",
+          "name": "values.b",
+          "shape": 7,
+          "type": "FLOAT,INT,BOOLEAN",
           "link": null
         },
         {
-          "name": "c",
-          "type": "*",
+          "name": "expression",
+          "type": "STRING",
+          "widget": {
+            "name": "expression"
+          },
           "link": null
         }
       ],
       "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": null
-        },
         {
           "name": "FLOAT",
           "type": "FLOAT",
           "links": [
             915
           ]
+        },
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "BOOL",
+          "type": "BOOLEAN",
+          "links": null
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-custom-scripts",
-        "Node name for S&R": "MathExpression|pysssss"
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ComfyMathExpression"
       },
       "widgets_values": [
         "24 / a"
@@ -3635,7 +3646,7 @@
     [
       915,
       600,
-      1,
+      0,
       577,
       1,
       "FLOAT"

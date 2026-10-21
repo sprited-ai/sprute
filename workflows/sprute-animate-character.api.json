@@ -631,7 +631,7 @@
       "filename_prefix": "ComfyUI",
       "fps": [
         "600",
-        1
+        0
       ],
       "lossless": true,
       "quality": 80,
@@ -862,12 +862,12 @@
   "600": {
     "inputs": {
       "expression": "24 / a",
-      "a": [
+      "values.a": [
         "598",
         0
       ]
     },
-    "class_type": "MathExpression|pysssss",
+    "class_type": "ComfyMathExpression",
     "_meta": {
       "title": "Saved FPS"
     }
