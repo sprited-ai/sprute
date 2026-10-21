@@ -10,7 +10,7 @@
 - [ ] Search for NBP Alternative
 - [ ] Sprute 2.0 File Structure
 - [ ] sprute generate profile command
-- [ ] Make sure to cut loops.
+- [x] Make sure to cut loops.
 - [ ] Seedance 2 - use first frame conditioning
 - [ ] On-demand retargeted driving video
 - [ ] Release 2.0
@@ -20,7 +20,7 @@
 - [x] Remove scripts/sprute.py (it needs the stored driving videos, which go away with on-demand rendering)
 - [x] Remove workflows/sprute-demo-character.json (it loaded stored driving videos, which no longer exist)
 - [x] Allow driving videos with other frame counts than 81 (SCAIL2 trims to 4n+1 frames)
-- [ ] Render a GLB at other frame counts than 81 (the render workflow is fixed at 81)
+- [x] Render a GLB at other frame counts than 81 (the render workflow is fixed at 81)
 - [ ] SCAIL 2 FP8 vs FP16
 - [ ] AniSora on Replicate
 - [ ] Scail 2 on Replicate
