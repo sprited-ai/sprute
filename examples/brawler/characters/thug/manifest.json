@@ -1,0 +1,54 @@
+{
+  "name": "thug",
+  "motions": {
+    "idle": {
+      "file": "idle.webp",
+      "frames": 40,
+      "loop": true
+    },
+    "walk": {
+      "file": "walk.webp",
+      "frames": 40,
+      "loop": true
+    },
+    "run": {
+      "file": "run.webp",
+      "frames": 40,
+      "loop": true
+    },
+    "punch": {
+      "file": "punch.webp",
+      "frames": 10,
+      "loop": false
+    },
+    "kick": {
+      "file": "kick.webp",
+      "frames": 12,
+      "loop": false
+    },
+    "hit": {
+      "file": "hit.webp",
+      "frames": 4,
+      "loop": false
+    },
+    "death": {
+      "file": "death.webp",
+      "frames": 24,
+      "loop": false
+    },
+    "win": {
+      "file": "win.webp",
+      "frames": 40,
+      "loop": false
+    }
+  },
+  "cell": [
+    128,
+    128
+  ],
+  "fps": 12,
+  "anchor": [
+    64.0,
+    112
+  ]
+}
