@@ -81,7 +81,7 @@ class SpruteRenderDrivingVideo:
         key = (str(device), MODEL.stat().st_mtime_ns)
         if getattr(self, "_key", None) != key:
             self._model, self._key = renderer.Model(MODEL, device), key
-        fps = snap.render_fps(motion, fps, every)
+        fps = snap.snapped_fps(motion, fps, every)
         video = renderer.render(self._model, motion, frames, fps, cell_width, cell_height).cpu()
         return (video[..., :3], 1.0 - video[..., 3])
 

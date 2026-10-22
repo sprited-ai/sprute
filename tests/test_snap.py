@@ -12,7 +12,7 @@ def motion(frames, fps, loop=True):
 
 def test_a_loop_that_fits_renders_at_the_requested_fps():
     # walk: 32 frames at 24 fps.
-    assert snap.render_fps(motion(32, 24.0), 24.0, every=2) == pytest.approx(24)
+    assert snap.snapped_fps(motion(32, 24.0), 24.0, every=2) == pytest.approx(24)
 
 
 def test_a_loop_snaps_its_cycle_to_a_multiple_of_every():
@@ -22,7 +22,7 @@ def test_a_loop_snaps_its_cycle_to_a_multiple_of_every():
 
 def test_a_snapped_loop_renders_its_whole_cycle_in_those_frames():
     jog = motion(28, 30.0)
-    assert snap.render_fps(jog, 24.0, every=4) == pytest.approx(24 / (28 / 30))
+    assert snap.snapped_fps(jog, 24.0, every=4) == pytest.approx(24 / (28 / 30))
 
 
 @pytest.mark.parametrize("every", [1, 2, 3, 4])
@@ -37,4 +37,4 @@ def test_a_short_loop_keeps_at_least_one_frame_after_every():
 
 def test_a_clip_that_does_not_loop_renders_at_the_requested_fps():
     punch = motion(26, 30.0, loop=False)
-    assert snap.render_fps(punch, 24.0, every=4) == 24.0
+    assert snap.snapped_fps(punch, 24.0, every=4) == 24.0

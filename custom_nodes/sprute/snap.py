@@ -6,7 +6,7 @@ def cycle_frames(seconds: float, fps: float, every: int) -> int:
     return every * max(1, round(seconds * fps / every))
 
 
-def render_fps(motion, fps: float, every: int) -> float:
+def snapped_fps(motion, fps: float, every: int) -> float:
     """The frame rate that fits one cycle of a looping motion into those frames; fps as given otherwise.
 
     Played back at fps, the motion then lasts cycle_frames / (seconds * fps) times as long as it does.
