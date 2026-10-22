@@ -23,6 +23,10 @@
       "cell_height": [
         "602",
         1
+      ],
+      "every": [
+        "598",
+        0
       ]
     },
     "class_type": "SpruteRenderDrivingVideo",

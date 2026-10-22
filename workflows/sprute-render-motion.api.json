@@ -16,7 +16,8 @@
       "frames": 81,
       "fps": 24.0,
       "cell_width": 256,
-      "cell_height": 256
+      "cell_height": 256,
+      "every": 1
     }
   },
   "3": {
