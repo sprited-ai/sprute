@@ -5,9 +5,9 @@ import os
 import secrets
 from collections.abc import Callable
 from pathlib import Path
-from sprute.comfy import content_name, input_name, run_workflow, same_workflow, saved_workflow
+from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 from sprute.events import Event
-from sprute.motion import check_driving_video, find_motion, render_motion
+from sprute.motion import find_motion
 
 WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 MOTIONS = ("idle", "walk", "run")
@@ -47,18 +47,13 @@ def animate(
     directions_name = input_name(directions)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["3"]["inputs"]["image"] = directions_name
-    if motion_file.suffix.lower() == ".glb":
-        # The workflow reads a driving video, so a GLB is rendered first.
-        with Image.open(directions) as reference:
-            width, height = reference.size
-        if width % 8:
-            raise ValueError("Directions image must contain eight equal-width cells")
-        driving_video = render_motion(motion_file, cell_width=width // 8, cell_height=height, on_event=on_event)
-    else:
-        driving_video = motion_file.read_bytes()
-    check_driving_video(driving_video, motion_file.name, directions)
-    driving_video_name = content_name(driving_video, ".webp")
-    graph["4"]["inputs"]["image"] = driving_video_name
+    with Image.open(directions) as reference:
+        width = reference.width
+    if width % 8:
+        raise ValueError("Directions image must contain eight equal-width cells")
+    # The workflow renders the GLB into the driving video itself, in cells measured from the directions image.
+    motion_input = input_name(motion_file)
+    graph["601"]["inputs"]["motion"] = motion_input
     graph["504"]["inputs"]["seed"] = seed
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale
@@ -70,7 +65,7 @@ def animate(
     report("started", f"Animating {motion} from {motion_file.name} · seed {seed}{f' · scale {scale:g}' if scale != 1.0 else ''}", timed=True)
     data = run_workflow(
         graph,
-        input_files={directions_name: directions, driving_video_name: driving_video},
+        input_files={directions_name: directions, motion_input: motion_file},
         output_node_ids=("577",),
         on_event=on_event,
     )["577"]

@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 600,
-  "last_link_id": 915,
+  "last_node_id": 603,
+  "last_link_id": 920,
   "nodes": [
     {
       "id": 416,
@@ -1584,19 +1584,42 @@
     },
     {
       "id": 4,
-      "type": "LoadImage",
+      "type": "SpruteRenderDrivingVideo",
+      "title": "Sprute Render Driving Video",
       "pos": [
         820,
-        200
+        360
       ],
       "size": [
         320,
-        340
+        170
       ],
       "flags": {},
       "order": 5,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "motion",
+          "type": "SPRUTE_MOTION",
+          "link": 916
+        },
+        {
+          "name": "cell_width",
+          "type": "INT",
+          "widget": {
+            "name": "cell_width"
+          },
+          "link": 919
+        },
+        {
+          "name": "cell_height",
+          "type": "INT",
+          "widget": {
+            "name": "cell_height"
+          },
+          "link": 920
+        }
+      ],
       "outputs": [
         {
           "name": "IMAGE",
@@ -1614,13 +1637,14 @@
         }
       ],
       "properties": {
-        "Node name for S&R": "LoadImage"
+        "Node name for S&R": "SpruteRenderDrivingVideo"
       },
       "widgets_values": [
-        "walk.webp",
-        "image"
-      ],
-      "title": "Load Image (Driving Video)"
+        81,
+        24,
+        256,
+        256
+      ]
     },
     {
       "id": 3,
@@ -1642,7 +1666,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            878
+            878,
+            917
           ]
         },
         {
@@ -2920,6 +2945,156 @@
       "widgets_values_named": {
         "expression": "24 / a"
       }
+    },
+    {
+      "id": 601,
+      "type": "SpruteLoadMotion",
+      "title": "Sprute Load Motion",
+      "pos": [
+        820,
+        200
+      ],
+      "size": [
+        320,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "motion",
+          "type": "SPRUTE_MOTION",
+          "links": [
+            916
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SpruteLoadMotion"
+      },
+      "widgets_values": [
+        "sprute/walk",
+        ""
+      ]
+    },
+    {
+      "id": 602,
+      "type": "GetImageSize",
+      "title": "Get Image Size (Directions)",
+      "pos": [
+        460,
+        360
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 917
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            918
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            920
+          ]
+        },
+        {
+          "name": "batch_size",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "GetImageSize"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 603,
+      "type": "ComfyMathExpression",
+      "title": "Cell Width",
+      "pos": [
+        460,
+        510
+      ],
+      "size": [
+        300,
+        140
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "a",
+          "name": "values.a",
+          "type": "FLOAT,INT,BOOLEAN",
+          "link": 918
+        },
+        {
+          "label": "b",
+          "name": "values.b",
+          "shape": 7,
+          "type": "FLOAT,INT,BOOLEAN",
+          "link": null
+        },
+        {
+          "name": "expression",
+          "type": "STRING",
+          "widget": {
+            "name": "expression"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            919
+          ]
+        },
+        {
+          "name": "BOOL",
+          "type": "BOOLEAN",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ComfyMathExpression"
+      },
+      "widgets_values": [
+        "a / 8"
+      ],
+      "widgets_values_named": {
+        "expression": "a / 8"
+      }
     }
   ],
   "links": [
@@ -3650,6 +3825,46 @@
       577,
       1,
       "FLOAT"
+    ],
+    [
+      916,
+      601,
+      0,
+      4,
+      0,
+      "SPRUTE_MOTION"
+    ],
+    [
+      917,
+      3,
+      0,
+      602,
+      0,
+      "IMAGE"
+    ],
+    [
+      918,
+      602,
+      0,
+      603,
+      0,
+      "INT"
+    ],
+    [
+      919,
+      603,
+      1,
+      4,
+      1,
+      "INT"
+    ],
+    [
+      920,
+      602,
+      1,
+      4,
+      2,
+      "INT"
     ]
   ],
   "groups": [],

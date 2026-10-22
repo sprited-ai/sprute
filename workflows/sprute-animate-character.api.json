@@ -10,11 +10,24 @@
   },
   "4": {
     "inputs": {
-      "image": "walk.webp"
+      "motion": [
+        "601",
+        0
+      ],
+      "frames": 81,
+      "fps": 24.0,
+      "cell_width": [
+        "603",
+        1
+      ],
+      "cell_height": [
+        "602",
+        1
+      ]
     },
-    "class_type": "LoadImage",
+    "class_type": "SpruteRenderDrivingVideo",
     "_meta": {
-      "title": "Load Image (Driving Video)"
+      "title": "Sprute Render Driving Video"
     }
   },
   "413": {
@@ -870,6 +883,41 @@
     "class_type": "ComfyMathExpression",
     "_meta": {
       "title": "Saved FPS"
+    }
+  },
+  "601": {
+    "inputs": {
+      "motion": "sprute/walk",
+      "animation": ""
+    },
+    "class_type": "SpruteLoadMotion",
+    "_meta": {
+      "title": "Sprute Load Motion"
+    }
+  },
+  "602": {
+    "inputs": {
+      "image": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size (Directions)"
+    }
+  },
+  "603": {
+    "inputs": {
+      "expression": "a / 8",
+      "values.a": [
+        "602",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Cell Width"
     }
   }
 }

@@ -108,14 +108,9 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 sprute animate character --character knight --motion run
 ```
 
-Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated strip with all eight directions side by side (2048×256, 81 frames).
+Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated strip with all eight directions side by side (2048×256, 41 frames at 12 fps: every second of the 81 generated frames; `--every 1` keeps all of them).
 
-`--motion run` looks in `motions/` for `run.webp` first, then `run.glb`.
-
-- **`run.glb`** is a rig motion. Sprute renders it on its mannequin, Template-kun, and animates with that.
-- **`run.webp`** is a driving video you bring: an eight-direction animated strip of the same size as the directions image, with a transparent background. Any Sprute animation works, so one character can drive another.
-
-A driving video needs at least 5 frames. The model works on 4n+1 frames (41, 81, 97, ...), so up to three frames at the end are dropped: 100 frames in gives 97 out.
+`--motion run` is `motions/run.glb`, or give a path to any GLB. Sprute renders the motion on its mannequin, Template-kun, and animates with that.
 
 As with turntable, the same `--seed` and input return the existing file instead of rerunning.
 
