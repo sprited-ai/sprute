@@ -4,6 +4,8 @@ A top-down arena brawler whose fighters are sprute characters. You fight waves o
 
 ## Play
 
+Play it at https://sprited-ai.github.io/sprute/examples/brawler/, or run it locally:
+
 ```bash
 python3 -m http.server 8765 --directory examples/brawler
 ```

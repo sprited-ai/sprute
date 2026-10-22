@@ -1,7 +1,7 @@
 name: Pages
 
-# Publishes the landing page (site/) and the playable examples (examples/)
-# to https://sprited-ai.github.io/sprute/.
+# Publishes the browser examples to https://sprited-ai.github.io/sprute/examples/.
+# The site root (site/index.html) redirects to the GitHub repository.
 on:
   push:
     branches: [main]
@@ -29,7 +29,7 @@ jobs:
         run: |
           mkdir -p _site/examples
           cp -R site/. _site/
-          cp -R examples/brawler _site/examples/
+          cp -R examples/brawler examples/sprites _site/examples/
           # Generators and docs stay in the repo; the site only needs what the browser loads.
           rm -f _site/examples/brawler/pack.py _site/examples/brawler/make_character.sh
       - uses: actions/configure-pages@v5

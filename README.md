@@ -20,6 +20,8 @@ One character, eight directions, three motions:
 `run`<br>
 <img src="docs/resources/example-run.webp" alt="run">
 
+Try sprute characters in the browser: [Sprute Brawl](https://sprited-ai.github.io/sprute/examples/brawler/), a small game made entirely from generated characters, and the [sprite viewer](https://sprited-ai.github.io/sprute/examples/sprites/).
+
 ## Getting Started
 
 Requires Python 3.12+ and a GPU (tested on NVIDIA CUDA).
