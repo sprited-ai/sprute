@@ -71,9 +71,11 @@ class SpruteRenderDrivingVideo:
                                                     "The motion plays slightly faster or slower at fps. 0 keeps its exact speed."}),
         }}
 
-    RETURN_TYPES = ("IMAGE", "MASK", "FLOAT")
-    RETURN_NAMES = ("IMAGE", "MASK", "time_scale")
-    OUTPUT_TOOLTIPS = ("", "", "How many times as long the motion plays at fps after snapping; 1.0 when snap_to_multiple is 0.")
+    RETURN_TYPES = ("IMAGE", "MASK", "FLOAT", "INT")
+    RETURN_NAMES = ("IMAGE", "MASK", "time_scale", "keep_frames")
+    OUTPUT_TOOLTIPS = ("", "", "How many times as long the motion plays at fps after snapping; 1.0 when snap_to_multiple is 0.",
+                       "Frames to keep once snapped: one cycle of a loop, so it wraps cleanly, or a clip up to its last pose. "
+                       "All frames otherwise.")
     FUNCTION = "render"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Renders Template-kun performing the motion in eight directions, as a strip like a sprute animation. "
@@ -86,7 +88,7 @@ class SpruteRenderDrivingVideo:
             self._model, self._key = renderer.Model(MODEL, device), key
         scale = snap.time_scale(motion, fps, snap_to_multiple)
         video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height).cpu()
-        return (video[..., :3], 1.0 - video[..., 3], scale)
+        return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))
 
 
 class SpruteStripToGrid:

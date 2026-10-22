@@ -28,3 +28,4 @@
 - [ ] Custom nodes: make them installable by cloning sprute into ComfyUI/custom_nodes (needs an __init__.py at the repo root)
 - [ ] Custom nodes: write our own rasterizer (renderer.py imports `_rasterize_person`, a private ComfyUI function added 2026-08-23)
 - [ ] Workflow smoke test on a Mac: run the animate graph through ComfyUI with stub models (fake weights or stub SCAIL/KSampler nodes), so wiring mistakes (input names, output slots, links) show up without gin. tests/test_animate.py only checks the graph sprute builds.
+- [ ] README: stop presenting the motions as only `idle`, `walk` and `run`; point people to `motions/` (including `motions/quaternius/`) for every supported animation

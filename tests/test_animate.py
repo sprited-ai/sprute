@@ -135,3 +135,14 @@ def test_snaps_the_motion_to_the_same_every_that_picks_frames(tmp_path, monkeypa
 def test_can_leave_the_motion_unsnapped(tmp_path, monkeypatch):
     graph, _, _ = run_animate(tmp_path, monkeypatch, snap=False)
     assert driving_video(graph)["inputs"]["snap_to_multiple"] == 0
+
+
+def test_keeps_the_frames_the_render_reports_before_picking_every_nth(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
+    select = graph[graph["577"]["inputs"]["images"][0]]
+    cut = graph[select["inputs"]["images"][0]]
+    assert cut["class_type"] == "ImageFromBatch"
+    assert cut["inputs"]["batch_index"] == 0
+    render, output = cut["inputs"]["length"]
+    assert (graph[render]["class_type"], output) == ("SpruteRenderDrivingVideo", 3)
+    assert graph[cut["inputs"]["image"][0]]["class_type"] == "SpruteCellsToStrip"

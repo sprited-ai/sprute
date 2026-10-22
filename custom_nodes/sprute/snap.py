@@ -26,3 +26,16 @@ def snapped_fps(motion, fps: float, every: int) -> float:
 def time_scale(motion, fps: float, every: int) -> float:
     """How many times as long the snapped motion plays at fps as it lasts."""
     return snapped_fps(motion, fps, every) / fps
+
+
+def keep_frames(motion, fps: float, every: int, frames: int) -> int:
+    """How many of the frames rendered to keep once snapped: one cycle of a loop, or a clip up to its last pose.
+
+    All of them otherwise: unsnapped, the motion's end falls between frames, and one longer than frames doesn't fit.
+    """
+    _, _, loop, _, _ = motion
+    length = seconds(motion)
+    if every == 0 or length <= 0:
+        return frames
+    # A loop's last frame is its first again; a clip's is its last pose.
+    return min(frames, cycle_frames(length, fps, every) + (0 if loop else 1))
