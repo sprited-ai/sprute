@@ -456,6 +456,8 @@ async function main() {
   if (roster.length === 1) roster.push(tinted(roster[0], 150), tinted(roster[0], 260));
   makeGround();
   mode = "title";
+  // ?play skips the title screen, for embeds where a click already started the game.
+  if (new URLSearchParams(location.search).has("play")) { mode = "play"; reset(); }
   // ?debug: drive the simulation from the console or a test script.
   if (new URLSearchParams(location.search).has("debug")) {
     window.brawl = {
