@@ -16,7 +16,11 @@
       "frames": 81,
       "fps": 24.0,
       "cell_width": 256,
-      "cell_height": 256
+      "cell_height": 256,
+      "snap_to_multiple": [
+        "6",
+        0
+      ]
     }
   },
   "3": {
@@ -36,14 +40,56 @@
     "class_type": "SaveAnimatedWEBP",
     "inputs": {
       "images": [
-        "3",
+        "7",
         0
       ],
       "filename_prefix": "motion",
-      "fps": 24.0,
+      "fps": [
+        "8",
+        0
+      ],
       "lossless": true,
       "quality": 90,
       "method": "default"
+    }
+  },
+  "6": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 2
+    },
+    "_meta": {
+      "title": "Int (Every Nth Frame)"
+    }
+  },
+  "7": {
+    "class_type": "VHS_SelectEveryNthImage",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "select_every_nth": [
+        "6",
+        0
+      ],
+      "skip_first_images": 0
+    },
+    "_meta": {
+      "title": "Select Every Nth Image"
+    }
+  },
+  "8": {
+    "class_type": "ComfyMathExpression",
+    "inputs": {
+      "expression": "24 / a",
+      "values.a": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Saved FPS"
     }
   }
 }

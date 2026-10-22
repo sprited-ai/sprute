@@ -67,17 +67,25 @@ def generate_motion(
 def render_motion(
     motion: Path,
     *,
+    every: int = 2,
+    snap: bool = True,
     cell_width: int = 256,
     cell_height: int = 256,
     on_event: Callable[[Event], None] | None = None,
 ) -> bytes:
     """Render a GLB in eight directions, reusing its .cached.webp when the inputs match."""
+    if isinstance(every, bool) or not isinstance(every, int) or every < 1:
+        raise ValueError("every must be a positive integer")
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["1"]["inputs"]["motion"] = input_name(motion)
     graph["2"]["inputs"].update(cell_width=cell_width, cell_height=cell_height)
+    # Keep every Nth frame, with the motion's length snapped to a multiple of N unless told not to.
+    graph["6"]["inputs"]["value"] = every
+    if not snap:
+        graph["2"]["inputs"]["snap_to_multiple"] = 0
     cache = motion.with_suffix(".cached.webp")
     if cache.is_file() and same_workflow(saved_workflow(cache), graph):
         report("completed", f"Using cached motion: {cache}")

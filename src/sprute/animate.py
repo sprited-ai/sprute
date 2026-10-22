@@ -20,6 +20,7 @@ def animate(
     draft: bool = False,
     scale: float = 1.0,
     every: int = 2,
+    snap: bool = True,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
@@ -54,6 +55,9 @@ def animate(
     # The workflow renders the GLB into the driving video itself, in cells measured from the directions image.
     motion_input = input_name(motion_file)
     graph["601"]["inputs"]["motion"] = motion_input
+    # The motion's length snaps to a multiple of every frames, so the frames kept land on its ends.
+    if not snap:
+        graph["4"]["inputs"]["snap_to_multiple"] = 0
     graph["504"]["inputs"]["seed"] = seed
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale

@@ -411,6 +411,7 @@ def animate(
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     every: int = typer.Option(2, min=1, help="Keep every Nth generated frame; the saved fps is 24 / N."),
+    snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -424,7 +425,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation
@@ -471,6 +472,8 @@ def generate_motion(
 @render_app.command("motion")
 def render_motion(
     motion: str = typer.Option(..., "--motion", help="Motion name or GLB file path."),
+    every: int = typer.Option(2, min=1, help="Keep every Nth rendered frame; the video plays at 24 / N fps."),
+    snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     preview: bool = typer.Option(True, "--preview/--no-preview"),
 ):
@@ -486,7 +489,7 @@ def render_motion(
     def run(on_event: Callable[[Event], None]) -> Path:
         video = motion_file.resolve().with_suffix(".cached.webp")
         video.parent.mkdir(parents=True, exist_ok=True)
-        _render_motion(motion_file, on_event=on_event)
+        _render_motion(motion_file, every=every, snap=snap, on_event=on_event)
         on_event(Event("completed", f"Driving video saved: {video}"))
         if preview:
             on_event(Event("image", str(video)))

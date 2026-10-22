@@ -124,3 +124,14 @@ def test_finds_a_bundled_motion_by_its_glb_even_beside_a_webp(tmp_path, monkeypa
     shutil.copyfile(MOTIONS / "walk.glb", tmp_path / "walk.glb")
     Image.new("RGBA", (128, 16)).save(tmp_path / "walk.webp")
     assert motion_module.find_motion("walk") == tmp_path / "walk.glb"
+
+
+def test_snaps_the_motion_to_the_same_every_that_picks_frames(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch, every=4)
+    select = graph[graph["577"]["inputs"]["images"][0]]
+    assert driving_video(graph)["inputs"]["snap_to_multiple"] == select["inputs"]["select_every_nth"]
+
+
+def test_can_leave_the_motion_unsnapped(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch, snap=False)
+    assert driving_video(graph)["inputs"]["snap_to_multiple"] == 0
