@@ -1,0 +1,49 @@
+{
+  "minSeconds": 15,
+  "cast": "media/nova-run.cast",
+  "animation": {
+    "atlas": "media/nova.run.png",
+    "frames": 10,
+    "seconds": 0.083
+  },
+  "fontSize": 30,
+  "stage": {
+    "prompt": "\u001b[32m$\u001b[0m ",
+    "command": "sprute animate character --character nova --motion run",
+    "typeAt": 0.6,
+    "typeEvery": 0.03,
+    "enterPause": 0.3,
+    "fastForward": 4.2,
+    "revealPause": 0.4,
+    "direction": 2,
+    "bigScale": 3.0,
+    "label": "10 frames \u00b7 loops"
+  },
+  "lines": [
+    {
+      "t": 0.3,
+      "text": "Chat, watch her run! / One command.",
+      "face": "grin"
+    },
+    {
+      "t": 3.2,
+      "text": "Fast forward!",
+      "face": "grin"
+    },
+    {
+      "t": 7.3,
+      "text": "Zoom zoom!",
+      "face": "gasp"
+    },
+    {
+      "t": 9.0,
+      "text": "Ten frames, / all eight directions!",
+      "face": "grin"
+    },
+    {
+      "t": 12.0,
+      "text": "Link's in my bio!",
+      "face": "grin"
+    }
+  ]
+}

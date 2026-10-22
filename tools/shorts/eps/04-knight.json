@@ -1,0 +1,49 @@
+{
+  "minSeconds": 15,
+  "cast": "media/knight-create.cast",
+  "animation": {
+    "atlas": "media/knight.walk.png",
+    "frames": 16,
+    "seconds": 0.083
+  },
+  "fontSize": 30,
+  "stage": {
+    "prompt": "\u001b[32m$\u001b[0m ",
+    "command": "sprute create character --prompt \"a little knight with a red cape\" --name knight --motions walk --seed 1234",
+    "typeAt": 0.6,
+    "typeEvery": 0.025,
+    "enterPause": 0.3,
+    "fastForward": 4.2,
+    "revealPause": 0.4,
+    "direction": 1,
+    "bigScale": 3.0,
+    "label": "one sentence \u00b7 8 directions"
+  },
+  "lines": [
+    {
+      "t": 0.3,
+      "text": "Chat, I want a knight. / Just one sentence.",
+      "face": "grin"
+    },
+    {
+      "t": 3.6,
+      "text": "Draw, turn, animate!",
+      "face": "grin"
+    },
+    {
+      "t": 7.6,
+      "text": "A whole knight!",
+      "face": "gasp"
+    },
+    {
+      "t": 9.4,
+      "text": "Cape and everything!",
+      "face": "grin"
+    },
+    {
+      "t": 12.0,
+      "text": "Link's in my bio!",
+      "face": "grin"
+    }
+  ]
+}
