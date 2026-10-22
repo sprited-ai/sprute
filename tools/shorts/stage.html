@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css">
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+<style>
+  html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #1e1f29; }
+  body { background: radial-gradient(120% 80% at 50% 30%, #2d2f42 0%, #16171f 70%); font-family: "Menlo", monospace; }
+  #window { position: absolute; left: 70px; top: 230px; width: 940px; border-radius: 22px; background: #0f1016;
+            box-shadow: 0 30px 80px rgba(0,0,0,.55); overflow: hidden; transition: none; }
+  #bar { height: 54px; background: #24252f; display: flex; align-items: center; padding-left: 22px; gap: 12px; }
+  #bar span { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+  #bar b { margin-left: 18px; color: #9a9cb0; font: 600 22px -apple-system, "Helvetica Neue", sans-serif; }
+  #term { padding: 18px 22px 22px; }
+  #ff { position: absolute; right: 90px; top: 246px; padding: 6px 16px; border-radius: 12px; background: #ffd34d;
+        color: #1d1d24; font: 800 28px -apple-system, "Helvetica Neue", sans-serif; display: none; }
+  #reveal { position: absolute; left: 0; top: 150px; width: 1080px; height: 880px; display: none; }
+  #big { position: absolute; left: 50%; top: 0; transform: translateX(-50%); image-rendering: pixelated; }
+  #strip { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); image-rendering: pixelated;
+           background: rgba(255,255,255,.06); border-radius: 18px; }
+  #label { position: absolute; left: 0; width: 1080px; text-align: center; top: 690px; color: #e8e9f3;
+           font: 800 40px -apple-system, "Helvetica Neue", sans-serif; }
+</style>
+</head>
+<body>
+<div id="window">
+  <div id="bar"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span><b>sprute</b></div>
+  <div id="term"></div>
+</div>
+<div id="ff">⏩ ×40</div>
+<div id="reveal"><canvas id="big"></canvas><div id="label"></div><canvas id="strip"></canvas></div>
+<script type="module">
+// Plays a recorded terminal session, then the animation it made, on a clock the renderer sets frame by frame.
+const params = new URLSearchParams(location.search);
+const ep = await (await fetch(params.get('ep'))).json();
+const cast = (await (await fetch(ep.cast)).text()).trim().split('\n').map((l) => JSON.parse(l));
+const header = cast.shift();
+const term = new Terminal({ cols: header.width, rows: header.height, fontSize: ep.fontSize ?? 30, fontFamily: 'Menlo, monospace',
+  theme: { background: '#0f1016', foreground: '#e6e6ef', cursor: '#e6e6ef' }, cursorBlink: false, allowProposedApi: true });
+term.open(document.getElementById('term'));
+
+// Timeline, in seconds: type the command, then the session squeezed into `fastForward` seconds, then the result.
+const s = ep.stage;
+const typed = s.prompt + s.command;
+const typeEnd = s.typeAt + s.command.length * s.typeEvery;
+const castEnd = cast.length ? cast[cast.length - 1][0] : 0;
+const playStart = typeEnd + s.enterPause;
+const playEnd = playStart + s.fastForward;
+const at = (castTime) => playStart + (castTime / castEnd) * s.fastForward;
+document.getElementById('ff').textContent = `⏩ ×${Math.round(castEnd / s.fastForward)}`;
+
+// The animation as an atlas (one frame per row, made by atlas.py) so every video frame draws exactly the frame it should.
+const atlas = new Image();
+atlas.src = ep.animation.atlas;
+await atlas.decode();
+const frameCount = ep.animation.frames, frameSeconds = ep.animation.seconds;
+const cellW = atlas.width / 8, cellH = atlas.height / frameCount;
+const big = document.getElementById('big'), strip = document.getElementById('strip');
+const bigScale = s.bigScale ?? 2.4, stripScale = (940 / (cellW * 8));
+big.width = cellW * bigScale; big.height = cellH * bigScale;
+strip.width = cellW * 8 * stripScale; strip.height = cellH * stripScale;
+document.getElementById('label').textContent = s.label ?? '';
+const direction = s.direction ?? 2;
+
+// Frames are asked for in order, so each call writes only what is new since the last one.
+let shown = 0, played = 0, entered = false;
+window.__ready = true;
+window.__frame = async (t) => {
+  let out = '';
+  // The prompt, then the command typed a character at a time.
+  const chars = t < s.typeAt ? 0 : Math.min(s.command.length, Math.floor((t - s.typeAt) / s.typeEvery) + 1);
+  const upTo = s.prompt.length + chars;
+  if (upTo > shown) { out += typed.slice(shown, upTo); shown = upTo; }
+  // Enter, then the session, fast-forwarded.
+  if (t >= playStart) {
+    if (!entered) { out += '\r\n'; entered = true; }
+    while (played < cast.length && at(cast[played][0]) <= t) out += cast[played++][2];
+  }
+  if (out) await new Promise((r) => term.write(out, r));
+  document.getElementById('ff').style.display = t >= playStart && t < playEnd ? 'block' : 'none';
+  // Reveal the result: one direction large, all eight below.
+  const reveal = t >= playEnd + s.revealPause;
+  document.getElementById('reveal').style.display = reveal ? 'block' : 'none';
+  document.getElementById('window').style.opacity = reveal ? 0 : 1;
+  if (reveal) {
+    const y = (Math.floor((t - playEnd - s.revealPause) / frameSeconds) % frameCount) * cellH;
+    const b = big.getContext('2d'); b.imageSmoothingEnabled = false; b.clearRect(0, 0, big.width, big.height);
+    b.drawImage(atlas, direction * cellW, y, cellW, cellH, 0, 0, big.width, big.height);
+    const c = strip.getContext('2d'); c.imageSmoothingEnabled = false; c.clearRect(0, 0, strip.width, strip.height);
+    c.drawImage(atlas, 0, y, cellW * 8, cellH, 0, 0, strip.width, strip.height);
+  }
+};
+</script>
+</body>
+</html>

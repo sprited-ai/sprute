@@ -1,0 +1,49 @@
+{
+  "minSeconds": 15,
+  "cast": "media/mia-walk.cast",
+  "animation": {
+    "atlas": "media/mia.walk.png",
+    "frames": 16,
+    "seconds": 0.083
+  },
+  "fontSize": 30,
+  "stage": {
+    "prompt": "\u001b[32m$\u001b[0m ",
+    "command": "sprute animate character --character mia --motion walk",
+    "typeAt": 0.6,
+    "typeEvery": 0.03,
+    "enterPause": 0.3,
+    "fastForward": 4.2,
+    "revealPause": 0.4,
+    "direction": 2,
+    "bigScale": 3.0,
+    "label": "16 frames \u00b7 loops"
+  },
+  "lines": [
+    {
+      "t": 0.3,
+      "text": "Chat, watch this. / One command.",
+      "face": "grin"
+    },
+    {
+      "t": 3.2,
+      "text": "Skipping the boring part!",
+      "face": "grin"
+    },
+    {
+      "t": 7.3,
+      "text": "Look at her go!",
+      "face": "gasp"
+    },
+    {
+      "t": 9.4,
+      "text": "All eight directions, / and it loops!",
+      "face": "grin"
+    },
+    {
+      "t": 12.0,
+      "text": "Link's in the description, / go make one!",
+      "face": "grin"
+    }
+  ]
+}
