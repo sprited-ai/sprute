@@ -24,7 +24,8 @@
         "602",
         1
       ],
-      "every": [
+      "snap_to_multiple": true,
+      "snap_to_every": [
         "598",
         0
       ]

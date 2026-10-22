@@ -71,6 +71,11 @@
           "links": [
             3
           ]
+        },
+        {
+          "name": "time_scale",
+          "type": "FLOAT",
+          "links": null
         }
       ],
       "properties": {
@@ -81,7 +86,8 @@
         24,
         256,
         256,
-        1
+        true,
+        2
       ]
     },
     {

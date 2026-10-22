@@ -65,25 +65,29 @@ class SpruteRenderDrivingVideo:
             "fps": ("FLOAT", {"default": 24.0, "min": 1.0, "max": 120.0, "step": 1.0}),
             "cell_width": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
             "cell_height": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
-            "every": ("INT", {"default": 1, "min": 1, "max": 100,
-                              "tooltip": "Every Nth frame will be kept. A loop's cycle snaps to a multiple of it, "
-                                         "so the motion plays slightly faster or slower at fps."}),
+            "snap_to_multiple": ("BOOLEAN", {"default": True,
+                                             "tooltip": "Fit a loop's cycle to a multiple of snap_to_every frames, so it wraps cleanly. "
+                                                        "The motion plays slightly faster or slower at fps."}),
+            "snap_to_every": ("INT", {"default": 2, "min": 1, "max": 100,
+                                      "tooltip": "Every Nth frame that will be kept, such as Select Every Nth's."}),
         }}
 
-    RETURN_TYPES = ("IMAGE", "MASK")
+    RETURN_TYPES = ("IMAGE", "MASK", "FLOAT")
+    RETURN_NAMES = ("IMAGE", "MASK", "time_scale")
+    OUTPUT_TOOLTIPS = ("", "", "How many times as long the motion plays at fps after snapping; 1.0 when it isn't snapped.")
     FUNCTION = "render"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Renders Template-kun performing the motion in eight directions, as a strip like a sprute animation. "
                    "IMAGE and MASK match what Load Image gives for a transparent driving video.")
 
-    def render(self, motion, frames, fps, cell_width, cell_height, every):
+    def render(self, motion, frames, fps, cell_width, cell_height, snap_to_multiple, snap_to_every):
         device = comfy.model_management.get_torch_device()
         key = (str(device), MODEL.stat().st_mtime_ns)
         if getattr(self, "_key", None) != key:
             self._model, self._key = renderer.Model(MODEL, device), key
-        fps = snap.snapped_fps(motion, fps, every)
-        video = renderer.render(self._model, motion, frames, fps, cell_width, cell_height).cpu()
-        return (video[..., :3], 1.0 - video[..., 3])
+        scale = snap.time_scale(motion, fps, snap_to_every) if snap_to_multiple else 1.0
+        video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height).cpu()
+        return (video[..., :3], 1.0 - video[..., 3], scale)
 
 
 class SpruteStripToGrid:

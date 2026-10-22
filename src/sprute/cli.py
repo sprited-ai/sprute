@@ -411,6 +411,7 @@ def animate(
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     every: int = typer.Option(2, min=1, help="Keep every Nth generated frame; the saved fps is 24 / N."),
+    snap_to_multiple: bool = typer.Option(True, "--snap-to-multiple/--no-snap-to-multiple", help="Fit a looping motion's cycle to a multiple of --every frames so it wraps cleanly; it plays slightly faster or slower."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -424,7 +425,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap_to_multiple=snap_to_multiple, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation

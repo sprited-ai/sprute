@@ -38,3 +38,21 @@ def test_a_short_loop_keeps_at_least_one_frame_after_every():
 def test_a_clip_that_does_not_loop_renders_at_the_requested_fps():
     punch = motion(26, 30.0, loop=False)
     assert snap.snapped_fps(punch, 24.0, every=4) == 24.0
+
+
+def test_a_snapped_loop_reports_how_much_longer_it_plays():
+    # jog-fwd plays 24 frames at 24 fps: 1.0 s instead of 0.933 s.
+    assert snap.time_scale(motion(28, 30.0), 24.0, every=4) == pytest.approx(30 / 28)
+
+
+def test_a_snapped_loop_reports_how_much_shorter_it_plays():
+    # climb-left: 20.8 frames snapped to 20.
+    assert snap.time_scale(motion(26, 30.0), 24.0, every=2) == pytest.approx(20 / 20.8)
+
+
+def test_a_loop_that_fits_keeps_its_time():
+    assert snap.time_scale(motion(32, 24.0), 24.0, every=2) == pytest.approx(1)
+
+
+def test_a_clip_that_does_not_loop_keeps_its_time():
+    assert snap.time_scale(motion(26, 30.0, loop=False), 24.0, every=4) == 1.0

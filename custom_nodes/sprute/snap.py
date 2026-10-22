@@ -7,12 +7,14 @@ def cycle_frames(seconds: float, fps: float, every: int) -> int:
 
 
 def snapped_fps(motion, fps: float, every: int) -> float:
-    """The frame rate that fits one cycle of a looping motion into those frames; fps as given otherwise.
-
-    Played back at fps, the motion then lasts cycle_frames / (seconds * fps) times as long as it does.
-    """
+    """The frame rate that fits one cycle of a looping motion into those frames; fps as given otherwise."""
     _, motion_fps, loop, _, hips = motion
     if not loop:
         return fps
     seconds = len(hips) / motion_fps
     return cycle_frames(seconds, fps, every) / seconds
+
+
+def time_scale(motion, fps: float, every: int) -> float:
+    """How many times as long the snapped motion plays at fps as it lasts."""
+    return snapped_fps(motion, fps, every) / fps

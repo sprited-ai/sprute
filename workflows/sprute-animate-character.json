@@ -1620,10 +1620,10 @@
           "link": 920
         },
         {
-          "name": "every",
+          "name": "snap_to_every",
           "type": "INT",
           "widget": {
-            "name": "every"
+            "name": "snap_to_every"
           },
           "link": 921
         }
@@ -1642,6 +1642,11 @@
           "links": [
             873
           ]
+        },
+        {
+          "name": "time_scale",
+          "type": "FLOAT",
+          "links": null
         }
       ],
       "properties": {
@@ -1652,7 +1657,8 @@
         24,
         256,
         256,
-        1
+        true,
+        2
       ]
     },
     {
