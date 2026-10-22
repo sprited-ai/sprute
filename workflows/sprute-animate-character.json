@@ -1,8 +1,8 @@
 {
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
-  "last_node_id": 603,
-  "last_link_id": 921,
+  "last_node_id": 604,
+  "last_link_id": 924,
   "nodes": [
     {
       "id": 416,
@@ -1647,6 +1647,13 @@
           "name": "time_scale",
           "type": "FLOAT",
           "links": null
+        },
+        {
+          "name": "keep_frames",
+          "type": "INT",
+          "links": [
+            924
+          ]
         }
       ],
       "properties": {
@@ -2310,7 +2317,7 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            912
+            922
           ]
         }
       ],
@@ -2855,7 +2862,7 @@
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 912
+          "link": 923
         },
         {
           "name": "select_every_nth",
@@ -3109,6 +3116,66 @@
       ],
       "widgets_values_named": {
         "expression": "a / 8"
+      }
+    },
+    {
+      "id": 604,
+      "type": "ImageFromBatch",
+      "title": "Keep Motion",
+      "pos": [
+        2200,
+        1660
+      ],
+      "size": [
+        300,
+        110
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 922
+        },
+        {
+          "name": "batch_index",
+          "type": "INT",
+          "widget": {
+            "name": "batch_index"
+          },
+          "link": null
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "widget": {
+            "name": "length"
+          },
+          "link": 924
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            923
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "Node name for S&R": "ImageFromBatch"
+      },
+      "widgets_values": [
+        0,
+        81
+      ],
+      "widgets_values_named": {
+        "batch_index": 0,
+        "length": 81
       }
     }
   ],
@@ -3810,14 +3877,6 @@
       "INT"
     ],
     [
-      912,
-      586,
-      0,
-      599,
-      0,
-      "IMAGE"
-    ],
-    [
       913,
       599,
       0,
@@ -3887,6 +3946,30 @@
       0,
       4,
       3,
+      "INT"
+    ],
+    [
+      922,
+      586,
+      0,
+      604,
+      0,
+      "IMAGE"
+    ],
+    [
+      923,
+      604,
+      0,
+      599,
+      0,
+      "IMAGE"
+    ],
+    [
+      924,
+      4,
+      3,
+      604,
+      2,
       "INT"
     ]
   ],

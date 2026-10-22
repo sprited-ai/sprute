@@ -862,7 +862,7 @@
   "599": {
     "inputs": {
       "images": [
-        "586",
+        "604",
         0
       ],
       "select_every_nth": [
@@ -922,6 +922,23 @@
     "class_type": "ComfyMathExpression",
     "_meta": {
       "title": "Cell Width"
+    }
+  },
+  "604": {
+    "inputs": {
+      "image": [
+        "586",
+        0
+      ],
+      "batch_index": 0,
+      "length": [
+        "4",
+        3
+      ]
+    },
+    "class_type": "ImageFromBatch",
+    "_meta": {
+      "title": "Keep Motion"
     }
   }
 }

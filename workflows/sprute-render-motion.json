@@ -84,6 +84,11 @@
           "name": "time_scale",
           "type": "FLOAT",
           "links": null
+        },
+        {
+          "name": "keep_frames",
+          "type": "INT",
+          "links": null
         }
       ],
       "properties": {

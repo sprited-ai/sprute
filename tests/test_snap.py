@@ -67,3 +67,38 @@ def test_a_snapped_clip_reports_how_much_shorter_it_plays():
 def test_a_multiple_of_zero_leaves_the_motion_as_it_is():
     jog = motion(28, 30.0)
     assert (snap.snapped_fps(jog, 24.0, every=0), snap.time_scale(jog, 24.0, every=0)) == (24.0, 1.0)
+
+
+def test_keeps_one_cycle_of_a_snapped_loop():
+    # walk: 32 frames.
+    assert snap.keep_frames(motion(32, 24.0), 24.0, every=2, frames=81) == 32
+
+
+def test_keeps_one_snapped_cycle():
+    # jog-fwd: 22.4 frames, snapped to 24 with every 4.
+    assert snap.keep_frames(motion(28, 30.0), 24.0, every=4, frames=81) == 24
+
+
+def test_keeps_a_clip_up_to_and_including_its_last_pose():
+    # punch-jab: 20.8 frames snapped to 20, and frame 20 is its last pose.
+    assert snap.keep_frames(motion(27, 30.0, loop=False), 24.0, every=2, frames=81) == 21
+
+
+def test_keeps_every_frame_of_an_unsnapped_clip():
+    # Its last pose falls between frames.
+    assert snap.keep_frames(motion(27, 30.0, loop=False), 24.0, every=0, frames=81) == 81
+
+
+def test_keeps_every_frame_when_a_clip_does_not_fit():
+    # 5 s is 120 frames.
+    assert snap.keep_frames(motion(151, 30.0, loop=False), 24.0, every=2, frames=81) == 81
+
+
+def test_keeps_every_frame_of_an_unsnapped_loop():
+    # Its cycle isn't a whole number of frames, so a cut would wrap by a short step.
+    assert snap.keep_frames(motion(28, 30.0), 24.0, every=0, frames=81) == 81
+
+
+def test_keeps_every_frame_when_a_cycle_does_not_fit():
+    # idle-lookaround: 4.6 s is 110 frames.
+    assert snap.keep_frames(motion(138, 30.0), 24.0, every=2, frames=81) == 81
