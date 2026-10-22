@@ -24,8 +24,8 @@
         "602",
         1
       ],
-      "snap_to_multiple": true,
-      "snap_to_every": [
+      "snap_to_frames": true,
+      "snap_to_multiple": [
         "598",
         0
       ]

@@ -17,8 +17,8 @@
       "fps": 24.0,
       "cell_width": 256,
       "cell_height": 256,
-      "snap_to_multiple": true,
-      "snap_to_every": 2
+      "snap_to_frames": true,
+      "snap_to_multiple": 2
     }
   },
   "3": {

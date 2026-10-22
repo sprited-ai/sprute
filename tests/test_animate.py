@@ -130,10 +130,10 @@ def test_snaps_a_loop_to_the_same_every_that_picks_frames(tmp_path, monkeypatch)
     graph, _, _ = run_animate(tmp_path, monkeypatch, every=4)
     select = graph[graph["577"]["inputs"]["images"][0]]
     inputs = driving_video(graph)["inputs"]
-    assert inputs["snap_to_multiple"] is True
-    assert inputs["snap_to_every"] == select["inputs"]["select_every_nth"]
+    assert inputs["snap_to_frames"] is True
+    assert inputs["snap_to_multiple"] == select["inputs"]["select_every_nth"]
 
 
 def test_can_leave_a_loop_unsnapped(tmp_path, monkeypatch):
-    graph, _, _ = run_animate(tmp_path, monkeypatch, snap_to_multiple=False)
-    assert driving_video(graph)["inputs"]["snap_to_multiple"] is False
+    graph, _, _ = run_animate(tmp_path, monkeypatch, snap_to_frames=False)
+    assert driving_video(graph)["inputs"]["snap_to_frames"] is False

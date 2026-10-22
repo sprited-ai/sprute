@@ -20,7 +20,7 @@ def animate(
     draft: bool = False,
     scale: float = 1.0,
     every: int = 2,
-    snap_to_multiple: bool = True,
+    snap_to_frames: bool = True,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
@@ -56,7 +56,7 @@ def animate(
     motion_input = input_name(motion_file)
     graph["601"]["inputs"]["motion"] = motion_input
     # A loop's cycle snaps to a multiple of every frames, so it wraps by a whole step.
-    graph["4"]["inputs"]["snap_to_multiple"] = snap_to_multiple
+    graph["4"]["inputs"]["snap_to_frames"] = snap_to_frames
     graph["504"]["inputs"]["seed"] = seed
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale

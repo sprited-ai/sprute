@@ -17,8 +17,8 @@ def animate_options(monkeypatch, *arguments):
 
 
 def test_snaps_loops_by_default(monkeypatch):
-    assert animate_options(monkeypatch)["snap_to_multiple"] is True
+    assert animate_options(monkeypatch)["snap_to_frames"] is True
 
 
 def test_can_leave_loops_unsnapped(monkeypatch):
-    assert animate_options(monkeypatch, "--no-snap-to-multiple")["snap_to_multiple"] is False
+    assert animate_options(monkeypatch, "--no-snap-to-frames")["snap_to_frames"] is False

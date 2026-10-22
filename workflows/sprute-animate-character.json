@@ -1620,10 +1620,10 @@
           "link": 920
         },
         {
-          "name": "snap_to_every",
+          "name": "snap_to_multiple",
           "type": "INT",
           "widget": {
-            "name": "snap_to_every"
+            "name": "snap_to_multiple"
           },
           "link": 921
         }
