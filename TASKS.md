@@ -30,10 +30,4 @@
 - [ ] Workflow smoke test on a Mac: run the animate graph through ComfyUI with stub models (fake weights or stub SCAIL/KSampler nodes), so wiring mistakes (input names, output slots, links) show up without gin. tests/test_animate.py only checks the graph sprute builds.
 - [ ] README: stop presenting the motions as only `idle`, `walk` and `run`; point people to `motions/` (including `motions/quaternius/`) for every supported animation
 - [ ] Use fewer than 81 frames for SCAIL2 inference when a motion needs fewer (a short clip, or one short cycle), after rigorous testing of quality against 81, to cut VRAM and inference time
-- [ ] pip package: run outside a checkout. Read workflows, bundled motions and assets from the installed package (importlib.resources) instead of the current directory; point ComfyUI's --base-paths at the package, not Path.cwd()
-- [ ] pip package: rename the custom node package (custom_nodes/sprute) so ComfyUI doesn't load it as `sprute`, which collides with the installed sprute package
-- [ ] pip package: keep config and models in a user directory (~/.sprute or the OS's) by default, with ./sprute.config.json as an override
-- [ ] pip package: look motions up by path, then ./motions (where generate motion saves), then the bundled ones
-- [ ] pip package: ship the package data in the wheel (workflows, custom nodes, motions, Template-kun; about 35 MB) and check the Quaternius and other licenses
-- [ ] pip package: in CI, install the wheel in a clean venv and run sprute --help, sprute setup --skip-models and sprute render motion --motion walk
-- [ ] pip package: publish to PyPI with Trusted Publishing from a GitHub release (Jin: create the PyPI project `sprute` and its trusted publisher)
+- [ ] Make quaternius (or find better alternative) to be first class citizen rather than deep inside folder kinda thing.
