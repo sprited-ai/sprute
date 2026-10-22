@@ -1,37 +1,37 @@
-from io import BytesIO
+import shutil
+from pathlib import Path
 
 import pytest
 from PIL import Image
 
 from sprute import animate as animate_module
+from sprute import motion as motion_module
+from sprute.comfy import input_name
+
+MOTIONS = Path(__file__).resolve().parents[1] / "motions"
 
 
-def write_inputs(tmp_path):
+def run_animate(tmp_path, monkeypatch, motion="walk.glb", **options):
+    """Animate with ComfyUI replaced. Returns the graph that would have run, the files it was given, and the GLB."""
     directions = tmp_path / "hero.directions.png"
     Image.new("RGBA", (128, 16), (0, 0, 0, 0)).save(directions)
-    # Frames differ so the encoder keeps all five.
-    frames = [Image.new("RGBA", (128, 16), (0, 0, 0, 0)) for _ in range(5)]
-    for i, frame in enumerate(frames):
-        frame.putpixel((i, 0), (255, 255, 255, 255))
-    video = BytesIO()
-    frames[0].save(video, format="WEBP", save_all=True, append_images=frames[1:], lossless=True)
-    driving = tmp_path / "wave.webp"
-    driving.write_bytes(video.getvalue())
-    return directions, driving
+    # A copy, so anything written beside the motion lands in tmp_path.
+    glb = tmp_path / Path(motion).name
+    shutil.copyfile(MOTIONS / motion, glb)
+    runs = []
 
-
-def run_animate(tmp_path, monkeypatch, **options):
-    """Animate with ComfyUI replaced, returning the graph that would have run."""
-    directions, driving = write_inputs(tmp_path)
-    graphs = []
-
-    def run_workflow(graph, **_):
-        graphs.append(graph)
+    def run_workflow(graph, *, input_files, **_):
+        runs.append((graph, input_files))
         return {"577": b"RIFF"}
 
+    def render_separately(*_, **__):
+        raise AssertionError("the GLB is rendered inside the animate graph")
+
     monkeypatch.setattr(animate_module, "run_workflow", run_workflow)
-    animate_module.animate(directions, str(driving), seed=1, out=tmp_path / "out", **options)
-    return graphs[0]
+    monkeypatch.setattr(motion_module, "run_workflow", render_separately)
+    animate_module.animate(directions, str(glb), seed=1, out=tmp_path / "out", **options)
+    (graph, files), = runs
+    return graph, files, glb
 
 
 def saved_frames(graph):
@@ -52,18 +52,25 @@ def saved_fps_expression(graph):
     return node["inputs"]["expression"]
 
 
+def driving_video(graph):
+    """The node the eight-direction strip and its mask come from."""
+    strip, mask = graph["583"]["inputs"]["image"], graph["583"]["inputs"]["mask"]
+    assert (strip, mask) == ([strip[0], 0], [strip[0], 1])
+    return graph[strip[0]]
+
+
 def test_keeps_every_second_frame_by_default(tmp_path, monkeypatch):
-    graph = run_animate(tmp_path, monkeypatch)
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
     assert saved_frames(graph) == 2
 
 
 def test_keeps_every_nth_frame(tmp_path, monkeypatch):
-    graph = run_animate(tmp_path, monkeypatch, every=3)
+    graph, _, _ = run_animate(tmp_path, monkeypatch, every=3)
     assert saved_frames(graph) == 3
 
 
 def test_saved_fps_divides_by_every(tmp_path, monkeypatch):
-    graph = run_animate(tmp_path, monkeypatch, every=3)
+    graph, _, _ = run_animate(tmp_path, monkeypatch, every=3)
     assert saved_fps_expression(graph) == "24 / a"
 
 
@@ -71,3 +78,49 @@ def test_saved_fps_divides_by_every(tmp_path, monkeypatch):
 def test_rejects_every_that_is_not_a_positive_integer(tmp_path, monkeypatch, every):
     with pytest.raises(ValueError, match="every"):
         run_animate(tmp_path, monkeypatch, every=every)
+
+
+def test_renders_the_motion_inside_the_animate_graph(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
+    render = driving_video(graph)
+    assert render["class_type"] == "SpruteRenderDrivingVideo"
+    assert graph[render["inputs"]["motion"][0]]["class_type"] == "SpruteLoadMotion"
+
+
+def test_hands_comfyui_the_glb_by_its_content(tmp_path, monkeypatch):
+    graph, files, glb = run_animate(tmp_path, monkeypatch)
+    load = graph[driving_video(graph)["inputs"]["motion"][0]]
+    assert load["inputs"]["motion"] == input_name(glb)
+    assert files[input_name(glb)] == glb
+
+
+def test_renders_cells_measured_from_the_directions_image(tmp_path, monkeypatch):
+    # In the graph, so ComfyUI alone gets the size right too: the strip is eight cells wide.
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
+    inputs = driving_video(graph)["inputs"]
+    width = graph[inputs["cell_width"][0]]
+    assert width["class_type"] == "ComfyMathExpression"
+    assert (width["inputs"]["expression"], inputs["cell_width"][1]) == ("a / 8", 1)
+    size = graph[inputs["cell_height"][0]]
+    assert size["class_type"] == "GetImageSize"
+    assert size["inputs"]["image"] == ["3", 0]
+    assert (width["inputs"]["values.a"], inputs["cell_height"]) == ([inputs["cell_height"][0], 0], [inputs["cell_height"][0], 1])
+
+
+def test_leaves_no_rendered_file_beside_the_motion(tmp_path, monkeypatch):
+    _, _, glb = run_animate(tmp_path, monkeypatch)
+    assert not glb.with_suffix(".cached.webp").exists()
+
+
+def test_rejects_a_webp_driving_video(tmp_path):
+    video = tmp_path / "wave.webp"
+    Image.new("RGBA", (128, 16)).save(video)
+    with pytest.raises(ValueError, match="GLB"):
+        motion_module.find_motion(str(video))
+
+
+def test_finds_a_bundled_motion_by_its_glb_even_beside_a_webp(tmp_path, monkeypatch):
+    monkeypatch.setattr(motion_module, "MOTIONS", tmp_path)
+    shutil.copyfile(MOTIONS / "walk.glb", tmp_path / "walk.glb")
+    Image.new("RGBA", (128, 16)).save(tmp_path / "walk.webp")
+    assert motion_module.find_motion("walk") == tmp_path / "walk.glb"
