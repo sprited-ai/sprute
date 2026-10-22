@@ -1588,11 +1588,11 @@
       "title": "Sprute Render Driving Video",
       "pos": [
         820,
-        360
+        200
       ],
       "size": [
         320,
-        170
+        300
       ],
       "flags": {},
       "order": 5,
@@ -2967,7 +2967,7 @@
       "type": "SpruteLoadMotion",
       "title": "Sprute Load Motion",
       "pos": [
-        820,
+        460,
         200
       ],
       "size": [
