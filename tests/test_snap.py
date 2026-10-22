@@ -35,9 +35,15 @@ def test_a_short_loop_keeps_at_least_one_frame_after_every():
     assert snap.cycle_frames(0.05, 24.0, every=4) == 4
 
 
-def test_a_clip_that_does_not_loop_renders_at_the_requested_fps():
-    punch = motion(26, 30.0, loop=False)
-    assert snap.snapped_fps(punch, 24.0, every=4) == 24.0
+def test_a_clip_that_does_not_loop_ends_on_a_kept_frame():
+    # punch-jab: 27 keys at 30 fps span 0.867 s, 20.8 frames at 24 fps; its last key is its last pose.
+    punch = motion(27, 30.0, loop=False)
+    assert snap.snapped_fps(punch, 24.0, every=2) == pytest.approx(20 / (26 / 30))
+
+
+def test_a_single_pose_keeps_the_requested_fps():
+    assert (snap.snapped_fps(motion(1, 30.0, loop=False), 24.0, every=2),
+            snap.time_scale(motion(1, 30.0, loop=False), 24.0, every=2)) == (24.0, 1.0)
 
 
 def test_a_snapped_loop_reports_how_much_longer_it_plays():
@@ -54,5 +60,10 @@ def test_a_loop_that_fits_keeps_its_time():
     assert snap.time_scale(motion(32, 24.0), 24.0, every=2) == pytest.approx(1)
 
 
-def test_a_clip_that_does_not_loop_keeps_its_time():
-    assert snap.time_scale(motion(26, 30.0, loop=False), 24.0, every=4) == 1.0
+def test_a_snapped_clip_reports_how_much_shorter_it_plays():
+    assert snap.time_scale(motion(27, 30.0, loop=False), 24.0, every=2) == pytest.approx(20 / 20.8)
+
+
+def test_a_multiple_of_zero_leaves_the_motion_as_it_is():
+    jog = motion(28, 30.0)
+    assert (snap.snapped_fps(jog, 24.0, every=0), snap.time_scale(jog, 24.0, every=0)) == (24.0, 1.0)

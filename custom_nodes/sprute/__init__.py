@@ -65,28 +65,26 @@ class SpruteRenderDrivingVideo:
             "fps": ("FLOAT", {"default": 24.0, "min": 1.0, "max": 120.0, "step": 1.0}),
             "cell_width": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
             "cell_height": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
-            "snap_to_frames": ("BOOLEAN", {"default": True,
-                                           "tooltip": "Fit a loop's cycle to a whole number of frames, a multiple of snap_to_multiple, "
-                                                      "so it wraps cleanly. The motion plays slightly faster or slower at fps."}),
-            "snap_to_multiple": ("INT", {"default": 2, "min": 1, "max": 100,
-                                         "tooltip": "The cycle's frame count is a multiple of this: the N of Select Every Nth, "
-                                                    "so keeping every Nth frame still wraps by a whole step."}),
+            "snap_to_multiple": ("INT", {"default": 2, "min": 0, "max": 100,
+                                         "tooltip": "Fit the motion's length to a multiple of this many frames, the N of Select Every Nth, "
+                                                    "so a loop wraps cleanly and a clip ends on its last pose. "
+                                                    "The motion plays slightly faster or slower at fps. 0 keeps its exact speed."}),
         }}
 
     RETURN_TYPES = ("IMAGE", "MASK", "FLOAT")
     RETURN_NAMES = ("IMAGE", "MASK", "time_scale")
-    OUTPUT_TOOLTIPS = ("", "", "How many times as long the motion plays at fps after snapping; 1.0 when it isn't snapped.")
+    OUTPUT_TOOLTIPS = ("", "", "How many times as long the motion plays at fps after snapping; 1.0 when snap_to_multiple is 0.")
     FUNCTION = "render"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Renders Template-kun performing the motion in eight directions, as a strip like a sprute animation. "
                    "IMAGE and MASK match what Load Image gives for a transparent driving video.")
 
-    def render(self, motion, frames, fps, cell_width, cell_height, snap_to_frames, snap_to_multiple):
+    def render(self, motion, frames, fps, cell_width, cell_height, snap_to_multiple):
         device = comfy.model_management.get_torch_device()
         key = (str(device), MODEL.stat().st_mtime_ns)
         if getattr(self, "_key", None) != key:
             self._model, self._key = renderer.Model(MODEL, device), key
-        scale = snap.time_scale(motion, fps, snap_to_multiple) if snap_to_frames else 1.0
+        scale = snap.time_scale(motion, fps, snap_to_multiple)
         video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height).cpu()
         return (video[..., :3], 1.0 - video[..., 3], scale)
 

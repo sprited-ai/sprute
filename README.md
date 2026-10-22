@@ -108,7 +108,7 @@ Running it again overwrites these files. With the same `--seed` and the same inp
 sprute animate character --character knight --motion run
 ```
 
-Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated strip with all eight directions side by side (2048×256, 41 frames at 12 fps: every second of the 81 generated frames; `--every 1` keeps all of them).
+Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated strip with all eight directions side by side (2048×256, 41 frames at 12 fps: every second of the 81 generated frames; `--every 1` keeps all of them). The motion's length snaps to a multiple of `--every` frames, so a loop wraps cleanly and plays slightly faster or slower; `--no-snap` keeps its exact speed.
 
 `--motion run` is `motions/run.glb`, or give a path to any GLB. Sprute renders the motion on its mannequin, Template-kun, and animates with that.
 
@@ -166,5 +166,5 @@ Render a GLB as an eight-direction driving video:
 sprute render motion --motion walk
 ```
 
-The render is cached beside the GLB as `motions/walk.cached.webp`.
+The render is cached beside the GLB as `motions/walk.cached.webp`. Like `animate character`, it keeps every `--every` frame (default 2, at 24 / N fps), with the motion's length snapped to a multiple of N frames so a loop wraps cleanly; `--no-snap` keeps the motion's exact speed.
 `--character` accepts a name in `--out` (default `output/`) or an image path.
