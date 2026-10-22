@@ -5,14 +5,14 @@
 - [ ] Action Forge Study
 - [ ] poring
 - [ ] props
-- [ ] loops
+- [x] loops
 - [ ] BYO character reference
 - [ ] Search for NBP Alternative
 - [ ] Sprute 2.0 File Structure
 - [ ] sprute generate profile command
-- [ ] Make sure to cut loops.
+- [x] Make sure to cut loops.
 - [ ] Seedance 2 - use first frame conditioning
-- [ ] On-demand retargeted driving video
+- [x] On-demand retargeted driving video
 - [ ] Release 2.0
 - [ ] Image 2 Char flows
 - [ ] Cloud options
@@ -30,3 +30,4 @@
 - [ ] Workflow smoke test on a Mac: run the animate graph through ComfyUI with stub models (fake weights or stub SCAIL/KSampler nodes), so wiring mistakes (input names, output slots, links) show up without gin. tests/test_animate.py only checks the graph sprute builds.
 - [ ] README: stop presenting the motions as only `idle`, `walk` and `run`; point people to `motions/` (including `motions/quaternius/`) for every supported animation
 - [ ] Use fewer than 81 frames for SCAIL2 inference when a motion needs fewer (a short clip, or one short cycle), after rigorous testing of quality against 81, to cut VRAM and inference time
+- [ ] Make quaternius (or find better alternative) to be first class citizen rather than deep inside folder kinda thing.
