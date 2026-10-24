@@ -44,3 +44,14 @@ def test_animate_draws_eight_directions_by_default(monkeypatch):
 
 def test_animate_can_draw_only_the_diagonals(monkeypatch):
     assert options(monkeypatch, "animate", "--directions", "4")["directions_drawn"] == 4
+
+
+def test_animate_checks_and_retries_only_when_asked(monkeypatch):
+    checked = []
+    monkeypatch.setattr(cli, "_animate_checked", lambda *_, **options: checked.append(options) or "hero.walk.webp")
+    options(monkeypatch, "animate")
+    assert checked == []
+    result = CliRunner().invoke(cli.app, ["animate", "character", "--character", "hero", "--motion", "walk",
+                                          "--no-preview", "--attempts", "3", "--directions", "4"])
+    assert result.exit_code == 0, result.output
+    assert (checked[0]["attempts"], checked[0]["directions_drawn"]) == (3, 4)

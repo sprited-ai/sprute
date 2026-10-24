@@ -163,3 +163,45 @@ def test_four_directions_set_every_layout_node(tmp_path, monkeypatch):
 def test_rejects_other_direction_counts(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match="directions"):
         run_animate(tmp_path, monkeypatch, directions_drawn=6)
+
+
+def run_checked(tmp_path, monkeypatch, verdicts, attempts):
+    """animate_checked with animate and check replaced: each attempt's verdict comes from `verdicts`."""
+    import json
+    from sprute import check as check_module
+    directions = tmp_path / "hero.directions.png"
+    Image.new("RGBA", (128, 16)).save(directions)
+    seeds = []
+
+    def animate(_directions, motion, *, seed, out, **_):
+        seeds.append(seed)
+        out.mkdir(parents=True, exist_ok=True)
+        path = out / f"hero.{motion}.webp"
+        path.write_bytes(str(seed).encode())
+        return path
+
+    monkeypatch.setattr(animate_module, "animate", animate)
+    monkeypatch.setattr(check_module, "check", lambda *_, **__: {"verdict": verdicts[len(seeds) - 1]})
+    path = animate_module.animate_checked(directions, "walk", attempts=attempts, seed=10, out=tmp_path / "out")
+    return path, seeds, json.loads(path.with_name("hero.walk.check.json").read_text())
+
+
+GOOD = {"SE": {"pass": True, "reasons": []}, "NE": {"pass": True, "reasons": []}}
+ONE_BAD = {"SE": {"pass": True, "reasons": []}, "NE": {"pass": False, "reasons": ["turned around"]}}
+TWO_BAD = {"SE": {"pass": False, "reasons": ["fades"]}, "NE": {"pass": False, "reasons": ["melts"]}}
+
+
+def test_checked_animation_retries_with_the_next_seed_until_every_direction_passes(tmp_path, monkeypatch):
+    path, seeds, report = run_checked(tmp_path, monkeypatch, [ONE_BAD, GOOD, GOOD], attempts=3)
+    assert seeds == [10, 11]
+    assert path.read_bytes() == b"11"
+    assert (report["seed"], report["pass"]) == (11, True)
+    assert [a["failing"] for a in report["attempts"]] == [{"NE": ["turned around"]}, {}]
+
+
+def test_checked_animation_keeps_the_attempt_with_fewest_failures(tmp_path, monkeypatch):
+    path, seeds, report = run_checked(tmp_path, monkeypatch, [TWO_BAD, ONE_BAD, TWO_BAD], attempts=3)
+    assert seeds == [10, 11, 12]
+    assert path.read_bytes() == b"11"
+    assert (report["seed"], report["pass"]) == (11, False)
+    assert not any(p.name.startswith(".attempts-") for p in path.parent.iterdir())

@@ -10,7 +10,8 @@ from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.animate import DIRECTIONS, MOTIONS, animate as _animate
+from sprute.animate import DIRECTIONS, MOTIONS, animate as _animate, animate_checked as _animate_checked
+from sprute.check import check as _check
 from sprute.motion import generate_motion as _generate_motion, find_motion, render_motion as _render_motion
 from sprute.config import set_models_directory
 from tempfile import TemporaryDirectory
@@ -30,11 +31,13 @@ turntable_app = typer.Typer(no_args_is_help=True)
 animate_app = typer.Typer(no_args_is_help=True)
 render_app = typer.Typer(no_args_is_help=True)
 create_app = typer.Typer(no_args_is_help=True)
+check_app = typer.Typer(no_args_is_help=True)
 app.add_typer(create_app, name="create", help="Run a complete creation pipeline.")
 app.add_typer(generate_app, name="generate", help="Generate a character or motion.")
 app.add_typer(turntable_app, name="turntable", help="Create directional views.")
 app.add_typer(animate_app, name="animate", help="Animate a character.")
 app.add_typer(render_app, name="render", help="Render a driving motion.")
+app.add_typer(check_app, name="check", help="Check an animation direction by direction.")
 
 console = Console(
     stderr=True,
@@ -250,6 +253,7 @@ def spawn(
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
+    attempts: int = typer.Option(1, min=1, help="Check every direction after animating and retry with the next seed until all pass, up to this many tries. 1 animates once without a check."),
     cell: int = typer.Option(256, min=128, max=1024, help="Direction cell size in pixels, a multiple of 32; larger for monsters bigger than a humanoid."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
@@ -289,7 +293,9 @@ def spawn(
         directions = _turntable(character, seed=run_seed, cell=cell, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
-            show(_animate(directions, motion, seed=run_seed, draft=draft, scale=scale, directions_drawn=directions_drawn, out=out, on_event=on_event))
+            options = dict(seed=run_seed, draft=draft, scale=scale, directions_drawn=directions_drawn, out=out, on_event=on_event)
+            show(_animate_checked(directions, motion, attempts=attempts, **options) if attempts > 1
+                 else _animate(directions, motion, **options))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -422,6 +428,7 @@ def animate(
     every: int = typer.Option(2, min=1, help="Keep every Nth generated frame; the saved fps is 24 / N."),
     snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
     directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
+    attempts: int = typer.Option(1, min=1, help="Check every direction after animating and retry with the next seed until all pass, up to this many tries. 1 animates once without a check."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -437,8 +444,9 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap,
-                             directions_drawn=directions_drawn, out=out, on_event=on_event)
+        options = dict(seed=seed, draft=draft, scale=scale, every=every, snap=snap, directions_drawn=directions_drawn, out=out, on_event=on_event)
+        animation = (_animate_checked(directions, motion, attempts=attempts, **options) if attempts > 1
+                     else _animate(directions, motion, **options))
         if preview:
             on_event(Event("image", str(animation)))
         return animation
@@ -514,6 +522,30 @@ def render_motion(
 def prompt_slug(prompt: str, fallback: str) -> str:
     slug = re.sub(r"[\W_]+", "-", unicodedata.normalize("NFKC", prompt).lower()).strip("-")
     return slug.encode("utf-8")[:180].decode("utf-8", errors="ignore").rstrip("-") or fallback
+
+
+@check_app.command("animation")
+def check_animation(
+    animation: Path = typer.Option(..., "--animation", exists=True, dir_okay=False, help="An animation strip, <name>.<motion>.webp."),
+    character: str | None = typer.Option(None, "--character", help="Character name or directions image; defaults to the animation's <name>.directions.png beside it."),
+    directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to check only the diagonals."),
+    models_directory: Path | None = typer.Option(
+        None, "--models-directory", exists=True, file_okay=False,
+        help="Override the config models directory. Default: config or ./models.",
+    ),
+):
+    """Measure each direction against the character's own view of it, and report which fail and why."""
+    if directions_drawn not in DIRECTIONS:
+        raise typer.BadParameter(f"choose {' or '.join(map(str, DIRECTIONS))}", param_hint="--directions")
+    directions = character_file(character or animation.name.split(".")[0], animation.parent, "directions")
+    set_models_directory(models_directory)
+    require_setup()
+    result = _check(animation, directions, directions_drawn=directions_drawn)
+    for name, verdict in result["verdict"].items():
+        style = "green" if verdict["pass"] else "red"
+        console.print(f"{name:>3}  {'pass' if verdict['pass'] else ', '.join(verdict['reasons'])}", style=style)
+    if not all(v["pass"] for v in result["verdict"].values()):
+        raise typer.Exit(1)
 
 
 def character_file(character: str, directory: Path, stage: str) -> Path:

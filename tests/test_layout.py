@@ -1,11 +1,10 @@
-import sys
-from pathlib import Path
-
 import pytest
 import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "custom_nodes" / "sprute"))
-import layout  # noqa: E402
+from conftest import node_module
+
+layout = node_module("layout")
+
 
 CELL = 4
 

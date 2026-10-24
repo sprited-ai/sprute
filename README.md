@@ -114,6 +114,8 @@ Motions are `idle`, `walk`, and `run`. This saves `knight.run.webp`: an animated
 
 The strip is as long as the motion. A looping motion keeps exactly one cycle, so it loops cleanly: `run` is 10 frames, `walk` 16. A motion that doesn't loop keeps everything up to and including its last pose. For that, the motion's length snaps to a multiple of `--every` frames, so it plays slightly faster or slower; `--no-snap` keeps its exact speed and all 81 generated frames (41 at `--every 2`). A motion longer than 81 frames (3.4 s) keeps all 81, and a loop that long doesn't wrap cleanly.
 
+`--attempts 3` checks every direction after animating (melting, fading, colour shift, a front shown where the back should be) and retries with the next seed until all pass, keeping the attempt with the fewest failures; the verdict is saved as `knight.run.check.json`. `sprute check animation --animation output/knight.run.webp` checks an existing strip.
+
 `--directions 4` animates only the diagonals (SE, NE, NW, SW), as SCAIL2 renders a 2×2 grid instead of 3×3; the strip keeps its eight cells and leaves S, E, N and W transparent. `create character` takes it too.
 
 `--motion run` is `motions/run.glb`, or give a path to any GLB. Sprute renders the motion on its mannequin, Template-kun, and animates with that.

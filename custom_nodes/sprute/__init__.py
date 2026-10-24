@@ -6,7 +6,10 @@ import comfy.model_management
 import torch
 import folder_paths
 
-from . import kimodo, layout, motion_file, renderer, retarget, snap
+import json
+import uuid
+
+from . import check, kimodo, layout, motion_file, renderer, retarget, snap
 
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "assets" / "template-kun" / "template-kun.glb"
@@ -179,6 +182,38 @@ class SpruteKimodoToGLB:
         return (Types.File3D(BytesIO(kimodo.to_glb(motion, sample_index)), file_format="glb"),)
 
 
+class SpruteCheckDirections:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "animation": ("IMAGE", {"tooltip": "An animation strip, as Load Image gives a sprute animation."}),
+            "animation_mask": ("MASK",),
+            "reference": ("IMAGE", {"tooltip": "The character's directions strip."}),
+            "reference_mask": ("MASK",),
+            "clip_vision": ("CLIP_VISION",),
+        }, "optional": {"directions": (["8", "4"], {"default": "8", "tooltip": "4 checks only the diagonals: SE, NE, NW, SW."})}}
+
+    RETURN_TYPES = ()
+    OUTPUT_NODE = True
+    FUNCTION = "check"
+    CATEGORY = "Sprute"
+    DESCRIPTION = ("Measures each direction of an animation against the character's own view of that direction: identity, "
+                   "facing, coverage and colour per frame, and a pass or fail per direction. Saves them as JSON.")
+
+    def check(self, animation, animation_mask, reference, reference_mask, clip_vision, directions="8"):
+        def embed(images):
+            return torch.cat([clip_vision.encode_image(images[i:i + 32], crop=False)["image_embeds"].float()
+                              for i in range(0, images.shape[0], 32)])
+        measurements = check.measure(animation, 1.0 - animation_mask, reference, 1.0 - reference_mask, embed,
+                                     directions=int(directions))
+        report = {"directions": measurements, "verdict": check.verdict(measurements)}
+        name = f"check_{uuid.uuid4().hex}.json"
+        folder = Path(folder_paths.get_output_directory())
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / name).write_text(json.dumps(report))
+        return {"ui": {"images": [{"filename": name, "subfolder": "", "type": "output"}]}}
+
+
 NODE_CLASS_MAPPINGS = {
     "SpruteKimodoToGLB": SpruteKimodoToGLB,
     "SpruteLoadMotion": SpruteLoadMotion,
@@ -187,6 +222,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteGridToCells": SpruteGridToCells,
     "SpruteCellsToStrip": SpruteCellsToStrip,
     "SpruteHoldFirstFrame": SpruteHoldFirstFrame,
+    "SpruteCheckDirections": SpruteCheckDirections,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteKimodoToGLB": "Sprute Kimodo to GLB",
@@ -196,4 +232,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteGridToCells": "Sprute Grid To Cells",
     "SpruteCellsToStrip": "Sprute Cells To Strip",
     "SpruteHoldFirstFrame": "Sprute Hold First Frame",
+    "SpruteCheckDirections": "Sprute Check Directions",
 }
