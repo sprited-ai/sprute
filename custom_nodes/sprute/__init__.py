@@ -94,46 +94,51 @@ class SpruteRenderDrivingVideo:
 class SpruteStripToGrid:
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE",), "mask": ("MASK", {"tooltip": "Load Image's mask: 1 where the image is transparent."})}}
+        return {"required": {"image": ("IMAGE",), "mask": ("MASK", {"tooltip": "Load Image's mask: 1 where the image is transparent."})},
+                "optional": {"directions": (["8", "4"], {"default": "8", "tooltip": "4 keeps only the diagonals: SE, NE, NW, SW."})}}
 
     RETURN_TYPES = ("IMAGE", "MASK")
     FUNCTION = "arrange"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Arranges a strip of eight directions (S, SE, E, NE, N, NW, W, SW) as the 3x3 grid SCAIL2 reads: "
                    "NW N NE / W - E / SW S SE. Each direction is centred in a square cell with transparent padding, "
-                   "without cropping or stretching. The centre is empty and transparent.")
+                   "without cropping or stretching. The centre is empty and transparent. "
+                   "With 4 directions, only the diagonals, as a 2x2 grid: NW NE / SW SE.")
 
-    def arrange(self, image, mask):
-        return (layout.strip_to_grid(image, empty=0.0), layout.strip_to_grid(mask, empty=1.0))
+    def arrange(self, image, mask, directions="8"):
+        return (layout.strip_to_grid(image, empty=0.0, directions=int(directions)),
+                layout.strip_to_grid(mask, empty=1.0, directions=int(directions)))
 
 
 class SpruteGridToCells:
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE",)}}
+        return {"required": {"image": ("IMAGE",)}, "optional": {"directions": (["8", "4"], {"default": "8", "tooltip": "4 keeps only the diagonals: SE, NE, NW, SW."})}}
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "arrange"
     CATEGORY = "Sprute"
     DESCRIPTION = ("Cuts the 3x3 grid into its eight directions, as one batch: every frame of S, then of SE, E, NE, N, NW, W, SW. "
-                   "Use it to work on each direction at its own size, such as removing the background.")
+                   "Use it to work on each direction at its own size, such as removing the background. "
+                   "With 4 directions, the 2x2 grid's SE, NE, NW, SW.")
 
-    def arrange(self, image):
-        return (layout.grid_to_cells(image),)
+    def arrange(self, image, directions="8"):
+        return (layout.grid_to_cells(image, directions=int(directions)),)
 
 
 class SpruteCellsToStrip:
     @classmethod
     def INPUT_TYPES(cls):
-        return {"required": {"image": ("IMAGE",)}}
+        return {"required": {"image": ("IMAGE",)}, "optional": {"directions": (["8", "4"], {"default": "8", "tooltip": "4 keeps only the diagonals: SE, NE, NW, SW."})}}
 
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "arrange"
     CATEGORY = "Sprute"
-    DESCRIPTION = "Joins the batch from Sprute Grid To Cells into a strip of eight directions: S, SE, E, NE, N, NW, W, SW."
+    DESCRIPTION = ("Joins the batch from Sprute Grid To Cells into a strip of eight directions: S, SE, E, NE, N, NW, W, SW. "
+                   "With 4 directions, S, E, N and W are left transparent.")
 
-    def arrange(self, image):
-        return (layout.cells_to_strip(image),)
+    def arrange(self, image, directions="8"):
+        return (layout.cells_to_strip(image, directions=int(directions)),)
 
 
 class SpruteHoldFirstFrame:

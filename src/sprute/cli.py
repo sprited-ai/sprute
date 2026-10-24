@@ -10,7 +10,7 @@ from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.animate import MOTIONS, animate as _animate
+from sprute.animate import DIRECTIONS, MOTIONS, animate as _animate
 from sprute.motion import generate_motion as _generate_motion, find_motion, render_motion as _render_motion
 from sprute.config import set_models_directory
 from tempfile import TemporaryDirectory
@@ -249,6 +249,7 @@ def spawn(
     seed: int | None = typer.Option(None, help="Used for every step; random when omitted."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
+    directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -267,6 +268,8 @@ def spawn(
         raise typer.BadParameter(str(error), param_hint="--motions") from None
     if image is not None and prompt:
         raise typer.BadParameter("give a prompt or --image, not both", param_hint="--image")
+    if directions_drawn not in DIRECTIONS:
+        raise typer.BadParameter(f"choose {' or '.join(map(str, DIRECTIONS))}", param_hint="--directions")
     set_models_directory(models_directory)
     require_setup()
     # One seed for every step, so rerunning with it reproduces the whole character.
@@ -283,7 +286,7 @@ def spawn(
         directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
-            show(_animate(directions, motion, seed=run_seed, draft=draft, scale=scale, out=out, on_event=on_event))
+            show(_animate(directions, motion, seed=run_seed, draft=draft, scale=scale, directions_drawn=directions_drawn, out=out, on_event=on_event))
 
     run_with_panel("Character", run, verbose=verbose, prompt=prompt)
 
@@ -412,6 +415,7 @@ def animate(
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     every: int = typer.Option(2, min=1, help="Keep every Nth generated frame; the saved fps is 24 / N."),
     snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
+    directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -422,10 +426,13 @@ def animate(
 ):
     """Animate the eight directions with a motion."""
     directions = character_file(character, out, "directions")
+    if directions_drawn not in DIRECTIONS:
+        raise typer.BadParameter(f"choose {' or '.join(map(str, DIRECTIONS))}", param_hint="--directions")
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap,
+                             directions_drawn=directions_drawn, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation

@@ -11,6 +11,9 @@ from sprute.motion import find_motion
 
 WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 MOTIONS = ("idle", "walk", "run")
+DIRECTIONS = (8, 4)
+# Nodes that arrange the directions for SCAIL2 and back; 4 keeps only the diagonals.
+LAYOUT_NODES = ("583", "584", "585", "586")
 
 def animate(
     directions: Path,
@@ -21,11 +24,14 @@ def animate(
     scale: float = 1.0,
     every: int = 2,
     snap: bool = True,
+    directions_drawn: int = 8,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
     if isinstance(every, bool) or not isinstance(every, int) or every < 1:
         raise ValueError("every must be a positive integer")
+    if directions_drawn not in DIRECTIONS:
+        raise ValueError(f"directions must be one of {', '.join(map(str, DIRECTIONS))}")
     if not math.isfinite(scale) or scale <= 0:
         raise ValueError("scale must be a finite number greater than zero")
     if draft:
@@ -58,6 +64,9 @@ def animate(
     # The motion's length snaps to a multiple of every frames, so the frames kept land on its ends.
     if not snap:
         graph["4"]["inputs"]["snap_to_multiple"] = 0
+    if directions_drawn != 8:
+        for node in LAYOUT_NODES:
+            graph[node]["inputs"]["directions"] = str(directions_drawn)
     graph["504"]["inputs"]["seed"] = seed
     # Scale inference inputs together; the workflow restores the output size.
     graph["587"]["inputs"]["value"] = scale
@@ -66,7 +75,8 @@ def animate(
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination
-    report("started", f"Animating {motion} from {motion_file.name} · seed {seed}{f' · scale {scale:g}' if scale != 1.0 else ''}", timed=True)
+    report("started", f"Animating {motion} from {motion_file.name} · seed {seed}{f' · scale {scale:g}' if scale != 1.0 else ''}"
+           f"{f' · {directions_drawn} directions' if directions_drawn != 8 else ''}", timed=True)
     data = run_workflow(
         graph,
         input_files={directions_name: directions, motion_input: motion_file},

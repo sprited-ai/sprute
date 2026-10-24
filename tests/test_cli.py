@@ -36,3 +36,11 @@ def test_render_keeps_every_second_frame_and_snaps_by_default(monkeypatch):
 def test_render_takes_the_same_options_as_animate(monkeypatch):
     chosen = options(monkeypatch, "render", "--every", "4", "--no-snap")
     assert (chosen["every"], chosen["snap"]) == (4, False)
+
+
+def test_animate_draws_eight_directions_by_default(monkeypatch):
+    assert options(monkeypatch, "animate")["directions_drawn"] == 8
+
+
+def test_animate_can_draw_only_the_diagonals(monkeypatch):
+    assert options(monkeypatch, "animate", "--directions", "4")["directions_drawn"] == 4

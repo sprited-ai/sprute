@@ -146,3 +146,20 @@ def test_keeps_the_frames_the_render_reports_before_picking_every_nth(tmp_path, 
     render, output = cut["inputs"]["length"]
     assert (graph[render]["class_type"], output) == ("SpruteRenderDrivingVideo", 3)
     assert graph[cut["inputs"]["image"][0]]["class_type"] == "SpruteCellsToStrip"
+
+
+def test_eight_directions_leave_the_layout_nodes_as_saved(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
+    assert all("directions" not in graph[node]["inputs"] for node in animate_module.LAYOUT_NODES)
+
+
+def test_four_directions_set_every_layout_node(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch, directions_drawn=4)
+    assert [graph[node]["inputs"]["directions"] for node in animate_module.LAYOUT_NODES] == ["4"] * 4
+    assert [graph[node]["class_type"] for node in animate_module.LAYOUT_NODES] == [
+        "SpruteStripToGrid", "SpruteStripToGrid", "SpruteGridToCells", "SpruteCellsToStrip"]
+
+
+def test_rejects_other_direction_counts(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="directions"):
+        run_animate(tmp_path, monkeypatch, directions_drawn=6)
