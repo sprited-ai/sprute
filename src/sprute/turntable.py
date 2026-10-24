@@ -7,17 +7,22 @@ from sprute.events import Event
 from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 
 WORKFLOW = Path("workflows/sprute-turntable-character.api.json")
+CELL = 256
 
 def turntable(
     image: Path,
     *,
     seed: int | None = None,
+    cell: int = CELL,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
+    # The turntable video is generated at the cell size, and animation measures its cells from the strip.
+    if isinstance(cell, bool) or not isinstance(cell, int) or cell % 32 or not 128 <= cell <= 1024:
+        raise ValueError("cell must be a multiple of 32 from 128 to 1024")
     image = image.expanduser().resolve(strict=True)
     if not image.is_file():
         raise ValueError(f"Not an image file: {image}")
@@ -35,6 +40,8 @@ def turntable(
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
     graph["1"]["inputs"]["image"] = image_name
     graph["18"]["inputs"]["seed"] = seed
+    if cell != CELL:
+        graph["37"]["inputs"]["value"] = graph["38"]["inputs"]["value"] = cell
     graph["17"]["inputs"]["filename_prefix"] = "turntable"
     graph["28"]["inputs"]["filename_prefix"] = "directions"
     graph["34"]["inputs"]["filename_prefix"] = "strip"
@@ -43,7 +50,7 @@ def turntable(
         report("completed", f"Turntable unchanged: {destinations['17']}")
         report("completed", f"Directions unchanged: {strip}")
         return strip
-    report("started", f"Generating turntable · seed {seed}", timed=True)
+    report("started", f"Generating turntable · seed {seed}{f' · {cell}px cells' if cell != CELL else ''}", timed=True)
     sources = run_workflow(
         graph,
         input_files={image_name: image},

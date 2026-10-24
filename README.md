@@ -100,7 +100,7 @@ This saves:
 
 Directions are always ordered S, SE, E, NE, N, NW, W, SW (counter-clockwise from south), in both the strip and the animations.
 
-Direction cells default to 256×256. Animation processes them at native resolution (`--scale 1.0`).
+Direction cells default to 256×256; `--cell 512` (any multiple of 32 up to 1024) makes larger ones for monsters bigger than a humanoid, and animation follows the strip's cell size. Animation processes them at native resolution (`--scale 1.0`).
 
 Running it again overwrites these files. With the same `--seed` and the same input image, Sprute returns the existing files instead of rerunning.
 

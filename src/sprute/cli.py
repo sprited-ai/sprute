@@ -250,6 +250,7 @@ def spawn(
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
+    cell: int = typer.Option(256, min=128, max=1024, help="Direction cell size in pixels, a multiple of 32; larger for monsters bigger than a humanoid."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -270,6 +271,8 @@ def spawn(
         raise typer.BadParameter("give a prompt or --image, not both", param_hint="--image")
     if directions_drawn not in DIRECTIONS:
         raise typer.BadParameter(f"choose {' or '.join(map(str, DIRECTIONS))}", param_hint="--directions")
+    if cell % 32:
+        raise typer.BadParameter("must be a multiple of 32", param_hint="--cell")
     set_models_directory(models_directory)
     require_setup()
     # One seed for every step, so rerunning with it reproduces the whole character.
@@ -283,7 +286,7 @@ def spawn(
         else:
             character = _generate(prompt, seed=run_seed, out=out, name=name, on_event=on_event)
             show(character)
-        directions = _turntable(character, seed=run_seed, out=out, on_event=on_event)
+        directions = _turntable(character, seed=run_seed, cell=cell, out=out, on_event=on_event)
         show(directions)
         for motion in chosen:
             show(_animate(directions, motion, seed=run_seed, draft=draft, scale=scale, directions_drawn=directions_drawn, out=out, on_event=on_event))
@@ -382,6 +385,7 @@ def webp_frame_durations(image: Path) -> list[int]:
 def turntable(
     character: str = typer.Option(..., "--character", help="Character name or reference image path."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
+    cell: int = typer.Option(256, min=128, max=1024, help="Direction cell size in pixels, a multiple of 32; larger for monsters bigger than a humanoid."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -392,11 +396,13 @@ def turntable(
 ):
     """Generate a turntable and extract eight directional views."""
     image = character_file(character, out, "character")
+    if cell % 32:
+        raise typer.BadParameter("must be a multiple of 32", param_hint="--cell")
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
         strip = _turntable(
-            image, seed=seed, out=out,
+            image, seed=seed, cell=cell, out=out,
             on_event=on_event,
         )
         if preview:
