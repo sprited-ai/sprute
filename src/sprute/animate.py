@@ -25,9 +25,11 @@ def animate(
     every: int = 2,
     snap: bool = True,
     directions_drawn: int = 8,
+    rig: Path | None = None,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
+    """With rig, motion names one of the rig's own animations, which drives SCAIL2 instead of Template-kun."""
     if isinstance(every, bool) or not isinstance(every, int) or every < 1:
         raise ValueError("every must be a positive integer")
     if directions_drawn not in DIRECTIONS:
@@ -42,14 +44,14 @@ def animate(
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
-    motion_file = find_motion(motion).resolve()
+    motion_file = rig.expanduser().resolve(strict=True) if rig else find_motion(motion).resolve()
     directions = directions.expanduser().resolve(strict=True)
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
     if seed is None:
         seed = secrets.randbits(32)
     name = directions.stem.removesuffix(".directions")
-    motion_name = motion_file.stem
+    motion_name = motion.lower() if rig else motion_file.stem
     destination = out / f"{name}.{motion_name}.webp"
     directions_name = input_name(directions)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
@@ -60,7 +62,13 @@ def animate(
         raise ValueError("Directions image must contain eight equal-width cells")
     # The workflow renders the GLB into the driving video itself, in cells measured from the directions image.
     motion_input = input_name(motion_file)
-    graph["601"]["inputs"]["motion"] = motion_input
+    if rig:
+        driver = graph["4"]["inputs"]
+        graph["4"] = {"class_type": "SpruteRenderRigVideo", "inputs": {
+            **{key: value for key, value in driver.items() if key != "motion"}, "rig": motion_input, "animation": motion, "loop": True, "size": 1.0}}
+        del graph["601"]
+    else:
+        graph["601"]["inputs"]["motion"] = motion_input
     # The motion's length snaps to a multiple of every frames, so the frames kept land on its ends.
     if not snap:
         graph["4"]["inputs"]["snap_to_multiple"] = 0

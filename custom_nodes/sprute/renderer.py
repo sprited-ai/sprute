@@ -35,16 +35,17 @@ class Model:
                               strides=(view.get("byteStride", width * dtype.itemsize), dtype.itemsize)).copy()
 
         node = next(n for n in doc["nodes"] if "mesh" in n and "skin" in n)
-        primitive, = doc["meshes"][node["mesh"]]["primitives"]
+        primitives = doc["meshes"][node["mesh"]]["primitives"]
         skin = doc["skins"][node["skin"]]
-        attributes = primitive["attributes"]
         tensor = lambda a, dtype=torch.float32: torch.as_tensor(np.ascontiguousarray(a), device=device, dtype=dtype)
-        self.positions = tensor(accessor(attributes["POSITION"]))
-        self.normals = tensor(accessor(attributes["NORMAL"]))
-        self.uv = tensor(accessor(attributes["TEXCOORD_0"]))
-        self.joints = tensor(accessor(attributes["JOINTS_0"]).astype(np.int64), torch.long)
-        self.weights = tensor(accessor(attributes["WEIGHTS_0"]))
-        self.faces = tensor(accessor(primitive["indices"]).reshape(-1, 3).astype(np.int64), torch.long)
+        gather = lambda name: np.concatenate([accessor(p["attributes"][name]) for p in primitives])
+        self.positions = tensor(gather("POSITION"))
+        self.normals = tensor(gather("NORMAL"))
+        self.joints = tensor(gather("JOINTS_0").astype(np.int64), torch.long)
+        self.weights = tensor(gather("WEIGHTS_0"))
+        starts = np.cumsum([0] + [doc["accessors"][p["attributes"]["POSITION"]]["count"] for p in primitives])
+        faces = [accessor(p["indices"]).reshape(-1, 3).astype(np.int64) + start for p, start in zip(primitives, starts)]
+        self.faces = tensor(np.concatenate(faces), torch.long)
 
         nodes = doc["nodes"]
         self.parents = np.full(len(nodes), -1)
@@ -64,9 +65,23 @@ class Model:
         self.skin_joints = np.array(skin["joints"])
         self.inverse_bind = accessor(skin["inverseBindMatrices"]).reshape(-1, 4, 4).transpose(0, 2, 1).astype(np.float64)
         self.bone = {nodes[i]["name"].removeprefix("mixamorig:"): i for i in self.skin_joints}
-        self.hips = self.bone["Hips"]
+        # A rig without a Mixamo skeleton moves from its skin's root.
+        self.hips = self.bone.get("Hips", skin.get("skeleton", int(self.skin_joints[0])))
+        self.scale_to, self.ground = 1.0, 0.0
 
-        material = doc["materials"][primitive["material"]]["pbrMetallicRoughness"]
+        materials = [doc["materials"][p["material"]]["pbrMetallicRoughness"] for p in primitives]
+        if "baseColorTexture" not in materials[0]:
+            # An untextured rig, such as a low-poly animal: one colour per material, all body gray but
+            # the small parts (eyes, nose), which stay dark the way Template-kun's painted face does.
+            self.uv = self.texture = None
+            area = np.array([self._area(f) for f in faces])
+            linear = np.array([m.get("baseColorFactor", [1, 1, 1, 1])[:3] for m in materials])
+            colours = np.where(area[:, None] < 0.03 * area.sum(), np.minimum(linear ** (1 / 2.2), 0.2), BODY_GRAY)
+            self.colour = tensor(np.repeat(colours, np.diff(starts), axis=0))
+            return
+        self.colour = None
+        self.uv = tensor(gather("TEXCOORD_0"))
+        material = materials[0]
         image = doc["images"][doc["textures"][material["baseColorTexture"]["index"]]["source"]]
         if "uri" in image:
             source = path.parent / image["uri"]
@@ -76,6 +91,19 @@ class Model:
             source = io.BytesIO(binary[start:start + view["byteLength"]])
         pixels = np.asarray(Image.open(source).convert("RGB")).copy()
         self.texture = tensor(pixels).permute(2, 0, 1)[None] / 255
+
+    def _area(self, faces):
+        """Surface area of these faces in the rest pose, in the mesh's own units."""
+        corners = self.positions.cpu().numpy()[faces]
+        return np.linalg.norm(np.cross(corners[:, 1] - corners[:, 0], corners[:, 2] - corners[:, 0]), axis=1).sum() / 2
+
+    def fit(self, size: float):
+        """Scale the rig so its rest pose's longest side is size metres, standing on the ground."""
+        self.scale_to, self.ground = 1.0, 0.0
+        positions, _ = self.skinned(self.rest)
+        extent = (positions.max(0).values - positions.min(0).values).max().item()
+        self.scale_to = size / extent
+        self.ground = -positions[:, 1].min().item() * self.scale_to
 
     @staticmethod
     def _local(node):
@@ -103,6 +131,7 @@ class Model:
         matrices = torch.as_tensor(world[self.skin_joints] @ self.inverse_bind, device=self.positions.device, dtype=torch.float32)
         blend = (matrices[self.joints] * self.weights[..., None, None]).sum(1)
         positions = torch.einsum("vij,vj->vi", blend[:, :3, :3], self.positions) + blend[:, :3, 3]
+        positions = positions * self.scale_to + torch.tensor([0.0, self.ground, 0.0], device=positions.device)
         return positions, F.normalize(torch.einsum("vij,vj->vi", blend[:, :3, :3], self.normals), dim=-1)
 
 
@@ -131,12 +160,15 @@ def render_cell(model: Model, positions, normals, direction: int, cell_width: in
     def shade(face_index, barycentric):
         corners = model.faces[face_index]
         normal = F.normalize((view_normals[corners] * barycentric[..., None]).sum(1), dim=-1)
-        uv = (model.uv[corners] * barycentric[..., None]).sum(1)
-        colour = F.grid_sample(model.texture, (uv * 2 - 1)[None, None], mode="bilinear", align_corners=False)[0, :, 0].T
-        # Keep the painted face; flatten the body to one gray.
-        body = ((colour.mean(1, keepdim=True) - 0.35) / 0.25).clamp(0, 1)
-        body = body * body * (3 - 2 * body)
-        colour = colour * (1 - body) + gray * body
+        if model.texture is None:
+            colour = (model.colour[corners] * barycentric[..., None]).sum(1)
+        else:
+            uv = (model.uv[corners] * barycentric[..., None]).sum(1)
+            colour = F.grid_sample(model.texture, (uv * 2 - 1)[None, None], mode="bilinear", align_corners=False)[0, :, 0].T
+            # Keep the painted face; flatten the body to one gray.
+            body = ((colour.mean(1, keepdim=True) - 0.35) / 0.25).clamp(0, 1)
+            body = body * body * (3 - 2 * body)
+            colour = colour * (1 - body) + gray * body
         light = 0.38 + 0.62 * (normal @ key).clamp(min=0)[:, None] + 0.18 * (normal @ fill).clamp(min=0)[:, None]
         rim = (1 - (-normal[:, 2]).clamp(0, 1)).pow(3)[:, None]
         return (colour * light + 0.10 * rim).clamp(0, 1)

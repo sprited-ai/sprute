@@ -165,6 +165,26 @@ def test_rejects_other_direction_counts(tmp_path, monkeypatch):
         run_animate(tmp_path, monkeypatch, directions_drawn=6)
 
 
+def test_a_rig_drives_with_its_own_animation_instead_of_template_kun(tmp_path, monkeypatch):
+    rig = tmp_path / "wolf.glb"
+    shutil.copyfile(MOTIONS / "walk.glb", rig)
+    runs = []
+    monkeypatch.setattr(animate_module, "run_workflow", lambda graph, *, input_files, **_: runs.append((graph, input_files)) or {"577": b"RIFF"})
+    path = animate_module.animate(_directions(tmp_path), "Gallop", rig=rig, seed=1, out=tmp_path / "out")
+    (graph, files), = runs
+    driver = graph["4"]
+    assert driver["class_type"] == "SpruteRenderRigVideo"
+    assert driver["inputs"]["animation"] == "Gallop" and files[driver["inputs"]["rig"]] == rig.resolve()
+    assert "601" not in graph and "motion" not in driver["inputs"]
+    assert path.name == "hero.gallop.webp"
+
+
+def _directions(tmp_path):
+    directions = tmp_path / "hero.directions.png"
+    Image.new("RGBA", (128, 16), (0, 0, 0, 0)).save(directions)
+    return directions
+
+
 def run_checked(tmp_path, monkeypatch, verdicts, attempts):
     """animate_checked with animate and check replaced: each attempt's verdict comes from `verdicts`."""
     import json
