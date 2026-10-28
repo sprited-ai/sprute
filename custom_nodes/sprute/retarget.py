@@ -185,11 +185,9 @@ def rest_corrections(source: Skeleton, target: Skeleton, align: bool):
 
 def body_basis(skeleton):
     point = lambda role: skeleton.rest[skeleton.bone[role], :3, 3]
-    up = point("Neck") - point("Hips")
+    # glTF is +Y up. Taking up from hips to neck would tip the ground by the difference in spine lean.
+    up = np.array([0.0, 1.0, 0.0])
     right = point("LeftUpLeg") - point("RightUpLeg")
-    if np.linalg.norm(up) < 1e-8:
-        raise ValueError("Degenerate rest skeleton: hips and neck coincide")
-    up /= np.linalg.norm(up)
     right -= up * np.dot(right, up)
     if np.linalg.norm(right) < 1e-8:
         raise ValueError("Degenerate rest skeleton: cannot establish left/right axis")
@@ -225,7 +223,15 @@ def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     offset[:, [0, 2]] -= offset[0, [0, 2]]
     scale = target.rest[target.hips, 1, 3] / (source.rest[source.hips, 1, 3] - ground)
     turns = [{target.bone[name]: turn[f, index] for index, name in enumerate(BONES)} for f in range(len(turn))]
-    rotations, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offset * scale)
+    offset *= scale
+    # Without foot IK, the same knee bend lowers legs of other proportions by a different amount
+    # than the scaled hips drop. Keep the lowest foot joint as high off its rest as the source's, scaled.
+    feet = [side + part for side in ("Left", "Right") for part in ("Foot", "ToeBase")]
+    height = lambda skeleton, world: min(world[skeleton.bone[name], 1, 3] for name in feet) - \
+        min(skeleton.rest[skeleton.bone[name], 1, 3] for name in feet)
+    for f in range(len(turns)):
+        offset[f, 1] += scale * height(source, frames[f]) - height(target, target.pose(turns[f], offset[f]))
+    rotations, moved = motion_file.local_motion(target.pose, target.parents, target.hips, turns, offset)
     names = {index: name for name, index in target.bone.items()}
     selected = source.selected_animation
     loop = bool(selected.get("extras", {}).get("loop", True))
