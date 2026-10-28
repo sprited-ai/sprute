@@ -2,7 +2,7 @@
   "id": "9c42421b-5564-4859-b6bf-89f5f823c06a",
   "revision": 0,
   "last_node_id": 604,
-  "last_link_id": 925,
+  "last_link_id": 924,
   "nodes": [
     {
       "id": 416,
@@ -1626,12 +1626,6 @@
             "name": "snap_to_multiple"
           },
           "link": 921
-        },
-        {
-          "name": "fit_to",
-          "type": "MASK",
-          "shape": 7,
-          "link": 925
         }
       ],
       "outputs": [
@@ -1701,8 +1695,7 @@
           "name": "MASK",
           "type": "MASK",
           "links": [
-            879,
-            925
+            879
           ]
         }
       ],
@@ -3978,14 +3971,6 @@
       604,
       2,
       "INT"
-    ],
-    [
-      925,
-      3,
-      1,
-      4,
-      4,
-      "MASK"
     ]
   ],
   "groups": [],

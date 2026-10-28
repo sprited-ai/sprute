@@ -69,9 +69,6 @@ class SpruteRenderDrivingVideo:
                                          "tooltip": "Fit the motion's length to a multiple of this many frames, the N of Select Every Nth, "
                                                     "so a loop wraps cleanly and a clip ends on its last pose. "
                                                     "The motion plays slightly faster or slower at fps. 0 keeps its exact speed."}),
-        }, "optional": {
-            "fit_to": ("MASK", {"tooltip": "Load Image's mask of the character's standing directions. Template-kun is drawn "
-                                           "as tall as the character, on the same feet line, with one camera for the whole motion."}),
         }}
 
     RETURN_TYPES = ("IMAGE", "MASK", "FLOAT", "INT")
@@ -84,14 +81,13 @@ class SpruteRenderDrivingVideo:
     DESCRIPTION = ("Renders Template-kun performing the motion in eight directions, as a strip like a sprute animation. "
                    "IMAGE and MASK match what Load Image gives for a transparent driving video.")
 
-    def render(self, motion, frames, fps, cell_width, cell_height, snap_to_multiple, fit_to=None):
+    def render(self, motion, frames, fps, cell_width, cell_height, snap_to_multiple):
         device = comfy.model_management.get_torch_device()
         key = (str(device), MODEL.stat().st_mtime_ns)
         if getattr(self, "_key", None) != key:
             self._model, self._key = renderer.Model(MODEL, device), key
-        framing = renderer.DEFAULT_FRAMING if fit_to is None else renderer.fit_framing(self._model, 1.0 - fit_to[0].cpu().numpy())
         scale = snap.time_scale(motion, fps, snap_to_multiple)
-        video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height, framing=framing).cpu()
+        video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height).cpu()
         return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))
 
 
