@@ -114,13 +114,16 @@ class Model:
         matrix[:3, 3] = node.get("translation", [0, 0, 0])
         return matrix
 
-    def world(self, rotations: dict, hips_position):
-        """World matrix of every node, with the given local rotations (3x3) and the hips' local position."""
+    def world(self, rotations: dict, hips_position, translations: dict | None = None):
+        """World matrix of every node, with the given local rotations (3x3), the hips' local position, and other bones'
+        local positions where a rig animates them, such as a foot on an IK control bone."""
         world = np.empty_like(self.local)
         for index in self.order:
             local = self.local[index].copy()
             if index in rotations:
                 local[:3, :3] = rotations[index] @ np.diag(self.scale[index])
+            if translations and index in translations:
+                local[:3, 3] = translations[index]
             if hips_position is not None and index == self.hips:
                 local[:3, 3] = hips_position
             parent = self.parents[index]
@@ -184,8 +187,9 @@ def render_cell(model: Model, positions, normals, direction: int, cell_width: in
 
 
 def sample_motion(model: Model, motion, frames: int, frame_rate: float, in_place: bool = True):
-    """Local bone rotations and hips positions for `frames` frames at `frame_rate`."""
-    name, fps, loop, rotations, hips = motion
+    """Local bone rotations, hips positions and other bones' positions for `frames` frames at `frame_rate`."""
+    name, fps, loop, rotations, hips, *rest = motion
+    translations = rest[0] if rest else {}
     count = len(hips)
     position = np.arange(frames) / frame_rate * fps
     close = lambda values: np.concatenate([values, values[:1]]) if loop else values     # frame `count` is frame 0 again
@@ -197,19 +201,22 @@ def sample_motion(model: Model, motion, frames: int, frame_rate: float, in_place
     bones = [model.bone[bone] for bone in rotations]
     turned = np.stack([Slerp(keys, Rotation.from_quat(close(values)))(position).as_matrix() for values in rotations.values()], 1)
     moved = np.stack([np.interp(position, keys, close(hips)[:, axis]) for axis in range(3)], 1)
+    shifted = {model.bone[bone]: np.stack([np.interp(position, keys, close(values)[:, axis]) for axis in range(3)], 1)
+               for bone, values in translations.items()}
     poses = []
     for frame in range(frames):
         rotations = dict(zip(bones, turned[frame]))
         hips = moved[frame].copy()
+        offsets = {bone: values[frame] for bone, values in shifted.items()}
         if in_place:
             # Work in world space so rotated/scaled parents cannot turn a local
             # horizontal lock into a vertical change. Never mutate source keys.
-            world = model.world(rotations, hips)
+            world = model.world(rotations, hips, offsets)
             position = world[model.hips, :, 3].copy()
             position[[0, 2]] = model.rest[model.hips, [0, 2], 3]
             parent = model.parents[model.hips]
             hips = (position if parent < 0 else np.linalg.solve(world[parent], position))[:3]
-        poses.append((rotations, hips))
+        poses.append((rotations, hips, offsets))
     return poses
 
 
@@ -217,8 +224,8 @@ def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_
     """(frames, cell_height, 8 * cell_width, 4) RGBA in 0..1: the eight directions in a strip, like a sprute animation."""
     device = model.positions.device
     video = torch.zeros((frames, cell_height, cell_width * len(layout.STRIP), 4), device=device)
-    for frame, (rotations, hips) in enumerate(sample_motion(model, motion, frames, frame_rate, in_place=in_place)):
-        positions, normals = model.skinned(model.world(rotations, hips))
+    for frame, (rotations, hips, offsets) in enumerate(sample_motion(model, motion, frames, frame_rate, in_place=in_place)):
+        positions, normals = model.skinned(model.world(rotations, hips, offsets))
         for direction in range(len(layout.STRIP)):
             left = direction * cell_width
             video[frame, :, left:left + cell_width] = render_cell(model, positions, normals, direction, cell_width, cell_height)
