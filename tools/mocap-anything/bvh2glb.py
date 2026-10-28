@@ -177,9 +177,17 @@ def main():
     print(f"rest fit {g.as_rotvec(degrees=True).round(1)} deg, unit {unit:.4g}, root {nodes[root]['name']}")
 
     bone_of = dict(common)
+    # Quaternius skins the paws to IK bones (IKFrontLeg.L -> FF.L) that hang off the armature, not the leg.
+    # A BVH cannot move them, so they would stay planted at rest while the body moves. Carry each one on its
+    # lower leg as it sits in the rest pose.
+    by_any = {n.get("name"): i for i, n in enumerate(nodes)}
+    ik_leg = {j: by_any[nodes[j]["name"][2:].replace("Leg", "LowerLeg")] for j in joints
+              if nodes[j]["name"].startswith("IK") and parent.get(j) not in joints
+              and nodes[j]["name"][2:].replace("Leg", "LowerLeg") in by_any}
+    print(f"paws carried on legs: {[nodes[j]['name'] for j in ik_leg]}")
     lift = np.load(a.lift) if a.lift else np.zeros(len(frames))
     rot_keys = {j: [] for j in joints}
-    root_keys = []
+    root_keys, ik_keys = [], {j: [] for j in ik_leg}
     for f in frames:
         world = dict(rest_rot)
         for i in order:
@@ -189,12 +197,26 @@ def main():
                 world[i] = ginv * delta * g * rest_rot[i]
             elif i in parent and parent[i] in world and i in joints:
                 world[i] = world[parent[i]] * R.from_quat(nodes[i].get("rotation", [0, 0, 0, 1]))
-        for j in joints:
-            rot_keys[j].append((world[parent[j]].inv() * world[j]).as_quat())
         move = ginv.apply(broot[f] - broot[frames[0]]) * unit + [0, lift[f - frames[0]], 0]
         p = parent[root]
         t0, _, _ = node_trs(nodes[root])
         root_keys.append(t0 + rest_rot[p].inv().apply(move) / rest_scale[p])
+        if ik_leg:
+            pos = dict(rest_pos)
+            for i in order:
+                if i in parent:
+                    t = root_keys[-1] if i == root else node_trs(nodes[i])[0]
+                    pos[i] = pos[parent[i]] + world[parent[i]].apply(rest_scale[parent[i]] * t)
+            for j, leg in ik_leg.items():
+                world[j] = world[leg] * rest_rot[leg].inv() * rest_rot[j]
+                pos[j] = pos[leg] + (world[leg] * rest_rot[leg].inv()).apply(rest_pos[j] - rest_pos[leg])
+                ik_keys[j].append(world[parent[j]].inv().apply(pos[j] - pos[parent[j]]) / rest_scale[parent[j]])
+                def carry(i):  # FF.L etc. keep their rest pose under the moved IK bone
+                    for c in nodes[i].get("children", []):
+                        world[c] = world[i] * R.from_quat(nodes[c].get("rotation", [0, 0, 0, 1])); carry(c)
+                carry(j)
+        for j in joints:
+            rot_keys[j].append((world[parent[j]].inv() * world[j]).as_quat())
 
     times = np.arange(len(frames), dtype="<f4") / fps
     def add(arr, typ, minmax=False):
@@ -217,6 +239,8 @@ def main():
             if np.dot(q[n], q[n - 1]) < 0: q[n] = -q[n]
         channel(j, "rotation", q, "VEC4")
     channel(root, "translation", np.array(root_keys), "VEC3")
+    for j, keys in ik_keys.items():
+        channel(j, "translation", np.array(keys), "VEC3")
     doc["animations"] = [x for x in doc["animations"] if x["name"] != a.clip] + [anim]
     write_glb(a.out, doc, binary)
     print(f"wrote {a.out}: clip {a.clip}, {len(frames)} frames at {fps} fps")
