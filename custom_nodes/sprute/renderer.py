@@ -14,8 +14,9 @@ from . import layout, motion_file
 
 SUPERSAMPLE = 3
 # One camera for every motion, so a seated or crouched body keeps its true size.
-# The body is framed for a cell 256 pixels tall; other heights scale with it.
-PIXELS_PER_METRE, CENTRE_HEIGHT, ELEVATION = 212.0 / 256, 0.475, math.radians(15)
+# Framed so Template-kun stands like a sprute character in a cell 256 pixels tall:
+# head at y=46, feet at y=222. Other heights scale with it.
+PIXELS_PER_METRE, CENTRE_HEIGHT, ELEVATION = 180.5 / 256, 0.515, math.radians(15)
 DISTANCE = 1.0e4        # far enough that the projection is orthographic
 KEY_LIGHT, FILL_LIGHT = (-0.45, -0.65, -0.62), (0.6, -0.2, -0.75)
 BODY_GRAY = (0.80, 0.80, 0.82)
