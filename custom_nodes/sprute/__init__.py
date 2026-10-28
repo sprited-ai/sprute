@@ -89,7 +89,7 @@ class SpruteRenderDrivingVideo:
         key = (str(device), MODEL.stat().st_mtime_ns)
         if getattr(self, "_key", None) != key:
             self._model, self._key = renderer.Model(MODEL, device), key
-        framing = renderer.DEFAULT_FRAMING if fit_to is None else renderer.fit(self._model, 1.0 - fit_to[0].cpu().numpy())
+        framing = renderer.DEFAULT_FRAMING if fit_to is None else renderer.fit_framing(self._model, 1.0 - fit_to[0].cpu().numpy())
         scale = snap.time_scale(motion, fps, snap_to_multiple)
         video = renderer.render(self._model, motion, frames, fps * scale, cell_width, cell_height, framing=framing).cpu()
         return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))

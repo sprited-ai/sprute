@@ -29,7 +29,7 @@ def test_measures_the_median_cell_so_one_raised_arm_does_not_move_it():
 
 @pytest.mark.parametrize("top, bottom", [(45, 221), (60, 230), (20, 250)])
 def test_stands_template_kun_as_tall_as_the_character_on_its_feet_line(model, top, bottom):
-    framing = renderer.fit(model, standing(top, bottom))
+    framing = renderer.fit_framing(model, standing(top, bottom))
     rest_top, rest_bottom = renderer.rest_line(model, framing)
     assert rest_top * 256 == pytest.approx(top, abs=0.5)
     assert rest_bottom * 256 == pytest.approx(bottom, abs=0.5)
@@ -37,6 +37,6 @@ def test_stands_template_kun_as_tall_as_the_character_on_its_feet_line(model, to
 
 def test_keeps_the_default_framing_for_a_character_of_template_kuns_size(model):
     top, bottom = renderer.rest_line(model, renderer.DEFAULT_FRAMING)
-    framing = renderer.fit(model, standing(round(top * 256), round(bottom * 256)))
+    framing = renderer.fit_framing(model, standing(round(top * 256), round(bottom * 256)))
     assert framing.pixels_per_metre == pytest.approx(renderer.DEFAULT_FRAMING.pixels_per_metre, rel=0.01)
     assert framing.centre_height == pytest.approx(renderer.DEFAULT_FRAMING.centre_height, abs=0.01)

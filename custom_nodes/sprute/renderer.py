@@ -146,7 +146,7 @@ def rest_line(model: Model, framing: Framing) -> tuple[float, float]:
     return float(np.median(tops)), float(np.median(bottoms))
 
 
-def fit(model: Model, alpha) -> Framing:
+def fit_framing(model: Model, alpha) -> Framing:
     """The framing that stands Template-kun's rest pose as tall as the character, on the same feet line."""
     top, bottom = standing_line(alpha)
     rest_top, rest_bottom = rest_line(model, DEFAULT_FRAMING)
