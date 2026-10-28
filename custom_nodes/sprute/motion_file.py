@@ -110,14 +110,18 @@ def local_motion(pose, parents, hips, rotations: list, offsets):
 
 
 def own(path: Path, animation: str, loop: bool, fps: float = 30.0):
-    """A rig's own animation, as read() gives a motion: sampled at fps, by bone name, with its root's position.
+    """A rig's own animation (the first when animation is empty), as read() gives a motion: sampled at fps, by bone name, with its root's position.
 
     For rigs that are not Template-kun, such as a four-legged animal, which play on themselves rather than retargeted.
     A loop's last key repeats its first, so it is dropped.
     """
     from scipy.spatial.transform import Slerp
     doc, binary = load(path)
-    clip = next(a for a in doc["animations"] if a["name"] == animation or a["name"].split("|")[-1] == animation)
+    clips = doc.get("animations", [])
+    found = [a for a in clips if a["name"] == animation or a["name"].split("|")[-1] == animation] if animation else clips[:1]
+    if not found:
+        raise ValueError(f"animation {animation!r} not found; the file has: {[a.get('name') for a in clips]}")
+    clip = found[0]
     skin = doc["skins"][0]
     root = skin.get("skeleton", skin["joints"][0])
     nodes = doc["nodes"]

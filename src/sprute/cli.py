@@ -421,7 +421,10 @@ def turntable(
 @animate_app.command("character")
 def animate(
     character: str = typer.Option(..., "--character", help="Character name or eight-direction image path."),
-    motion: str = typer.Option(..., help="Bundled motion name or a .glb file path."),
+    motion: str = typer.Option(..., help="Bundled motion name or a .glb file path. Template-kun performs it, unless the GLB has a body "
+                                         "of its own that is not humanoid, such as a four-legged animal: then it plays on that body."),
+    clip: str = typer.Option("", help="Which of the GLB's animations, by name. The first when omitted."),
+    own_body: bool = typer.Option(False, "--own-body", help="Play on the GLB's own body even when it is humanoid, instead of Template-kun."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
@@ -429,7 +432,6 @@ def animate(
     snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
     directions_drawn: int = typer.Option(8, "--directions", help="8, or 4 to animate only the diagonals (SE, NE, NW, SW); the others stay transparent."),
     attempts: int = typer.Option(1, min=1, help="Check every direction after animating and retry with the next seed until all pass, up to this many tries. 1 animates once without a check."),
-    rig: Path | None = typer.Option(None, exists=True, dir_okay=False, help="Drive with this skinned, animated GLB instead of Template-kun, for characters that are not humanoid; --motion then names one of its animations."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -445,7 +447,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        options = dict(seed=seed, draft=draft, scale=scale, every=every, snap=snap, directions_drawn=directions_drawn, rig=rig, out=out, on_event=on_event)
+        options = dict(seed=seed, draft=draft, scale=scale, every=every, snap=snap, directions_drawn=directions_drawn, clip=clip, own_body=own_body, out=out, on_event=on_event)
         animation = (_animate_checked(directions, motion, attempts=attempts, **options) if attempts > 1
                      else _animate(directions, motion, **options))
         if preview:

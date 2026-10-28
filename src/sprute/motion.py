@@ -1,5 +1,6 @@
 import json
 import secrets
+import struct
 from collections.abc import Callable
 from pathlib import Path
 from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
@@ -25,6 +26,12 @@ def find_motion(motion: str) -> Path:
     if path.is_file():
         return path
     raise ValueError(f"Unknown motion {motion!r}; choose one of: {', '.join(motions())}")
+
+def has_mesh(path: Path) -> bool:
+    """Whether the GLB carries a body of its own; a motion file holds only a skeleton."""
+    raw = path.read_bytes()
+    size = struct.unpack_from("<I", raw, 12)[0]
+    return bool(json.loads(raw[20:20 + size]).get("meshes"))
 
 def generate_motion(
     prompt: str,

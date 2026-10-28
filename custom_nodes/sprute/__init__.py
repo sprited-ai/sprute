@@ -101,7 +101,9 @@ class SpruteRenderRigVideo:
             "rig": (sorted(str(path.relative_to(Path(folder_paths.get_input_directory())))
                            for path in Path(folder_paths.get_input_directory()).rglob("*.glb")),
                     {"tooltip": "A skinned, animated GLB in ComfyUI's input folder, such as a four-legged animal."}),
-            "animation": ("STRING", {"default": "Walk", "tooltip": "Which of the rig's own animations, by name."}),
+            "animation": ("STRING", {"default": "", "tooltip": "Which of the rig's own animations, by name. Empty picks the first."}),
+            "body": (["auto", "own"], {"tooltip": "auto: Template-kun performs a humanoid rig's animation and any other rig plays on "
+                                                 "itself. own: the rig always plays on itself, humanoid or not."}),
             "loop": ("BOOLEAN", {"default": True}),
             "size": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 3.0, "step": 0.05,
                                "tooltip": "The rig's longest side in metres; Template-kun stands about 1.1 m tall."}),
@@ -116,14 +118,17 @@ class SpruteRenderRigVideo:
     RETURN_NAMES = ("IMAGE", "MASK", "time_scale", "keep_frames")
     FUNCTION = "render"
     CATEGORY = "Sprute"
-    DESCRIPTION = ("Renders a rig playing one of its own animations in eight directions, like Render Driving Video does with "
-                   "Template-kun: for characters that are not humanoid. The motion is not retargeted.")
+    DESCRIPTION = ("Renders a skinned GLB's animation in eight directions, like Render Driving Video. A humanoid rig's animation is "
+                   "retargeted onto Template-kun unless body is own; any other rig, such as a four-legged animal, plays on itself.")
 
-    def render(self, rig, animation, loop, size, frames, fps, cell_width, cell_height, snap_to_multiple):
+    def render(self, rig, animation, body, loop, size, frames, fps, cell_width, cell_height, snap_to_multiple):
         path = Path(folder_paths.get_annotated_filepath(rig))
-        model = renderer.Model(path, comfy.model_management.get_torch_device())
-        model.fit(size)
-        motion = motion_file.own(path, animation, loop)
+        device = comfy.model_management.get_torch_device()
+        if body == "auto" and retarget.humanoid(path):
+            model, motion = renderer.Model(MODEL, device), retarget.retarget(path, animation.strip(), MODEL)
+        else:
+            model, motion = renderer.Model(path, device), motion_file.own(path, animation.strip(), loop)
+            model.fit(size)
         scale = snap.time_scale(motion, fps, snap_to_multiple)
         video = renderer.render(model, motion, frames, fps * scale, cell_width, cell_height).cpu()
         return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))

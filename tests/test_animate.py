@@ -165,18 +165,59 @@ def test_rejects_other_direction_counts(tmp_path, monkeypatch):
         run_animate(tmp_path, monkeypatch, directions_drawn=6)
 
 
-def test_a_rig_drives_with_its_own_animation_instead_of_template_kun(tmp_path, monkeypatch):
-    rig = tmp_path / "wolf.glb"
-    shutil.copyfile(MOTIONS / "walk.glb", rig)
+def _with_body(glb):
+    """The GLB with a mesh entry added, as a rigged character would carry one."""
+    import json, struct
+    raw = glb.read_bytes()
+    size = struct.unpack_from("<I", raw, 12)[0]
+    doc = json.loads(raw[20:20 + size])
+    doc["meshes"] = [{"primitives": []}]
+    text = json.dumps(doc).encode()
+    text += b" " * (-len(text) % 4)
+    rest = raw[20 + size:]
+    body = struct.pack("<II", len(text), 0x4E4F534A) + text + rest
+    glb.write_bytes(struct.pack("<III", 0x46546C67, 2, 12 + len(body)) + body)
+    return glb
+
+
+def run_with(tmp_path, monkeypatch, glb, **options):
     runs = []
     monkeypatch.setattr(animate_module, "run_workflow", lambda graph, *, input_files, **_: runs.append((graph, input_files)) or {"577": b"RIFF"})
-    path = animate_module.animate(_directions(tmp_path), "Gallop", rig=rig, seed=1, out=tmp_path / "out")
+    path = animate_module.animate(_directions(tmp_path), str(glb), seed=1, out=tmp_path / "out", **options)
     (graph, files), = runs
+    return graph, files, path
+
+
+def test_a_glb_with_a_body_drives_through_the_rig_node_which_decides_who_performs(tmp_path, monkeypatch):
+    wolf = tmp_path / "wolf.glb"
+    shutil.copyfile(MOTIONS / "walk.glb", wolf)
+    _with_body(wolf)
+    graph, files, path = run_with(tmp_path, monkeypatch, wolf, clip="Gallop")
     driver = graph["4"]
     assert driver["class_type"] == "SpruteRenderRigVideo"
-    assert driver["inputs"]["animation"] == "Gallop" and files[driver["inputs"]["rig"]] == rig.resolve()
+    assert (driver["inputs"]["animation"], driver["inputs"]["body"]) == ("Gallop", "auto")
+    assert files[driver["inputs"]["rig"]] == wolf.resolve()
     assert "601" not in graph and "motion" not in driver["inputs"]
     assert path.name == "hero.gallop.webp"
+
+
+def test_own_body_keeps_a_humanoid_glb_off_template_kun(tmp_path, monkeypatch):
+    hero = tmp_path / "hero.glb"
+    shutil.copyfile(MOTIONS / "walk.glb", hero)
+    graph, _, _ = run_with(tmp_path, monkeypatch, _with_body(hero), own_body=True)
+    assert graph["4"]["inputs"]["body"] == "own"
+
+
+def test_own_body_needs_a_body(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="no mesh"):
+        run_with(tmp_path, monkeypatch, MOTIONS / "walk.glb", own_body=True)
+
+
+def test_a_motion_without_a_body_stays_on_template_kun_with_its_clip(tmp_path, monkeypatch):
+    graph, _, path = run_with(tmp_path, monkeypatch, MOTIONS / "walk.glb", clip="walk")
+    assert graph["4"]["class_type"] == "SpruteRenderDrivingVideo"
+    assert graph["601"]["inputs"]["animation"] == "walk"
+    assert path.name == "hero.walk.webp"
 
 
 def _directions(tmp_path):

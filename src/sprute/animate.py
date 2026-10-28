@@ -7,7 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 from sprute.comfy import input_name, run_workflow, same_workflow, saved_workflow
 from sprute.events import Event
-from sprute.motion import find_motion
+from sprute.motion import find_motion, has_mesh
 
 WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 MOTIONS = ("idle", "walk", "run")
@@ -25,11 +25,13 @@ def animate(
     every: int = 2,
     snap: bool = True,
     directions_drawn: int = 8,
-    rig: Path | None = None,
+    clip: str = "",
+    own_body: bool = False,
     out: Path = Path("output"),
     on_event: Callable[[Event], None] | None = None,
 ) -> Path:
-    """With rig, motion names one of the rig's own animations, which drives SCAIL2 instead of Template-kun."""
+    """Template-kun performs the motion. A GLB with a body of its own plays on it instead unless it is humanoid, or always
+    with own_body. clip names one of the GLB's animations; empty picks the first."""
     if isinstance(every, bool) or not isinstance(every, int) or every < 1:
         raise ValueError("every must be a positive integer")
     if directions_drawn not in DIRECTIONS:
@@ -44,14 +46,17 @@ def animate(
     def report(state, message, *, timed=False):
         if on_event is not None:
             on_event(Event(state, message, timed=timed))
-    motion_file = rig.expanduser().resolve(strict=True) if rig else find_motion(motion).resolve()
+    motion_file = find_motion(motion).resolve()
+    body = has_mesh(motion_file)
+    if own_body and not body:
+        raise ValueError(f"{motion_file.name} has no mesh to drive with; it is a motion for Template-kun")
     directions = directions.expanduser().resolve(strict=True)
     out = out.expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
     if seed is None:
         seed = secrets.randbits(32)
     name = directions.stem.removesuffix(".directions")
-    motion_name = motion.lower() if rig else motion_file.stem
+    motion_name = clip.lower() if clip else motion_file.stem
     destination = out / f"{name}.{motion_name}.webp"
     directions_name = input_name(directions)
     graph = json.loads(WORKFLOW.read_text(encoding="utf-8"))
@@ -62,13 +67,14 @@ def animate(
         raise ValueError("Directions image must contain eight equal-width cells")
     # The workflow renders the GLB into the driving video itself, in cells measured from the directions image.
     motion_input = input_name(motion_file)
-    if rig:
+    if body:
         driver = graph["4"]["inputs"]
         graph["4"] = {"class_type": "SpruteRenderRigVideo", "inputs": {
-            **{key: value for key, value in driver.items() if key != "motion"}, "rig": motion_input, "animation": motion, "loop": True, "size": 1.0}}
+            **{key: value for key, value in driver.items() if key != "motion"}, "rig": motion_input, "animation": clip,
+            "body": "own" if own_body else "auto", "loop": True, "size": 1.0}}
         del graph["601"]
     else:
-        graph["601"]["inputs"]["motion"] = motion_input
+        graph["601"]["inputs"].update(motion=motion_input, animation=clip)
     # The motion's length snaps to a multiple of every frames, so the frames kept land on its ends.
     if not snap:
         graph["4"]["inputs"]["snap_to_multiple"] = 0
