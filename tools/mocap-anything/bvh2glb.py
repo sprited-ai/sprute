@@ -91,11 +91,42 @@ def kabsch(a, b):
     return R.align_vectors(b, a)[0]
 
 
+TORSO = ["Body", "Back", "Torso", "Torso2", "Torso3", "Neck1",
+         "FrontShoulder.L", "FrontShoulder.R", "BackShoulder.L", "BackShoulder.R"]
+
+
+def orient_from_pose(names, bpos, bworld, pose, ref, window=5):
+    """Turn each frame's whole body so its torso faces as in the predicted joint positions.
+
+    MoCapAnything's rotation output keeps the body level (a leap's rear-up and nose-down landing are
+    lost); its position output has them. Per frame, the rotation taking the BVH torso onto the
+    predicted torso, relative to the same rotation at frame `ref`, is applied to every joint."""
+    order = [n for n in names if n]  # pose_pred.npy joints follow the BVH's JOINT order
+    bi = [names.index(n) for n in TORSO]
+    pi = [order.index(n) for n in TORSO]
+    fit = []
+    for f in range(len(bpos)):
+        b = bpos[f, bi] - bpos[f, bi].mean(0)
+        p = pose[f, pi] - pose[f, pi].mean(0)
+        fit.append(R.align_vectors(p, b)[0])
+    fit = R.concatenate(fit)
+    smooth = R.concatenate([fit[max(0, f - window // 2):f + window // 2 + 1].mean() for f in range(len(fit))])
+    turn = smooth[ref].inv() * smooth  # in the BVH frame; identity at ref
+    n = bworld.shape[1]
+    bworld = (R.from_quat(np.repeat(turn.as_quat(), n, 0)) * R.from_quat(bworld.reshape(-1, 4))).as_quat().reshape(bworld.shape)
+    root = bpos[:, :1]
+    bpos = root + np.stack([turn[f].apply(bpos[f] - root[f]) for f in range(len(bpos))])
+    print(f"body turned from pose: up to {np.degrees(turn.magnitude()).max():.0f} deg from frame {ref}")
+    return bpos, bworld
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("rig"); ap.add_argument("bvh"); ap.add_argument("out"); ap.add_argument("clip")
     ap.add_argument("--start", type=int, default=0); ap.add_argument("--end", type=int)
     ap.add_argument("--fps", type=int)
+    ap.add_argument("--pose", help="MoCapAnything *_pose_pred.npy: take the body's orientation from it")
+    ap.add_argument("--lift", help="per-frame root lift in GLB world units (+Y), from lift.py")
     a = ap.parse_args()
 
     doc, binary = read_glb(a.rig)
@@ -120,6 +151,8 @@ def main():
             rest_pos[i], rest_rot[i], rest_scale[i] = t, r, s
 
     names, bparents, brest, bpos, bworld, bfps = read_bvh(a.bvh)
+    if a.pose:
+        bpos, bworld = orient_from_pose(names, bpos, bworld, np.load(a.pose), a.start)
     # MoCapAnything's root heading is relative to the video camera; face the rig's own forward at the
     # first frame (yaw about BVH +Y only), keeping any turn after it.
     yaw = R.from_quat(bworld[a.start, 0]).as_euler("YXZ")[0]
@@ -144,6 +177,7 @@ def main():
     print(f"rest fit {g.as_rotvec(degrees=True).round(1)} deg, unit {unit:.4g}, root {nodes[root]['name']}")
 
     bone_of = dict(common)
+    lift = np.load(a.lift) if a.lift else np.zeros(len(frames))
     rot_keys = {j: [] for j in joints}
     root_keys = []
     for f in frames:
@@ -157,7 +191,7 @@ def main():
                 world[i] = world[parent[i]] * R.from_quat(nodes[i].get("rotation", [0, 0, 0, 1]))
         for j in joints:
             rot_keys[j].append((world[parent[j]].inv() * world[j]).as_quat())
-        move = ginv.apply(broot[f] - broot[frames[0]]) * unit
+        move = ginv.apply(broot[f] - broot[frames[0]]) * unit + [0, lift[f - frames[0]], 0]
         p = parent[root]
         t0, _, _ = node_trs(nodes[root])
         root_keys.append(t0 + rest_rot[p].inv().apply(move) / rest_scale[p])

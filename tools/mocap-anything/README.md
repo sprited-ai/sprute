@@ -16,3 +16,11 @@ sprute animate character --character dusk.directions.png --motion husky-pounce.g
   straight from Blender fails it (object scale, a mesh named `Cube`, no action on the base).
 - `bvh2glb.py` appends the predicted motion to the GLB as a clip. It removes the camera heading MoCapAnything
   leaves on the root. `--fps` is the input video's rate; the BVH header says 30 whatever the video was.
+
+Real footage (tried on a border collie leap):
+
+- Matte the subject onto white yourself first (BiRefNet works). MoCapAnything's own RMBG step keeps scenery on
+  busy backgrounds and the model then poses the landscape.
+- The rotation output keeps the body level and neither output has height. `bvh2glb.py --pose *_pose_pred.npy`
+  takes the body's orientation from the position output; `lift.py` takes height from the matte's bounding box
+  (still camera) for `--lift`. Even then a leap came out as a rear-up: the hind legs fold under in the air.
