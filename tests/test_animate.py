@@ -107,6 +107,12 @@ def test_renders_cells_measured_from_the_directions_image(tmp_path, monkeypatch)
     assert (width["inputs"]["values.a"], inputs["cell_height"]) == ([inputs["cell_height"][0], 0], [inputs["cell_height"][0], 1])
 
 
+def test_fits_the_driver_to_the_directions_image(tmp_path, monkeypatch):
+    # Template-kun stands as tall as the character, on its feet line, so the reference and the driver agree.
+    graph, _, _ = run_animate(tmp_path, monkeypatch)
+    assert driving_video(graph)["inputs"]["fit_to"] == ["3", 1]
+
+
 def test_leaves_no_rendered_file_beside_the_motion(tmp_path, monkeypatch):
     _, _, glb = run_animate(tmp_path, monkeypatch)
     assert not glb.with_suffix(".cached.webp").exists()

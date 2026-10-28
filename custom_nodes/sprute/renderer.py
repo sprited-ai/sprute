@@ -4,6 +4,7 @@ Skins the mesh in PyTorch and draws it with ComfyUI's PyTorch rasterizer.
 """
 import io, math
 from pathlib import Path
+from typing import NamedTuple
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -13,9 +14,7 @@ from comfy_extras.sam3d_body.rasterizer import _rasterize_person
 from . import layout, motion_file
 
 SUPERSAMPLE = 3
-# One camera for every motion, so a seated or crouched body keeps its true size.
-# The body is framed for a cell 256 pixels tall; other heights scale with it.
-PIXELS_PER_METRE, CENTRE_HEIGHT, ELEVATION = 212.0 / 256, 0.475, math.radians(15)
+ELEVATION = math.radians(15)
 DISTANCE = 1.0e4        # far enough that the projection is orthographic
 KEY_LIGHT, FILL_LIGHT = (-0.45, -0.65, -0.62), (0.6, -0.2, -0.75)
 BODY_GRAY = (0.80, 0.80, 0.82)
@@ -106,6 +105,58 @@ class Model:
         return positions, F.normalize(torch.einsum("vij,vj->vi", blend[:, :3, :3], self.normals), dim=-1)
 
 
+class Framing(NamedTuple):
+    """How big Template-kun is and where he stands: pixels per metre as a fraction of the cell's height,
+    and the height on his body that lands in the cell's middle."""
+    pixels_per_metre: float
+    centre_height: float
+
+
+# One camera for every motion, so a seated or crouched body keeps its true size.
+# Without a character to fit, the body is framed for a cell 256 pixels tall; other heights scale with it.
+DEFAULT_FRAMING = Framing(212.0 / 256, 0.475)
+
+
+def standing_line(alpha) -> tuple[float, float]:
+    """Top of the head and the feet line of a standing strip of eight directions, as fractions of its height.
+
+    `alpha` is (height, 8 * width), 1 where the character is. The median of the eight cells, so one
+    raised arm or a stray pixel does not move it.
+    """
+    alpha = np.asarray(alpha) > 0.5
+    height, width = alpha.shape[0], alpha.shape[1] // len(layout.STRIP)
+    tops, bottoms = [], []
+    for direction in range(len(layout.STRIP)):
+        rows = np.flatnonzero(alpha[:, direction * width:(direction + 1) * width].any(1))
+        if len(rows):
+            tops.append(rows[0]); bottoms.append(rows[-1] + 1)
+    if not tops:
+        raise ValueError("The character to fit has no opaque pixels")
+    return float(np.median(tops)) / height, float(np.median(bottoms)) / height
+
+
+def rest_line(model: Model, framing: Framing) -> tuple[float, float]:
+    """standing_line of Template-kun in his rest pose, from his vertices rather than a render."""
+    positions, _ = model.skinned(model.rest)
+    centre = torch.tensor([0.0, framing.centre_height, 0.0], device=positions.device)
+    tops, bottoms = [], []
+    for direction in range(len(layout.STRIP)):
+        y = 0.5 + framing.pixels_per_metre * ((positions - centre) @ camera(direction, positions.device).T)[:, 1]
+        tops.append(float(y.min())); bottoms.append(float(y.max()))
+    return float(np.median(tops)), float(np.median(bottoms))
+
+
+def fit(model: Model, alpha) -> Framing:
+    """The framing that stands Template-kun's rest pose as tall as the character, on the same feet line."""
+    top, bottom = standing_line(alpha)
+    rest_top, rest_bottom = rest_line(model, DEFAULT_FRAMING)
+    scale = (bottom - top) / (rest_bottom - rest_top)
+    pixels_per_metre = DEFAULT_FRAMING.pixels_per_metre * scale
+    # Raising the centre by d moves the image down by pixels_per_metre * cos(ELEVATION) * d.
+    shift = (bottom - 0.5) / scale - (rest_bottom - 0.5)
+    return Framing(pixels_per_metre, DEFAULT_FRAMING.centre_height + shift / (DEFAULT_FRAMING.pixels_per_metre * math.cos(ELEVATION)))
+
+
 def camera(direction: int, device):
     """Rotation from model space (Y up, facing +Z) to image space (+X right, +Y down, +Z away)."""
     yaw = math.radians(45 * direction)
@@ -116,11 +167,11 @@ def camera(direction: int, device):
     return torch.as_tensor(look_down @ turn @ to_z_up, device=device, dtype=torch.float32)
 
 
-def render_cell(model: Model, positions, normals, direction: int, cell_width: int, cell_height: int):
+def render_cell(model: Model, positions, normals, direction: int, cell_width: int, cell_height: int, framing: Framing = DEFAULT_FRAMING):
     device = positions.device
     width, height = cell_width * SUPERSAMPLE, cell_height * SUPERSAMPLE
     rotation = camera(direction, device)
-    centre = torch.tensor([0.0, CENTRE_HEIGHT, 0.0], device=device)
+    centre = torch.tensor([0.0, framing.centre_height, 0.0], device=device)
     view = (positions - centre) @ rotation.T
     view[:, 2] += DISTANCE
     view_normals = normals @ rotation.T
@@ -144,7 +195,7 @@ def render_cell(model: Model, positions, normals, direction: int, cell_width: in
     depth = torch.full((width * height,), float("inf"), device=device)
     colour = torch.zeros((width * height, 3), device=device)
     mask = torch.zeros(width * height, dtype=torch.bool, device=device)
-    _rasterize_person(view, model.faces, PIXELS_PER_METRE * height * DISTANCE, width, height, depth, colour, mask, shade)
+    _rasterize_person(view, model.faces, framing.pixels_per_metre * height * DISTANCE, width, height, depth, colour, mask, shade)
     alpha = mask.float().view(1, 1, height, width)
     colour = colour.view(height, width, 3).permute(2, 0, 1)[None] * alpha
     alpha, colour = F.avg_pool2d(alpha, SUPERSAMPLE), F.avg_pool2d(colour, SUPERSAMPLE)
@@ -181,7 +232,8 @@ def sample_motion(model: Model, motion, frames: int, frame_rate: float, in_place
     return poses
 
 
-def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 256, cell_height: int = 256, in_place: bool = True):
+def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_width: int = 256, cell_height: int = 256, in_place: bool = True,
+           framing: Framing = DEFAULT_FRAMING):
     """(frames, cell_height, 8 * cell_width, 4) RGBA in 0..1: the eight directions in a strip, like a sprute animation."""
     device = model.positions.device
     video = torch.zeros((frames, cell_height, cell_width * len(layout.STRIP), 4), device=device)
@@ -189,5 +241,5 @@ def render(model: Model, motion, frames: int = 81, frame_rate: float = 24, cell_
         positions, normals = model.skinned(model.world(rotations, hips))
         for direction in range(len(layout.STRIP)):
             left = direction * cell_width
-            video[frame, :, left:left + cell_width] = render_cell(model, positions, normals, direction, cell_width, cell_height)
+            video[frame, :, left:left + cell_width] = render_cell(model, positions, normals, direction, cell_width, cell_height, framing)
     return video
