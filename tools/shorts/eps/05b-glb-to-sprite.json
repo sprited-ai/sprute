@@ -1,0 +1,44 @@
+{
+  "minSeconds": 15,
+  "cast": "media/knight-dance2.cast",
+  "animation": {
+    "atlas": "media/knight.dance2.png",
+    "frames": 41,
+    "seconds": 0.083
+  },
+  "fontSize": 30,
+  "stage": {
+    "prompt": "\u001b[32m$\u001b[0m ",
+    "command": "sprute animate character --character knight --motion dance2 --seed 1234",
+    "typeAt": 0.4,
+    "typeEvery": 0.025,
+    "enterPause": 0.3,
+    "fastForward": 3.6,
+    "revealPause": 0.4,
+    "direction": 1,
+    "bigScale": 3.0,
+    "label": "any GLB → 8-direction sprite"
+  },
+  "lines": [
+    {
+      "t": 0.3,
+      "text": "Same dance, on my knight.",
+      "face": "grin"
+    },
+    {
+      "t": 6.8,
+      "text": "Dancing knight!",
+      "face": "gasp"
+    },
+    {
+      "t": 8.8,
+      "text": "Eight directions. / Any GLB works.",
+      "face": "grin"
+    },
+    {
+      "t": 12.0,
+      "text": "Free and open source!",
+      "face": "grin"
+    }
+  ]
+}

@@ -33,10 +33,8 @@ What lines up:
 
 ## Before sending (blockers)
 
-1. **Minimum VRAM.** README only says "tested on RTX 5090 (32 GB)". Their audience
-   is 6–8 GB. Measure peak VRAM for `create character` on gin and decide what we
-   can honestly say. If it doesn't fit under 12–16 GB, say so up front rather than
-   let them find out on camera.
+1. **VRAM.** Tested on an RTX 5090 (32 GB); that's what the email says. Their audience
+   is 6–8 GB, so the email says so up front rather than letting them find out on camera.
 2. **Contact address.** Find the business email (YouTube "About" → business
    inquiries, or pixel-artistry.com). Don't use the newsletter form.
 3. **Demo clip** below exists and is linkable (unlisted YouTube or GitHub Pages).
@@ -65,7 +63,8 @@ What lines up:
 > Live demo (a small game made only from generated characters):
 > https://sprited-ai.github.io/sprute/examples/brawler/
 >
-> Honest note on hardware: it currently needs about [N] GB of VRAM. [If a lighter mode exists, one line about it.]
+> Honest note on hardware: we've tested it on an RTX 5090 (32 GB). We haven't
+> tried it on smaller cards yet, so it may not fit the 6–8 GB setups you usually cover.
 >
 > No strings attached. If you'd like to test it, I'm happy to help with setup
 > or put together a workflow for your audience.
@@ -105,3 +104,21 @@ Production notes:
   this clip is for a third party, not our channel voice.
 - Optional variant for the follow-up email: swap the generated GLB for a clip captured from
   video (MoCapAnything path) to mirror their episode exactly.
+
+### v1 (2026-10-28)
+
+Built as two stage episodes joined end to end, since the stage plays one command per episode:
+`tools/shorts/eps/05a-glb-motion.json` (prompt → GLB dance, 14 s) and
+`tools/shorts/eps/05b-glb-to-sprite.json` (knight animated with that GLB, 15 s). 29 s total.
+
+```bash
+ffmpeg -f concat -safe 0 -i media/concat-05.txt -c copy media/short-05-glb-to-sprite.mp4
+```
+
+- Motion: `dance2` (prompt "a cheerful dance, arms swinging overhead, bouncing on both feet", seed 12),
+  picked from five candidates. None actually reach overhead; dance2 was the liveliest.
+- The animate run was recorded with `COMFYUI_RESERVE_VRAM=64` on gin's 96 GB card, leaving ComfyUI
+  ~32 GB like a 5090. On screen: generate motion peaks at 1.5 GiB, animate at 31.7 GiB. Without
+  the cap gin reports 59.6 GiB, which is what ComfyUI holds when it has room, not what it needs.
+- Not in v1: the 0–3 s dance hook, Brawl footage, end card. The animate log shows one
+  `[WARNING] aimdo:` line.

@@ -1,0 +1,39 @@
+{
+  "minSeconds": 14,
+  "cast": "media/dance2-generate.cast",
+  "animation": {
+    "atlas": "media/dance2.cached.png",
+    "frames": 41,
+    "seconds": 0.083
+  },
+  "fontSize": 30,
+  "stage": {
+    "prompt": "\u001b[32m$\u001b[0m ",
+    "command": "sprute generate motion --prompt \"a cheerful dance, arms swinging overhead, bouncing on both feet\" --name dance2 --duration 3.4 --seed 12",
+    "typeAt": 0.6,
+    "typeEvery": 0.022,
+    "enterPause": 0.3,
+    "fastForward": 3.0,
+    "revealPause": 0.4,
+    "direction": 1,
+    "bigScale": 3.0,
+    "label": "one sentence · a 3D dance (GLB)"
+  },
+  "lines": [
+    {
+      "t": 0.3,
+      "text": "Chat, I need a dance. / One sentence.",
+      "face": "grin"
+    },
+    {
+      "t": 7.4,
+      "text": "There's the 3D motion!",
+      "face": "gasp"
+    },
+    {
+      "t": 10.0,
+      "text": "Now watch my knight.",
+      "face": "grin"
+    }
+  ]
+}
