@@ -188,6 +188,33 @@ Design / husky mesh / TRELLIS mesh on the husky rig:
   surfaces no view sees (the top of the tail) go dark. IoU falls from 0.93 to 0.80.
 - ComfyUI 0.37's native TRELLIS.2 nodes take one image; there is no multi-view conditioning to fix this.
 
+### A Materia machine from one image: the stubby
+
+Jin, after the wolf: try a Materia machine monster, starting simple. The stubby is Materia's code-modelled machine
+(PR 142) whose bake Jin approved, so its bake is the ground truth: can Sprute get back to it from one image?
+
+One image (the bake's SE idle frame, 256 px upscaled to 1024) → TRELLIS.2 with texture (120 s on gin) →
+`tools/render3d/render_mesh.py`: fitted to the bake's four silhouettes (`--yaw 0`: the front and back silhouettes are
+nearly the same, so the fit alone can't tell which way it faces), drawn in Sprute's camera and line art. Static, no
+rig yet.
+
+Materia's bake / TRELLIS's own texture / TRELLIS's shape painted by projecting the bake's four views:
+
+![stubby](3d-render/stubby.png)
+
+- **TRELLIS's shape is usable.** Barrel, head, antenna, side stubs and feet come back from one 3/4 view; IoU to the
+  bake 0.81–0.84 per diagonal (the body is a little wide). It is a rigid, symmetric machine, so the single view
+  doesn't invent anything the other views disagree with, as the wolf's head did.
+- **TRELLIS's texture is not.** It read light cel-shaded metal as dark reflective metal and baked it in blotches
+  ([its texture](3d-render/stubby-trellis-texture.png)); one gamma (0.40) to the input's lightness doesn't save it.
+  Same verdict as the props spike ("too smooth", "dark").
+- **Projected paint on the TRELLIS shape reads as the stubby**: colours, band, antenna and goggle land. Where the
+  shape is off, features double: the goggle strap shows twice in NE/NW, and its plate is a little low in SE.
+
+So for machines: TRELLIS for shape only, paint by projection from a 4-view design (for a new machine, an NBP
+2x2 sheet, as the wolf had). Next simple step: a rigid-part rig (body, head, two feet, antenna) and Materia's
+procedural bob and waddle, which a machine needs instead of a clip library.
+
 ## Costs and timings
 
 | | 2D path (SCAIL2) | 3D path (this prototype) |

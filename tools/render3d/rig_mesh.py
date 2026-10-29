@@ -51,7 +51,7 @@ def placed(vertices, yaw, pitch, scale, offset):
     return (v - foot) * scale + offset
 
 
-def fit(vertices, body, masks, reference):
+def fit(vertices, body, masks, reference, yaw=None):
     """Yaw by a full search, then scale, offset and pitch by coordinate descent, all on the IoU."""
     low, high = reference.min(0).values, reference.max(0).values
     target = torch.stack([(low[0] + high[0]) / 2, low[1], (low[2] + high[2]) / 2])
@@ -59,7 +59,8 @@ def fit(vertices, body, masks, reference):
     def at(yaw, pitch, scale, offset):
         v = placed(vertices, yaw, pitch, 1.0, torch.zeros(3))
         return placed(vertices, yaw, pitch, scale * height / (v[:, 1].max() - v[:, 1].min()).item(), target + offset)
-    best = max(((iou(at(math.radians(y), 0.0, 1.0, torch.zeros(3)), body, masks), y) for y in range(0, 360, 10)))
+    yaws = range(0, 360, 10) if yaw is None else [yaw]
+    best = max(((iou(at(math.radians(y), 0.0, 1.0, torch.zeros(3)), body, masks), y) for y in yaws))
     params = {"yaw": math.radians(best[1]), "pitch": 0.0, "scale": 1.0, "x": 0.0, "y": 0.0, "z": 0.0}
     steps = {"yaw": math.radians(5), "pitch": math.radians(5), "scale": 0.04, "x": 0.03, "y": 0.02, "z": 0.03}
     score = lambda p: iou(at(p["yaw"], p["pitch"], p["scale"], torch.tensor([p["x"], p["y"], p["z"]])), body, masks)
