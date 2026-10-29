@@ -7,7 +7,7 @@ import secrets
 import re
 import unicodedata
 from pathlib import Path
-from sprute.setup import BACKGROUND_REMOVAL, missing_setup, setup as _setup
+from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
@@ -429,10 +429,8 @@ def animate(
     set_models_directory(models_directory)
     if use not in BACKENDS:
         raise typer.BadParameter(f"choose one of {', '.join(BACKENDS)}", param_hint="--use")
-    if use == "scail2":
-        require_setup()
-    else:
-        require_setup(only=BACKGROUND_REMOVAL)
+    require_setup()
+    if use != "scail2":
         load_env_local()
         if not os.environ.get("REPLICATE_API_TOKEN", "").strip():
             console.print("Seedance needs your Replicate API token: export REPLICATE_API_TOKEN, or add REPLICATE_API_TOKEN=... to .env.local", style="red")
@@ -530,9 +528,9 @@ def character_file(character: str, directory: Path, stage: str) -> Path:
     return path
 
 
-def require_setup(*, models: bool = True, only: tuple[str, ...] | None = None) -> None:
+def require_setup(*, models: bool = True) -> None:
     """Stop with a clear next step instead of failing inside ComfyUI."""
-    missing = missing_setup(models=models, only=only)
+    missing = missing_setup(models=models)
     if missing:
         console.print(f"Sprute is not set up yet. Run: sprute setup{'' if models else ' --skip-models'}", style="red")
         for item in missing[:5]:

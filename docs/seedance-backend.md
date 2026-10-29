@@ -1,7 +1,8 @@
 # Seedance backend (`--use seedance`)
 
-An optional way to animate a character with ByteDance Seedance 2.0 on Replicate, billed to the user's own Replicate
-account. SCAIL2 on the user's GPU stays the default, and nothing in sprute needs Seedance.
+An expert flag on `sprute animate character`: animate with ByteDance Seedance 2.0 on Replicate, billed to the user's
+own Replicate account. It sits on top of the normal local setup; SCAIL2 on the user's GPU stays the default, and nothing
+else in sprute knows about Seedance.
 
 ## Why
 
@@ -19,7 +20,7 @@ repaints the character every frame and was clean on all of them, and flips heads
 | Key | `REPLICATE_API_TOKEN` from the environment, else `.env.local` in the working directory (`*.local` is git-ignored). The CLI loads it into the environment; the node reads it from there | The token is never a node input, so it can't land in the workflow saved inside the WebP. A test checks this. |
 | Cost | Printed before submitting, with a `[y/N]` confirm; `--yes` skips it. $0.08/s Fast, $0.10/s Pro with a video input: $0.32 / $0.40 per 4 s animation | |
 | Default model | Fast | Seven-motion comparison: no quality difference worth 25% more and ~1.5× the wait. Revisit with the rerun on the fixed driver. |
-| Setup | Seedance needs only ComfyUI, sprute's nodes and BiRefNet (`missing_setup(only=BACKGROUND_REMOVAL)`), not the ~20 GB of SCAIL2 weights | A user without a big GPU can still use sprute. |
+| Setup | Unchanged: `--use seedance` expects the same `sprute setup` as SCAIL2 | Seedance is an option on top of the local pipeline, not a way to skip it. |
 | Open source | Seedance is opt-in per command, nothing is uploaded without `--use seedance` and a confirm, and the default path stays fully local | Sprute's identity is a local, open pipeline. |
 
 ## What changes downstream
@@ -73,14 +74,13 @@ the motion once as in [Video1], then hold its final pose."
 
 1. **Prototype (this PR, draft):** `SpruteSeedance` node, `--use seedance|seedance-pro`, `.env.local`, cost confirm,
    overlap + grid-line check, `--retries`, tests.
-2. **Setup without SCAIL2:** `sprute setup --for seedance` that installs only ComfyUI, the nodes and BiRefNet; the
-   setup check today also wants every custom node (e.g. ComfyUI-Kimodo) even though animate doesn't use it.
-3. **`create character --use seedance`:** pass the backend through `spawn`, with one confirm for all motions' cost.
-4. **Cache before confirming:** skip the cost prompt when the saved animation already matches the graph (today the
-   cache check runs after the prompt).
-5. **Facing check:** bring `SpruteCheckDirections` to main and fail Seedance results whose directions turn to camera.
-6. **Loop-seam check:** compare the kept cycle's last frame with its first, against the driver's own seam.
-7. **Duration from the motion:** 4–15 s from the snapped motion length, with the cost shown per second.
-8. **Recalibrate thresholds** on the fixed-driver rerun (13 motions, `experiments/seedance-vs-scail2/runs/`), and
+2. **Recalibrate thresholds** on the fixed-driver rerun (13 motions, `experiments/seedance-vs-scail2/runs/`), and
    decide Fast vs Pro on it.
-9. **Docs:** README section on the optional Seedance backend, what's uploaded, what it costs.
+3. **Facing check:** bring `SpruteCheckDirections` to main and fail Seedance results whose directions turn to camera.
+4. **Loop-seam check:** compare the kept cycle's last frame with its first, against the driver's own seam.
+5. **Duration from the motion:** 4–15 s from the snapped motion length, with the cost shown per second.
+6. **Cache before confirming:** skip the cost prompt when the saved animation already matches the graph (today the
+   cache check runs after the prompt).
+
+Not planned, since this is an expert flag: a Seedance-only setup, `create character --use`, and a README section
+beyond the `--use` help text.
