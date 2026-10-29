@@ -215,6 +215,55 @@ So for machines: TRELLIS for shape only, paint by projection from a 4-view desig
 2x2 sheet, as the wolf had). Next simple step: a rigid-part rig (body, head, two feet, antenna) and Materia's
 procedural bob and waddle, which a machine needs instead of a clip library.
 
+### The stubby, from a T-pose drawing, animated
+
+Jin: don't reconstruct from the rendered sprite; have Codex draw the stubby in a T-pose, make the 3D from that,
+animate it, and turn it back into game sprites. The whole loop, image to Materia atlas:
+
+1. **Drawing.** `codex exec -i` with the bake's four diagonals and a prompt for the same robot in a T-pose (stubs
+   straight out), a 3/4 front view, a clean toy render with soft even light on white. Codex's image generation
+   kept every part (goggle and strap, antenna, band, chest plate, stubs, feet), one try.
+
+   ![T-pose drawing](3d-render/stubby-tpose-drawing.png)
+
+2. **Mesh.** TRELLIS.2 with texture, 75 s on gin. From a clean, evenly lit drawing the texture is usable this time
+   (one gamma, 0.39, to the drawing's lightness), unlike from the cel-shaded sprite; the orange is a little muddy.
+3. **Rig and animation**, `tools/render3d/animate_parts.py`, no rigging tool: the T-pose places the mesh (the stubs'
+   line is the X axis), and the geometry cuts it into rigid parts: feet (bottom 8.5 %), stubs (outside the barrel at
+   their height), head (above the narrowest slice between them and the antenna, blended over a centimetre). The
+   stubs are lowered 70° from the T-pose, then everything moves by Materia's own stubby gait (`stubby.ts`): idle bob
+   with a look round, a hopping waddle whose roll the head lags, stubs swinging, feet stepping. Front/back is the one
+   thing the T-pose doesn't settle (`--flip`); here it came out right.
+
+   Rest pose / the cut (head blue, stubs orange and yellow, feet green and purple), SE NE NW SW:
+
+   ![parts](3d-render/stubby-tpose-parts.png)
+
+4. **Sprites.** Same camera, lines and 4-direction strip as the rest of the spike. Walk (SE, NW), idle (SE, every
+   4th frame):
+
+   ![walk](3d-render/stubby-tpose-walk.gif)
+   ![walk frames](3d-render/stubby-tpose-walk.png)
+   ![idle frames](3d-render/stubby-tpose-idle.png)
+
+`sprute check animation --directions 4` passes all 12 (clip × direction); the minimum over frames:
+
+| | identity | facing | coverage |
+|---|---|---|---|
+| idle (36 frames) | 0.941–0.975 | −0.019 (the head turned away) – 0.041 | 0.939–0.981 |
+| walk (8) | 0.930–0.954 | 0.022–0.057 | 0.960–0.979 |
+| run (8, the walk at twice the rate) | 0.930–0.954 | 0.022–0.057 | 0.960–0.979 |
+
+Identity is at SCAIL2's level (0.94–0.96), up from the wolf's 0.81–0.87: the reference is rendered from the same
+mesh. Materia's `pack-atlas.py` packs idle/walk/run (at `--scale 0.75`: 36 frames × 256 px pass its 8192 px limit)
+and `check-atlas.py` says ok. It stands taller in its cell than Materia's stubby (feet at 236 vs 223 of 256), which
+`--height` or the packer's `heightBlocks` sets. Render: 2:38 for all 52 frames on a MacBook CPU.
+
+What this shows: **for a machine, a T-pose drawing is enough** — no 4-view design, no projection, no rig. The pose
+gives the placement and the parts; the motion is a few lines of code per monster, as in Materia. What it doesn't
+show yet: a body without obvious parts (the wolf), and secondary motion (Materia's springy antenna and strap tails
+are Verlet chains, not here).
+
 ## Costs and timings
 
 | | 2D path (SCAIL2) | 3D path (this prototype) |
