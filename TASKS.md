@@ -31,3 +31,4 @@
 - [ ] README: stop presenting the motions as only `idle`, `walk` and `run`; point people to `motions/` (including `motions/quaternius/`) for every supported animation
 - [ ] Use fewer than 81 frames for SCAIL2 inference when a motion needs fewer (a short clip, or one short cycle), after rigorous testing of quality against 81, to cut VRAM and inference time
 - [ ] Make quaternius (or find better alternative) to be first class citizen rather than deep inside folder kinda thing.
+- [ ] Direction sets: generate 2-dir, 4-dir, 4-dir diagonal, 6-dir, and 8-dir (today it is always 8)
