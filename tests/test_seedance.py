@@ -46,3 +46,28 @@ def test_the_prompt_ends_by_whether_the_motion_loops():
 def test_mp4_round_trip_keeps_frames():
     frames = np.full((5, 64, 64, 3), 128, np.uint8)
     assert seedance.decode_mp4(seedance.encode_mp4(frames)).shape == (5, 64, 64, 3)
+
+
+def test_the_same_request_reuses_the_kept_video(tmp_path, monkeypatch):
+    monkeypatch.setattr(seedance, "CACHE", tmp_path)
+    calls = []
+    video = seedance.encode_mp4(np.full((4, 64, 64, 3), 128, np.uint8))
+
+    def api(path, body=None):
+        calls.append(path)
+        return {"id": "p", "status": "succeeded", "output": "https://example.invalid/out.mp4"}
+
+    class Response:
+        def __init__(self, *_): pass
+        def __enter__(self): return self
+        def __exit__(self, *_): pass
+        def read(self): return video
+
+    monkeypatch.setattr(seedance, "api", api)
+    monkeypatch.setattr(seedance.urllib.request, "urlopen", Response)
+    reference, driving = np.zeros((64, 64, 3), np.uint8), np.zeros((100, 64, 64, 3), np.uint8)
+    first = seedance.generate("seedance-2.0-fast", reference, driving, seed=1, seconds=4, loop=True)
+    second = seedance.generate("seedance-2.0-fast", reference, driving, seed=1, seconds=4, loop=True)
+    seedance.generate("seedance-2.0-fast", reference, driving, seed=2, seconds=4, loop=True)
+    assert first[1] == second[1]
+    assert len(calls) == 2

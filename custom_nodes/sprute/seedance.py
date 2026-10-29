@@ -4,6 +4,7 @@ The driving grid and the reference grid go up as data URIs; the token comes from
 the graph, so it can't end up in a saved animation's workflow.
 """
 import base64
+import hashlib
 import io
 import json
 import os
@@ -16,7 +17,8 @@ import av
 import numpy as np
 
 API = "https://api.replicate.com/v1/"
-# Replicate deletes Seedance outputs soon after they finish, so every paid video is kept here, by prediction.
+# Replicate deletes Seedance outputs soon after they finish, so every paid video is kept here, by what was asked for;
+# asking again for the same thing reuses it instead of paying twice.
 CACHE = Path.home() / ".cache" / "sprute" / "seedance"
 MODELS = {"seedance-2.0-fast": "bytedance/seedance-2.0-fast", "seedance-2.0": "bytedance/seedance-2.0"}
 FPS = 24
@@ -91,11 +93,17 @@ def log(message: str) -> None:
 
 def generate(model: str, reference: np.ndarray, driving: np.ndarray, *, seed: int, seconds: int, loop: bool) -> tuple[np.ndarray, Path]:
     """Seedance's frames for the driving grid, as uint8 (frames, height, width, 3) at its own resolution, and the kept video."""
+    driving = driving[:seconds * FPS]
+    request = json.dumps([model, seed, seconds, prompt(loop), reference.shape, driving.shape]).encode()
+    kept = CACHE / f"{hashlib.sha256(request + reference.tobytes() + driving.tobytes()).hexdigest()}.mp4"
+    if kept.is_file():
+        log(f"Seedance video reused from {kept}")
+        return decode_mp4(kept.read_bytes()), kept
     body = {"input": {
         "prompt": prompt(loop), "seed": seed, "duration": seconds,
         "resolution": "480p", "aspect_ratio": "1:1", "generate_audio": False,
         "reference_images": [data_uri(encode_png(reference), "image/png")],
-        "reference_videos": [data_uri(encode_mp4(driving[:seconds * FPS]), "video/mp4")],
+        "reference_videos": [data_uri(encode_mp4(driving), "video/mp4")],
     }}
     prediction = api(f"models/{MODELS[model]}/predictions", body)
     log(f"Seedance {model} prediction {prediction['id']}")
@@ -108,7 +116,6 @@ def generate(model: str, reference: np.ndarray, driving: np.ndarray, *, seed: in
     with urllib.request.urlopen(output if isinstance(output, str) else output[0]) as response:
         content = response.read()
     CACHE.mkdir(parents=True, exist_ok=True)
-    kept = CACHE / f"{prediction['id']}.mp4"
     kept.write_bytes(content)
     log(f"Seedance video kept at {kept}")
     return decode_mp4(content), kept
