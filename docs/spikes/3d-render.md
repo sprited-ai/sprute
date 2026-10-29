@@ -251,18 +251,37 @@ animate it, and turn it back into game sprites. The whole loop, image to Materia
 | | identity | facing | coverage |
 |---|---|---|---|
 | idle (36 frames) | 0.941–0.975 | −0.019 (the head turned away) – 0.041 | 0.939–0.981 |
-| walk (8) | 0.930–0.954 | 0.022–0.057 | 0.960–0.979 |
-| run (8, the walk at twice the rate) | 0.930–0.954 | 0.022–0.057 | 0.960–0.979 |
+| walk (8) | 0.939–0.956 | 0.020–0.057 | 0.957–0.976 |
+| run (8, the walk at twice the rate) | 0.925–0.956 | 0.020–0.056 | 0.960–0.979 |
 
 Identity is at SCAIL2's level (0.94–0.96), up from the wolf's 0.81–0.87: the reference is rendered from the same
 mesh. Materia's `pack-atlas.py` packs idle/walk/run (at `--scale 0.75`: 36 frames × 256 px pass its 8192 px limit)
 and `check-atlas.py` says ok. It stands taller in its cell than Materia's stubby (feet at 236 vs 223 of 256), which
 `--height` or the packer's `heightBlocks` sets. Render: 2:38 for all 52 frames on a MacBook CPU.
 
+**Secondary motion: the springy antenna.** The antenna is cut as one more part (what rises above the dome, from the
+first slice narrower than a third of it) and rides on the head; its tip is Materia's `Dangle` (Verlet, pulled to
+its rest place, a little weight), stepped at 120 Hz. Three changes from Materia's:
+
+- The spring is softer, `--stiff 300` against Materia's 900: at 900 the walk bends it 4°, which doesn't show at
+  256 px; at 300, 23° (walk). 120 gave 42° and looked loose.
+- It bends from where the nub narrows to the rod, not from the dome: bending from the dome tilted the nub and
+  opened a seam round it.
+- A 40° stop: the run (the walk's steps at twice the rate) set it resonating to 80°; with the stop, 35°.
+
+It is simulated for three loops before the recorded one, so every clip loops without a jump. Walk, head
+enlarged (SE, NW):
+
+![antenna](3d-render/stubby-tpose-antenna.png)
+![run](3d-render/stubby-tpose-run.gif)
+
+The checks above are with the antenna swinging (walk identity 0.939–0.956, run 0.925–0.956, all pass). The idle
+hardly moves it (2°): the head's look round turns it about its own axis. The goggle strap has no loose tails in
+this drawing, so it has no dangles.
+
 What this shows: **for a machine, a T-pose drawing is enough** — no 4-view design, no projection, no rig. The pose
-gives the placement and the parts; the motion is a few lines of code per monster, as in Materia. What it doesn't
-show yet: a body without obvious parts (the wolf), and secondary motion (Materia's springy antenna and strap tails
-are Verlet chains, not here).
+gives the placement and the parts; the motion, springs included, is a few lines of code per monster, as in Materia.
+What it doesn't show yet: a body without obvious parts (the wolf).
 
 ## Costs and timings
 
