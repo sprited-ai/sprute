@@ -200,12 +200,12 @@ class SpruteSeedance:
         reference, driving = uint8(reference)[0], uint8(driving)
         _, _, loop, _, _ = motion
         for attempt in range(retries + 1):
-            frames = seedance.generate(model, reference, driving, seed=seed + attempt, seconds=seconds, loop=loop)
+            frames, kept = seedance.generate(model, reference, driving, seed=seed + attempt, seconds=seconds, loop=loop)
             report = seedance.check(driving, frames)
-            print(f"Seedance check, seed {seed + attempt}: {report}")
+            seedance.log(f"Seedance check, seed {seed + attempt}: {report}")
             if not report["problems"]:
                 return (torch.from_numpy(frames).float() / 255,)
-        raise RuntimeError(f"Seedance failed its check after {retries + 1} tries: {'; '.join(report['problems'])}")
+        raise RuntimeError(f"Seedance failed its check after {retries + 1} tries: {'; '.join(report['problems'])}. Last video: {kept}")
 
 
 NODE_CLASS_MAPPINGS = {

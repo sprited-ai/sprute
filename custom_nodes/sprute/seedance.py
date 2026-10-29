@@ -7,13 +7,17 @@ import base64
 import io
 import json
 import os
+import sys
 import time
 import urllib.request
+from pathlib import Path
 
 import av
 import numpy as np
 
 API = "https://api.replicate.com/v1/"
+# Replicate deletes Seedance outputs soon after they finish, so every paid video is kept here, by prediction.
+CACHE = Path.home() / ".cache" / "sprute" / "seedance"
 MODELS = {"seedance-2.0-fast": "bytedance/seedance-2.0-fast", "seedance-2.0": "bytedance/seedance-2.0"}
 FPS = 24
 PROMPT = (
@@ -80,9 +84,13 @@ def api(path: str, body: dict | None = None) -> dict:
         return json.load(response)
 
 
-def generate(model: str, reference: np.ndarray, driving: np.ndarray, *, seed: int, seconds: int, loop: bool,
-             log=print) -> np.ndarray:
-    """Seedance's frames for the driving grid, as uint8 (frames, height, width, 3) at its own resolution."""
+def log(message: str) -> None:
+    # Standard error reaches sprute's log as it happens; standard output is ComfyUI's result.
+    print(message, file=sys.stderr, flush=True)
+
+
+def generate(model: str, reference: np.ndarray, driving: np.ndarray, *, seed: int, seconds: int, loop: bool) -> tuple[np.ndarray, Path]:
+    """Seedance's frames for the driving grid, as uint8 (frames, height, width, 3) at its own resolution, and the kept video."""
     body = {"input": {
         "prompt": prompt(loop), "seed": seed, "duration": seconds,
         "resolution": "480p", "aspect_ratio": "1:1", "generate_audio": False,
@@ -98,7 +106,12 @@ def generate(model: str, reference: np.ndarray, driving: np.ndarray, *, seed: in
         raise RuntimeError(f"Seedance {prediction['status']}: {prediction.get('error')}")
     output = prediction["output"]
     with urllib.request.urlopen(output if isinstance(output, str) else output[0]) as response:
-        return decode_mp4(response.read())
+        content = response.read()
+    CACHE.mkdir(parents=True, exist_ok=True)
+    kept = CACHE / f"{prediction['id']}.mp4"
+    kept.write_bytes(content)
+    log(f"Seedance video kept at {kept}")
+    return decode_mp4(content), kept
 
 
 def silhouettes(grid: np.ndarray, size: int = 64) -> np.ndarray:
