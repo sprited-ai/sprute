@@ -1,4 +1,5 @@
 import typer
+import os
 import shutil
 import subprocess
 import sys
@@ -6,13 +7,13 @@ import secrets
 import re
 import unicodedata
 from pathlib import Path
-from sprute.setup import missing_setup, setup as _setup
+from sprute.setup import BACKGROUND_REMOVAL, missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.animate import MOTIONS, animate as _animate
+from sprute.animate import BACKENDS, MOTIONS, animate as _animate, cost as animation_cost
 from sprute.motion import generate_motion as _generate_motion, find_motion, render_motion as _render_motion
-from sprute.config import set_models_directory
+from sprute.config import load_env_local, set_models_directory
 from tempfile import TemporaryDirectory
 from PIL import Image, ImageSequence
 from collections.abc import Callable
@@ -412,6 +413,9 @@ def animate(
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
     every: int = typer.Option(2, min=1, help="Keep every Nth generated frame; the saved fps is 24 / N."),
     snap: bool = typer.Option(True, "--snap/--no-snap", help="Fit the motion's length to a multiple of --every frames, so a loop wraps cleanly and a clip ends on its last pose; it plays slightly faster or slower."),
+    use: str = typer.Option("scail2", "--use", help=f"Animation backend: {', '.join(BACKENDS)}. Seedance runs on Replicate with your REPLICATE_API_TOKEN (environment or .env.local) and is billed to you."),
+    retries: int = typer.Option(0, min=0, max=3, help="Seedance only: generate again with the next seed when the output fails its check. Each try is billed."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Seedance only: don't ask before spending."),
     out: Path = Path("output"),
     models_directory: Path | None = typer.Option(
         None, "--models-directory", exists=True, file_okay=False,
@@ -423,9 +427,22 @@ def animate(
     """Animate the eight directions with a motion."""
     directions = character_file(character, out, "directions")
     set_models_directory(models_directory)
-    require_setup()
+    if use not in BACKENDS:
+        raise typer.BadParameter(f"choose one of {', '.join(BACKENDS)}", param_hint="--use")
+    if use == "scail2":
+        require_setup()
+    else:
+        require_setup(only=BACKGROUND_REMOVAL)
+        load_env_local()
+        if not os.environ.get("REPLICATE_API_TOKEN", "").strip():
+            console.print("Seedance needs your Replicate API token: export REPLICATE_API_TOKEN, or add REPLICATE_API_TOKEN=... to .env.local", style="red")
+            raise typer.Exit(code=1)
+        price = animation_cost(use) * (retries + 1)
+        console.print(f"{BACKENDS[use]} on Replicate: ${animation_cost(use):.2f} per try{f', up to ${price:.2f} with {retries} retries' if retries else ''}, billed to your Replicate account.")
+        if not yes and not typer.confirm("Continue?", default=False):
+            raise typer.Exit(code=1)
     def run(on_event: Callable[[Event], None]) -> Path:
-        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap, out=out, on_event=on_event)
+        animation = _animate(directions, motion, seed=seed, draft=draft, scale=scale, every=every, snap=snap, backend=use, retries=retries, out=out, on_event=on_event)
         if preview:
             on_event(Event("image", str(animation)))
         return animation
@@ -513,9 +530,9 @@ def character_file(character: str, directory: Path, stage: str) -> Path:
     return path
 
 
-def require_setup(*, models: bool = True) -> None:
+def require_setup(*, models: bool = True, only: tuple[str, ...] | None = None) -> None:
     """Stop with a clear next step instead of failing inside ComfyUI."""
-    missing = missing_setup(models=models)
+    missing = missing_setup(models=models, only=only)
     if missing:
         console.print(f"Sprute is not set up yet. Run: sprute setup{'' if models else ' --skip-models'}", style="red")
         for item in missing[:5]:

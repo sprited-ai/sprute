@@ -445,8 +445,12 @@ def run(
             + "\n".join(recent_logs)
         )
 
-def missing_setup(*, models: bool = True) -> list[str]:
-    """List what `sprute setup` still has to do, without touching the network."""
+# What Seedance still needs locally: it animates on Replicate, and sprute removes the background.
+BACKGROUND_REMOVAL = ("toonout", "birefnet-code", "birefnet-config-code", "birefnet-config")
+
+
+def missing_setup(*, models: bool = True, only: tuple[str, ...] | None = None) -> list[str]:
+    """List what `sprute setup` still has to do, without touching the network. `only` checks just those models."""
     if not is_installed("comfyui"):
         return ["ComfyUI"]
     missing = []
@@ -457,7 +461,9 @@ def missing_setup(*, models: bool = True) -> list[str]:
             missing.append(f"custom node {name}")
     if models:
         models_directory = get_models_directory()
-        for model in MODELS.values():
+        for key, model in MODELS.items():
+            if only is not None and key not in only:
+                continue
             if not (models_directory / model["destination"]).is_file():
                 missing.append(f"model {model['destination']}")
     return missing

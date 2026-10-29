@@ -6,7 +6,7 @@ import comfy.model_management
 import torch
 import folder_paths
 
-from . import kimodo, layout, motion_file, renderer, retarget, snap
+from . import kimodo, layout, motion_file, renderer, retarget, seedance, snap
 
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "assets" / "template-kun" / "template-kun.glb"
@@ -174,6 +174,40 @@ class SpruteKimodoToGLB:
         return (Types.File3D(BytesIO(kimodo.to_glb(motion, sample_index)), file_format="glb"),)
 
 
+class SpruteSeedance:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "reference": ("IMAGE", {"tooltip": "The eight directions as a 3x3 grid on gray, the reference SCAIL2 reads."}),
+            "driving": ("IMAGE", {"tooltip": "Template-kun's 3x3 driving grid on gray, at 24 fps."}),
+            "motion": ("SPRUTE_MOTION", {"tooltip": "Whether it loops decides how the prompt ends."}),
+            "model": (list(seedance.MODELS), {"default": "seedance-2.0-fast"}),
+            "seed": ("INT", {"default": 0, "min": 0, "max": 2**31 - 1}),
+            "seconds": ("INT", {"default": 4, "min": 4, "max": 15, "tooltip": "Seedance bills by the second of output."}),
+            "retries": ("INT", {"default": 0, "min": 0, "max": 3,
+                                "tooltip": "Generate again with the next seed when the check fails. Each try is billed."}),
+        }}
+
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "animate"
+    CATEGORY = "Sprute"
+    DESCRIPTION = ("Animates the driving grid with ByteDance Seedance 2.0 on Replicate, using REPLICATE_API_TOKEN. "
+                   "Checks the character followed the motion and drew no grid lines; fails otherwise.")
+
+    def animate(self, reference, driving, motion, model, seed, seconds, retries):
+        def uint8(images):
+            return (images.clamp(0, 1) * 255).round().to(torch.uint8).cpu().numpy()
+        reference, driving = uint8(reference)[0], uint8(driving)
+        _, _, loop, _, _ = motion
+        for attempt in range(retries + 1):
+            frames = seedance.generate(model, reference, driving, seed=seed + attempt, seconds=seconds, loop=loop)
+            report = seedance.check(driving, frames)
+            print(f"Seedance check, seed {seed + attempt}: {report}")
+            if not report["problems"]:
+                return (torch.from_numpy(frames).float() / 255,)
+        raise RuntimeError(f"Seedance failed its check after {retries + 1} tries: {'; '.join(report['problems'])}")
+
+
 NODE_CLASS_MAPPINGS = {
     "SpruteKimodoToGLB": SpruteKimodoToGLB,
     "SpruteLoadMotion": SpruteLoadMotion,
@@ -182,6 +216,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteGridToCells": SpruteGridToCells,
     "SpruteCellsToStrip": SpruteCellsToStrip,
     "SpruteHoldFirstFrame": SpruteHoldFirstFrame,
+    "SpruteSeedance": SpruteSeedance,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteKimodoToGLB": "Sprute Kimodo to GLB",
@@ -191,4 +226,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteGridToCells": "Sprute Grid To Cells",
     "SpruteCellsToStrip": "Sprute Cells To Strip",
     "SpruteHoldFirstFrame": "Sprute Hold First Frame",
+    "SpruteSeedance": "Sprute Seedance (Replicate)",
 }
