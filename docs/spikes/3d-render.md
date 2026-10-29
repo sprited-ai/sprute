@@ -96,8 +96,8 @@ The prototype takes four choices from the Materia bake and Sprute's renderer:
 
 1. **Paint, not shading.** The colour is the design's own painting, so it carries NBP's style and light the same
    way SCAIL2 output does. No relighting, so no "too dark" problem.
-2. **Same camera.** `renderer.camera` and `PIXELS_PER_METRE` — feet and size land where SCAIL2's do (the 3D and 2D
-   wolves overlap at IoU 0.93 in rest pose).
+2. **Same camera.** `renderer.camera` and `PIXELS_PER_METRE` — feet and size land where SCAIL2's do (the render
+   overlaps the design at IoU 0.93 in rest pose; Materia measures the same anchor for both wolves).
 3. **Even, anti-aliased ink** on silhouette and depth steps, rendered at 3x and averaged down (Jin's ask for the
    stubby: AA outline, not pixel art).
 4. **Soft**: the 3x supersample averages to 256. Materia's 176 → 256 round trip is one line to add if it reads
@@ -124,7 +124,39 @@ python tools/render3d/paint_rig.py husky-b.glb dusk.directions.cut.png out --nam
 
 ### Results
 
-CHECK_RESULTS
+Walk and gallop, SCAIL2 above, 3D render below (SE NE NW SW):
+
+![walk](3d-render/walk.gif) ![gallop](3d-render/gallop.gif)
+
+Every frame: [walk](3d-render/walk.png), [gallop](3d-render/gallop.png). The gallop is where SCAIL2 ghosted legs
+at seeds 11 and 12 and drew front legs touching at 13 (the one kept); the render has four distinct legs in every
+frame, first try.
+
+Eight directions from the same four paintings (`--directions 8`; S, E, N, W were never painted):
+
+![eight directions](3d-render/eight.png)
+
+**`sprute check animation --directions 4`** (on gin, against the design's directions strip): every direction of
+every clip passes. Next to the SCAIL2 wolf's numbers from PR #21:
+
+| clip | identity min | facing min | coverage | colour max |
+|---|---|---|---|---|
+| idle, SCAIL2 s11 | 0.960 | +0.030 | 0.985–1.014 | 0.016 |
+| idle, 3D | 0.872 | +0.034 | 0.986–1.020 | 0.041 |
+| walk, SCAIL2 s11 | 0.958 | +0.027 | 0.912–1.014 | 0.025 |
+| walk, 3D | 0.851 | +0.031 | 0.872–0.992 | 0.041 |
+| gallop, SCAIL2 s13 (kept) | 0.943 | +0.007 | 0.926–1.020 | 0.012 |
+| gallop, 3D | 0.809 | +0.024 | 0.828–0.966 | 0.040 |
+
+Read honestly: the render faces the right way with more margin than SCAIL2 (gallop +0.024 vs +0.007), but it is
+*less like the design* (identity 0.81–0.87 vs 0.94–0.96). That is the silhouette loss below — the husky's head,
+ears and missing mane — plus the darker ink line raising the colour distance. The check can't see ghost legs, so
+it can't credit the render for having none.
+
+**Materia accepts it.** `tools/pack-atlas.py --motions tools/tin-motions.json` packs the 3D strips like the
+SCAIL2 ones, anchor [96, 184] in both, figure height 151 vs 150 px, and `tools/check-atlas.py` reports ok for
+both. (At 256 px a 40-frame idle is 10240 px wide, over the packer's 8192 limit, for either wolf; packed at
+`--scale 0.75`.)
 
 ## Costs and timings
 
