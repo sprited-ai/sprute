@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 
@@ -34,3 +35,17 @@ def get_models_directory() -> Path:
         raise ValueError(f"{config}: models_directory must be a path")
 
     return (config.parent / Path(path).expanduser()).resolve()
+
+
+def load_env_local() -> None:
+    """Read KEY=VALUE lines from .env.local in the working directory into the environment, without overriding it.
+
+    That is where a Replicate token goes; *.local is git-ignored, and ComfyUI inherits the environment.
+    """
+    path = Path.cwd() / ".env.local"
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, equals, value = line.strip().removeprefix("export ").partition("=")
+        if equals and key and not key.startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))

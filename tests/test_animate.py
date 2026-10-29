@@ -146,3 +146,30 @@ def test_keeps_the_frames_the_render_reports_before_picking_every_nth(tmp_path, 
     render, output = cut["inputs"]["length"]
     assert (graph[render]["class_type"], output) == ("SpruteRenderDrivingVideo", 3)
     assert graph[cut["inputs"]["image"][0]]["class_type"] == "SpruteCellsToStrip"
+
+
+def test_seedance_replaces_scail2_and_keeps_the_rest(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch, backend="seedance")
+    seedance = graph[graph["592"]["inputs"]["image"][0]]
+    assert seedance["class_type"] == "SpruteSeedance"
+    assert seedance["inputs"]["model"] == "seedance-2.0-fast"
+    assert not {"KSampler", "WanSCAILToVideo", "UNETLoader", "PreviewAnimation"} & {node["class_type"] for node in graph.values()}
+    # Four whole seconds of driving video, and the background removal and frame picking SCAIL2 gets.
+    assert driving_video(graph)["inputs"]["frames"] == 97
+    assert saved_frames(graph) == 2
+
+
+def test_seedance_pro_picks_the_full_model(tmp_path, monkeypatch):
+    graph, _, _ = run_animate(tmp_path, monkeypatch, backend="seedance-pro")
+    assert graph[graph["592"]["inputs"]["image"][0]]["inputs"]["model"] == "seedance-2.0"
+
+
+def test_seedance_rejects_scale(tmp_path, monkeypatch):
+    with pytest.raises(ValueError, match="SCAIL2 only"):
+        run_animate(tmp_path, monkeypatch, backend="seedance", scale=0.5)
+
+
+def test_the_token_never_enters_the_graph(tmp_path, monkeypatch):
+    monkeypatch.setenv("REPLICATE_API_TOKEN", "r8_secret")
+    graph, _, _ = run_animate(tmp_path, monkeypatch, backend="seedance")
+    assert "r8_secret" not in str(graph)
