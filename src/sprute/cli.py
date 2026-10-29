@@ -11,7 +11,7 @@ from sprute.setup import missing_setup, setup as _setup
 from sprute.events import Event
 from sprute.generate import generate as _generate
 from sprute.turntable import turntable as _turntable
-from sprute.animate import BACKENDS, MOTIONS, animate as _animate, cost as animation_cost
+from sprute.animate import BACKENDS, MOTIONS, SEEDANCE, animate as _animate, cost as animation_cost
 from sprute.motion import generate_motion as _generate_motion, find_motion, render_motion as _render_motion
 from sprute.config import load_env_local, set_models_directory
 from tempfile import TemporaryDirectory
@@ -430,13 +430,13 @@ def animate(
     if use not in BACKENDS:
         raise typer.BadParameter(f"choose one of {', '.join(BACKENDS)}", param_hint="--use")
     require_setup()
-    if use != "scail2":
+    if use in SEEDANCE:
         load_env_local()
         if not os.environ.get("REPLICATE_API_TOKEN", "").strip():
             console.print("Seedance needs your Replicate API token: export REPLICATE_API_TOKEN, or add REPLICATE_API_TOKEN=... to .env.local", style="red")
             raise typer.Exit(code=1)
         price = animation_cost(use) * (retries + 1)
-        console.print(f"{BACKENDS[use]} on Replicate: ${animation_cost(use):.2f} per try{f', up to ${price:.2f} with {retries} retries' if retries else ''}, billed to your Replicate account.")
+        console.print(f"{SEEDANCE[use]} on Replicate: ${animation_cost(use):.2f} per try{f', up to ${price:.2f} with {retries} retries' if retries else ''}, billed to your Replicate account.")
         if not yes and not typer.confirm("Continue?", default=False):
             raise typer.Exit(code=1)
     def run(on_event: Callable[[Event], None]) -> Path:

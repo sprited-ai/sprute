@@ -11,8 +11,9 @@ from sprute.motion import find_motion
 
 WORKFLOW = Path("workflows/sprute-animate-character.api.json")
 MOTIONS = ("idle", "walk", "run")
-# How each backend animates the driving grid: SCAIL2 locally, or Seedance 2.0 on Replicate with the user's token.
-BACKENDS = {"scail2": None, "seedance": "seedance-2.0-fast", "seedance-pro": "seedance-2.0"}
+# Seedance 2.0 on Replicate, with the user's token, by --use name; SCAIL2 runs locally.
+SEEDANCE = {"seedance": "seedance-2.0-fast", "seedance-pro": "seedance-2.0"}
+BACKENDS = ("scail2", *SEEDANCE)
 SEEDANCE_SECONDS = 4
 # US dollars per second of Seedance output with a video input, as Replicate bills it.
 SEEDANCE_PRICE = {"seedance-2.0-fast": 0.08, "seedance-2.0": 0.10}
@@ -20,8 +21,7 @@ SEEDANCE_PRICE = {"seedance-2.0-fast": 0.08, "seedance-2.0": 0.10}
 
 def cost(backend: str) -> float:
     """What one animation costs on Replicate; nothing for SCAIL2, which runs locally."""
-    model = BACKENDS[backend]
-    return 0.0 if model is None else SEEDANCE_PRICE[model] * SEEDANCE_SECONDS
+    return SEEDANCE_PRICE[SEEDANCE[backend]] * SEEDANCE_SECONDS if backend in SEEDANCE else 0.0
 
 
 def reachable(graph: dict, outputs: tuple[str, ...]) -> dict:
@@ -55,7 +55,7 @@ def animate(
         raise ValueError("scale must be a finite number greater than zero")
     if backend not in BACKENDS:
         raise ValueError(f"backend must be one of {', '.join(BACKENDS)}")
-    if backend != "scail2" and (draft or scale != 1.0):
+    if backend in SEEDANCE and (draft or scale != 1.0):
         raise ValueError("--draft and --scale apply to SCAIL2 only; Seedance renders at its own resolution")
     if draft:
         if scale not in (1.0, 0.5):
@@ -71,7 +71,7 @@ def animate(
     out.mkdir(parents=True, exist_ok=True)
     if seed is None:
         # Replicate takes a 32-bit signed seed.
-        seed = secrets.randbits(32 if backend == "scail2" else 31)
+        seed = secrets.randbits(31 if backend in SEEDANCE else 32)
     name = directions.stem.removesuffix(".directions")
     motion_name = motion_file.stem
     destination = out / f"{name}.{motion_name}.webp"
@@ -93,18 +93,18 @@ def animate(
     graph["587"]["inputs"]["value"] = scale
     graph["577"]["inputs"]["filename_prefix"] = motion_name
     graph["598"]["inputs"]["value"] = every
-    if backend != "scail2":
+    if backend in SEEDANCE:
         # Seedance takes whole seconds of driving video at 24 fps, and replaces SCAIL2 from sampling to decoding.
         graph["4"]["inputs"]["frames"] = SEEDANCE_SECONDS * 24 + 1
         graph["700"] = {"class_type": "SpruteSeedance", "inputs": {
-            "reference": ["489", 0], "driving": ["493", 0], "motion": ["601", 0], "model": BACKENDS[backend],
+            "reference": ["489", 0], "driving": ["493", 0], "motion": ["601", 0], "model": SEEDANCE[backend],
             "seed": seed, "seconds": SEEDANCE_SECONDS, "retries": retries}}
         graph["592"]["inputs"]["image"] = ["700", 0]
         graph = reachable(graph, ("577",))
     if destination.is_file() and same_workflow(saved_workflow(destination), graph):
         report("completed", f"Animation unchanged: {destination}")
         return destination
-    via = "" if backend == "scail2" else f" · {BACKENDS[backend]} on Replicate"
+    via = f" · {SEEDANCE[backend]} on Replicate" if backend in SEEDANCE else ""
     report("started", f"Animating {motion} from {motion_file.name} · seed {seed}{f' · scale {scale:g}' if scale != 1.0 else ''}{via}", timed=True)
     data = run_workflow(
         graph,
