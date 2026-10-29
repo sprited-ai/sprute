@@ -94,6 +94,46 @@ class SpruteRenderDrivingVideo:
         return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))
 
 
+class SpruteRenderRigVideo:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {
+            "rig": (sorted(str(path.relative_to(Path(folder_paths.get_input_directory())))
+                           for path in Path(folder_paths.get_input_directory()).rglob("*.glb")),
+                    {"tooltip": "A skinned, animated GLB in ComfyUI's input folder, such as a four-legged animal."}),
+            "animation": ("STRING", {"default": "", "tooltip": "Which of the rig's own animations, by name. Empty picks the first."}),
+            "body": (["auto", "own"], {"tooltip": "auto: Template-kun performs a humanoid rig's animation and any other rig plays on "
+                                                 "itself. own: the rig always plays on itself, humanoid or not."}),
+            "loop": ("BOOLEAN", {"default": True}),
+            "size": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 3.0, "step": 0.05,
+                               "tooltip": "The rig's longest side in metres; Template-kun stands about 1.1 m tall."}),
+            "frames": ("INT", {"default": 81, "min": 1, "max": 1000, "tooltip": "SCAIL2 needs 4n+1 frames, such as 81."}),
+            "fps": ("FLOAT", {"default": 24.0, "min": 1.0, "max": 120.0, "step": 1.0}),
+            "cell_width": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
+            "cell_height": ("INT", {"default": 256, "min": 32, "max": 1024, "step": 32}),
+            "snap_to_multiple": ("INT", {"default": 2, "min": 0, "max": 100}),
+        }}
+
+    RETURN_TYPES = ("IMAGE", "MASK", "FLOAT", "INT")
+    RETURN_NAMES = ("IMAGE", "MASK", "time_scale", "keep_frames")
+    FUNCTION = "render"
+    CATEGORY = "Sprute"
+    DESCRIPTION = ("Renders a skinned GLB's animation in eight directions, like Render Driving Video. A humanoid rig's animation is "
+                   "retargeted onto Template-kun unless body is own; any other rig, such as a four-legged animal, plays on itself.")
+
+    def render(self, rig, animation, body, loop, size, frames, fps, cell_width, cell_height, snap_to_multiple):
+        path = Path(folder_paths.get_annotated_filepath(rig))
+        device = comfy.model_management.get_torch_device()
+        if body == "auto" and retarget.humanoid(path):
+            model, motion = renderer.Model(MODEL, device), retarget.retarget(path, animation.strip(), MODEL)
+        else:
+            model, motion = renderer.Model(path, device), motion_file.own(path, animation.strip(), loop)
+            model.fit(size)
+        scale = snap.time_scale(motion, fps, snap_to_multiple)
+        video = renderer.render(model, motion, frames, fps * scale, cell_width, cell_height).cpu()
+        return (video[..., :3], 1.0 - video[..., 3], scale, snap.keep_frames(motion, fps, snap_to_multiple, frames))
+
+
 class SpruteStripToGrid:
     @classmethod
     def INPUT_TYPES(cls):
@@ -218,6 +258,7 @@ NODE_CLASS_MAPPINGS = {
     "SpruteKimodoToGLB": SpruteKimodoToGLB,
     "SpruteLoadMotion": SpruteLoadMotion,
     "SpruteRenderDrivingVideo": SpruteRenderDrivingVideo,
+    "SpruteRenderRigVideo": SpruteRenderRigVideo,
     "SpruteStripToGrid": SpruteStripToGrid,
     "SpruteGridToCells": SpruteGridToCells,
     "SpruteCellsToStrip": SpruteCellsToStrip,
@@ -228,6 +269,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "SpruteKimodoToGLB": "Sprute Kimodo to GLB",
     "SpruteLoadMotion": "Sprute Load Motion",
     "SpruteRenderDrivingVideo": "Sprute Render Driving Video",
+    "SpruteRenderRigVideo": "Sprute Render Rig Video",
     "SpruteStripToGrid": "Sprute Strip To Grid",
     "SpruteGridToCells": "Sprute Grid To Cells",
     "SpruteCellsToStrip": "Sprute Cells To Strip",

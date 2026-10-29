@@ -421,7 +421,10 @@ def turntable(
 @animate_app.command("character")
 def animate(
     character: str = typer.Option(..., "--character", help="Character name or eight-direction image path."),
-    motion: str = typer.Option(..., help="Bundled motion name or a .glb file path."),
+    motion: str = typer.Option(..., help="Bundled motion name or a .glb file path. Template-kun performs it, unless the GLB has a body "
+                                         "of its own that is not humanoid, such as a four-legged animal: then it plays on that body."),
+    clip: str = typer.Option("", help="Which of the GLB's animations, by name. The first when omitted."),
+    own_body: bool = typer.Option(False, "--own-body", help="Play on the GLB's own body even when it is humanoid, instead of Template-kun."),
     seed: int | None = typer.Option(None, help="Random when omitted; specify to reproduce a run."),
     draft: bool = typer.Option(False, "--draft", help="Shorthand for --scale 0.5."),
     scale: float = typer.Option(1.0, min=0.0, help="Animation inference width/height multiplier; final sprite size is unchanged."),
@@ -444,7 +447,7 @@ def animate(
     set_models_directory(models_directory)
     require_setup()
     def run(on_event: Callable[[Event], None]) -> Path:
-        options = dict(seed=seed, draft=draft, scale=scale, every=every, snap=snap, directions_drawn=directions_drawn, out=out, on_event=on_event)
+        options = dict(seed=seed, draft=draft, scale=scale, every=every, snap=snap, directions_drawn=directions_drawn, clip=clip, own_body=own_body, out=out, on_event=on_event)
         animation = (_animate_checked(directions, motion, attempts=attempts, **options) if attempts > 1
                      else _animate(directions, motion, **options))
         if preview:

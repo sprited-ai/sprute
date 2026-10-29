@@ -107,3 +107,46 @@ def local_motion(pose, parents, hips, rotations: list, offsets):
             local[node].append(Rotation.from_matrix(matrix / np.linalg.norm(matrix, axis=0)).as_quat())
         moved.append(relative(hips)[:3, 3])
     return {node: np.array(values) for node, values in local.items()}, np.array(moved)
+
+
+def own(path: Path, animation: str, loop: bool, fps: float = 30.0):
+    """A rig's own animation (the first when animation is empty), as read() gives a motion: sampled at fps, by bone name, with its root's position,
+    plus the positions of other bones the animation moves, such as feet on IK control bones.
+
+    For rigs that are not Template-kun, such as a four-legged animal, which play on themselves rather than retargeted.
+    A loop's last key repeats its first, so it is dropped.
+    """
+    from scipy.spatial.transform import Slerp
+    doc, binary = load(path)
+    clips = doc.get("animations", [])
+    found = [a for a in clips if a["name"] == animation or a["name"].split("|")[-1] == animation] if animation else clips[:1]
+    if not found:
+        raise ValueError(f"animation {animation!r} not found; the file has: {[a.get('name') for a in clips]}")
+    clip = found[0]
+    skin = doc["skins"][0]
+    root = skin.get("skeleton", skin["joints"][0])
+    nodes = doc["nodes"]
+    keys = lambda entry: accessor(doc, binary, clip["samplers"][entry["sampler"]]["input"])[:, 0].astype(float)
+    end = max(keys(entry)[-1] for entry in clip["channels"])
+    times = np.arange(0, end + 1e-6, 1 / fps)
+    if loop:
+        times = times[:-1] if len(times) > 1 and abs(times[-1] - end) < 0.5 / fps else times
+    rotations, hips, translations = {}, None, {}
+    for entry in clip["channels"]:
+        node, target = entry["target"]["node"], entry["target"]["path"]
+        values = accessor(doc, binary, clip["samplers"][entry["sampler"]]["output"]).astype(float)
+        at = np.clip(times, keys(entry)[0], keys(entry)[-1])
+        if target == "rotation" and node in skin["joints"]:
+            if len(values) == 1:
+                rotations[nodes[node]["name"]] = np.repeat(values, len(times), 0)
+            else:
+                rotations[nodes[node]["name"]] = Slerp(keys(entry), Rotation.from_quat(values))(at).as_quat()
+        elif target == "translation" and node in skin["joints"]:
+            moved = np.stack([np.interp(at, keys(entry), values[:, axis]) for axis in range(3)], 1)
+            if node == root:
+                hips = moved
+            else:
+                translations[nodes[node]["name"]] = moved
+    if hips is None:
+        hips = np.repeat([nodes[root].get("translation", [0, 0, 0])], len(times), 0)
+    return clip["name"].split("|")[-1], fps, loop, rotations, hips, translations

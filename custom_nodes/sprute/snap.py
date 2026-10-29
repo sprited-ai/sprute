@@ -11,7 +11,7 @@ def cycle_frames(seconds: float, fps: float, every: int) -> int:
 
 def seconds(motion) -> float:
     """How long the motion lasts. A loop's last key comes back to its first; a clip's last key is its last pose."""
-    _, motion_fps, loop, _, hips = motion
+    _, motion_fps, loop, _, hips, *_ = motion
     return (len(hips) if loop else len(hips) - 1) / motion_fps
 
 
@@ -33,7 +33,7 @@ def keep_frames(motion, fps: float, every: int, frames: int) -> int:
 
     All of them otherwise: unsnapped, the motion's end falls between frames, and one longer than frames doesn't fit.
     """
-    _, _, loop, _, _ = motion
+    _, _, loop, *_ = motion
     length = seconds(motion)
     if every == 0 or length <= 0:
         return frames
