@@ -158,6 +158,36 @@ SCAIL2 ones, anchor [96, 184] in both, figure height 151 vs 150 px, and `tools/c
 both. (At 256 px a 40-frame idle is 10240 px wide, over the packer's 8192 limit, for either wolf; packed at
 `--scale 0.75`.)
 
+### Next step tried: a TRELLIS.2 mesh on the rig
+
+Branch `feat/3d-render` (worktree `~/dev/sprute-3d-render`). `tools/render3d/trellis_shape.py` runs TRELLIS.2 on
+gin with shape only (30 s; the paint comes from projection), from one design view (SW, and SE). Then
+`tools/render3d/rig_mesh.py` turns, scales and moves the mesh onto the rig's reference pose by matching silhouettes
+to the design (yaw search, then coordinate descent on scale, offset and pitch). Each vertex takes the skin weights of
+the nearest point on the husky's surface (median 1.1 cm away, 95 % within 4 cm), and is moved into bind space.
+`paint_rig.py --body` then renders it.
+
+Fit, design green, mesh magenta, overlap white (SW-view mesh):
+
+![fit](3d-render/trellis-fit.png)
+
+Design / husky mesh / TRELLIS mesh on the husky rig:
+
+![trellis directions](3d-render/trellis-directions.png)
+
+| mesh | IoU to the design, SE NE NW SW |
+|---|---|
+| husky (prototype) | 0.936 0.929 0.928 0.936 |
+| TRELLIS from SW view | 0.789 0.809 0.808 0.790 |
+| TRELLIS from SE view | fit only 0.68 at 128 px; not rendered |
+
+- **The weight transfer works.** The gallop plays with four clean legs, nothing tears, and the mane now has geometry
+  and moves with the neck ([every frame](3d-render/trellis-gallop.png)).
+- **The single-view mesh doesn't.** TRELLIS invents the head's angle from one 3/4 view, and it disagrees with the
+  other three paintings. The projected paint then lands wrong (an eye on the forehead, a dark snout), and
+  surfaces no view sees (the top of the tail) go dark. IoU falls from 0.93 to 0.80.
+- ComfyUI 0.37's native TRELLIS.2 nodes take one image; there is no multi-view conditioning to fix this.
+
 ## Costs and timings
 
 | | 2D path (SCAIL2) | 3D path (this prototype) |
@@ -201,10 +231,16 @@ both. (At 256 px a 40-frame idle is 10240 px wide, over the packer's 8192 limit,
 **Go**, scoped to non-humanoid and large monsters, where SCAIL2 is weakest and rigs exist; humanoid characters
 stay on SCAIL2, which adds life a rig doesn't have.
 
-First real step: **TRELLIS.2 mesh from the paint-over design + skin weights transferred from the template rig,
-rendered by `paint_rig.py`.** It is the one thing that decides whether the silhouette can be the design's
-instead of the template's, and it needs nothing new (TRELLIS.2 is on gin, Blender is on gin). Measure IoU to the
-design (target ≥ 0.97 vs 0.93 now) and look at the gallop.
+The step after the prototype, **TRELLIS.2 mesh from the design + weights transferred from the template rig**, was
+tried the same day (below). Weight transfer works; a single-view mesh doesn't. So the first real step is now:
+
+**Give the template mesh the design's silhouette instead of replacing it.** Push the husky's vertices out (or in)
+along their normals until its four silhouettes match the design's, in the reference pose, by minimising the
+silhouette mismatch the fit below already measures (differentiable silhouettes, or per-view distance fields). The
+head, legs and rig stay the template's, so the paint and the weights land where they belong; the mane and fluff get
+geometry. Target: IoU ≥ 0.97 to the design in every diagonal (0.93 now).
+
+Until then the husky-mesh render is usable as is for monsters whose design hugs the rig.
 
 After that, productise as `animate --use render` (move the projection into a `Sprute Render Painted Rig` node in
 `custom_nodes/sprute`, with the IoU guard), and `create character --body rig.glb` for the paint-over.

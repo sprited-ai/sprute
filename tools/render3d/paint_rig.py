@@ -141,12 +141,18 @@ def main():
     parser.add_argument("--name", default="monster")
     parser.add_argument("--pose", default="Idle", help="the clip whose first frame the design was painted over")
     parser.add_argument("--size", type=float, default=1.0, help="the rig's longest side in metres, as Render Rig takes it")
+    parser.add_argument("--body", type=Path, help="a mesh put on the rig by rig_mesh.py, drawn instead of the rig's own")
     parser.add_argument("--directions", type=int, choices=(4, 8), default=4, help="8 also draws S, E, N and W, painted from their neighbours")
     parser.add_argument("--clip", action="append", default=[], help="NAME:FRAMES, the clip played once over FRAMES at 12 fps")
     args = parser.parse_args()
     torch.set_grad_enabled(False)
     model = renderer.Model(args.rig, torch.device("cpu"))
     model.fit(args.size)
+    if args.body:
+        body = np.load(args.body)
+        model.positions, model.normals = torch.as_tensor(body["positions"]), torch.as_tensor(body["normals"])
+        model.faces, model.joints = torch.as_tensor(body["faces"], dtype=torch.long), torch.as_tensor(body["joints"], dtype=torch.long)
+        model.weights = torch.as_tensor(body["weights"])
     reference = renderer.sample_motion(model, motion_file.own(args.rig, args.pose, loop=True), 1, 30)[0]
     paint = Paint(model, model.world(*reference), Image.open(args.design))
     drawn = DIAGONALS if args.directions == 4 else tuple(range(8))
