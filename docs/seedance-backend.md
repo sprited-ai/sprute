@@ -43,6 +43,9 @@ gray-background grids, before anything is saved:
 - **Didn't move** (crawl: stood idle): mean silhouette IoU between driver and output per direction cell, at 64 px.
   Calibrated on the 26 Seedance runs in `runs-oversized/`: the still crawls scored 0.12–0.14, every followed motion
   0.41 or more (on a driver 17% too tall, so fixed-driver scores should be higher). Fails below 0.3.
+  On the fixed-driver rerun (`runs/`, 26 Seedance results) it flags the two crawls (0.12) and one more: death01 on
+  Pro (0.14), where the character stands idle for all 4 s while Fast falls correctly. Nobody had noticed that one by
+  eye. Everything else scored 0.34–0.57.
 - **Grid lines** (Fast crawl): brightness of the cell borders against the cells beside them. +58 on the bad run,
   under +2 on the other 25. Fails above +10.
 - **Facing lost** (Fast crawl turned cells to camera): not checked yet. `SpruteCheckDirections` (CLIP-vision facing per
