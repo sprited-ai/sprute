@@ -197,6 +197,15 @@ def body_basis(skeleton):
     return np.column_stack((right, up, np.cross(right, up)))
 
 
+def humanoid(path: Path) -> bool:
+    """Whether the GLB's skeleton has every bone retargeting onto Template-kun needs."""
+    try:
+        skeleton = Skeleton(path)
+    except ValueError:
+        return False
+    return all(name in skeleton.bone for name in BONES)
+
+
 def retarget(source_path: Path, animation: str, model_path: Path, mapping=None):
     """name, fps, loop, {bone name: (frames, 4) local quaternions}, (frames, 3) hips positions, on Template-kun."""
     source, target = Skeleton(source_path, mapping), Skeleton(model_path)
