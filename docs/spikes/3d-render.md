@@ -427,6 +427,9 @@ silhouette mismatch the fit below already measures (differentiable silhouettes, 
 head, legs and rig stay the template's, so the paint and the weights land where they belong; the mane and fluff get
 geometry. Target: IoU ≥ 0.97 to the design in every diagonal (0.93 now).
 
+Done (above, "the husky's own mesh fitted"): IoU 0.96, identity 0.85–0.94, no tears. The shape is no longer what
+holds identity under SCAIL2's; the render's look is. Next: a restyle pass over the rendered frames.
+
 Until then the husky-mesh render is usable as is for monsters whose design hugs the rig.
 
 After that, productise as `animate --use render` (move the projection into a `Sprute Render Painted Rig` node in
