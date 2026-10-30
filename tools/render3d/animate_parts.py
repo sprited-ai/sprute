@@ -58,13 +58,14 @@ def parts(v, height, feet, neck):
     slices = torch.arange(0.35, 0.65, 0.01)
     widths = torch.stack([radius[rest & (f >= a) & (f < a + 0.01)].max() for a in slices])
     neck = slices[widths.argmin()].item() + 0.005 if neck is None else neck
+    stub &= f < neck                                            # a head wider than the barrel is not a stub
     label = torch.zeros(len(v), dtype=torch.long)
     label[f >= neck] = 1
     # The antenna: what rises above the dome, the first slice up from the head's middle narrower than a third of it.
     head = rest & (f >= neck)
     top = f[head].max().item()
     slices = torch.arange(neck + (top - neck) / 2, top, 0.005)
-    widths = torch.stack([radius[head & (f >= a) & (f < a + 0.005)].max() for a in slices])
+    widths = torch.stack([torch.cat([radius[head & (f >= a) & (f < a + 0.005)], torch.zeros(1)]).max() for a in slices])  # a gap is narrow
     base = slices[(widths < widths.max() / 3).nonzero()[0, 0]].item()
     antenna = head & (f >= base)
     label[antenna] = 6
@@ -77,8 +78,9 @@ def parts(v, height, feet, neck):
     centre = torch.stack([rod[:, 0].mean(), rod[:, 2].mean()])
     width = (rod[:, [0, 2]] - centre).norm(dim=1)
     ups = torch.arange(base * height, rod[:, 1].max().item(), 0.004)
-    widths = torch.stack([width[(rod[:, 1] >= a) & (rod[:, 1] < a + 0.004)].max() for a in ups])
-    bend = ups[(widths < widths.median() * 1.2).nonzero()[0, 0]]
+    widths = torch.stack([torch.cat([width[(rod[:, 1] >= a) & (rod[:, 1] < a + 0.004)], torch.zeros(1)]).max() for a in ups])
+    widths[widths == 0] = math.nan                              # a gap in the mesh is no slice
+    bend = ups[(widths < widths.nanmedian() * 1.2).nonzero()[0, 0]]
     pivots = {"neck": torch.tensor([0.0, neck * height, 0.0]),
               "antenna": torch.stack([centre[0], bend, centre[1]]),
               "antenna tip": rod[rod[:, 1] > rod[:, 1].quantile(0.95)].mean(0)}
@@ -247,6 +249,14 @@ def main():
     weights = F.one_hot(torch.where(rod, 1, label), 6).float()     # the antenna rides on the head, then bends
     blend = (label <= 1)
     weights[blend, 0], weights[blend, 1] = 1 - up[blend], up[blend]
+    # So do the shoulders, across the barrel's edge: a rigid cut there tears when a big shoulder is lowered.
+    for k in (0, 1):
+        pivot = pivots[PARTS[2 + k]]
+        near = ((label == 0) | (label == 2 + k)) & (torch.sign(v[:, 0]) == torch.sign(pivot[0])) & \
+               ((v[:, 1] - pivot[1]).abs() < 0.12 * args.height) & (v[:, 1] < neck_y - 0.03)
+        out = torch.sigmoid((v[near, 0].abs() - pivot[0].abs()) / 0.01)
+        weights[near] = 0
+        weights[near, 0], weights[near, 2 + k] = 1 - out, out
     gamma = matched_gamma(args.input, uv, texture)
     body = Body(faces)
     homogeneous = torch.cat([v, torch.ones(len(v), 1)], 1)

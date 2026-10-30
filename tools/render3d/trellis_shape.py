@@ -1,9 +1,10 @@
-"""Image -> mesh GLB (no texture) with ComfyUI's native TRELLIS.2 nodes, on a running ComfyUI server.
+"""Image -> mesh GLB with ComfyUI's native TRELLIS.2 nodes, on a running ComfyUI server.
 
 Wiring follows Comfy-Org's "Pixal3D & TRELLIS.2: Image to Model" template (TRELLIS.2 branch),
-rewritten for the 0.37 node schemas. Shape only, decimated to --faces.
+rewritten for the 0.37 node schemas. Shape only, decimated to --faces; --textured also bakes TRELLIS's own colour
+into a UV texture (for a clean, evenly lit drawing, such as a Codex T-pose; a cel-shaded sprite bakes badly).
 
-python run_trellis2.py IMAGE PREFIX [--unet trellis_2_bf16.safetensors] [--server http://127.0.0.1:8188]
+python trellis_shape.py IMAGE PREFIX [--textured] [--unet trellis_2_bf16.safetensors] [--server http://127.0.0.1:8188]
 """
 import argparse, json, time, urllib.request, uuid
 from pathlib import Path
@@ -15,6 +16,7 @@ ap.add_argument("--server", default="http://127.0.0.1:8188")
 ap.add_argument("--faces", type=int, default=200000)
 ap.add_argument("--low-faces", type=int, default=3000)
 ap.add_argument("--seed", type=int, default=56)
+ap.add_argument("--textured", action="store_true")
 a = ap.parse_args()
 
 def upload(path):
@@ -69,10 +71,17 @@ g = {
 }
 
 
-# Shape only: the paint comes from projecting the design (tools/render3d/paint_rig.py), not from TRELLIS's texture.
-for k in ("tex_st", "ks_tex", "tex", "tvae"): g.pop(k)
 g["dec"] = {"class_type": "DecimateMesh", "inputs": {"mesh": ["remesh", 0], "target_face_count": a.faces, "placement_mode": "midpoint"}}
-g["save"] = {"class_type": "SaveGLB", "inputs": {"mesh": ["dec", 0], "filename_prefix": f"3d/{a.prefix}_shape"}}
+if a.textured:
+    g["smooth"] = {"class_type": "MeshSmoothNormals", "inputs": {"mesh": ["dec", 0], "crease_angle": 180}}
+    g["uv"] = {"class_type": "UnwrapMesh", "inputs": {"mesh": ["smooth", 0], "segmenter": "pec", "resolution": 2048, "padding": 2, "weld_distance": 0.0002}}
+    g["bake"] = {"class_type": "BakeTextureFromVoxel", "inputs": {"mesh": ["uv", 0], "voxel_colors": ["tex", 0], "texture_size": 2048, "reference_mesh": ["shape", 0]}}
+    g["apply"] = {"class_type": "ApplyTextureToMesh", "inputs": {"mesh": ["uv", 0], "base_color": ["bake", 0], "metallic": ["bake", 1], "roughness": ["bake", 2]}}
+    g["save"] = {"class_type": "SaveGLB", "inputs": {"mesh": ["apply", 0], "filename_prefix": f"3d/{a.prefix}_dense"}}
+else:
+    # Shape only: the paint comes from projecting the design (tools/render3d/paint_rig.py), not from TRELLIS's texture.
+    for k in ("tex_st", "ks_tex", "tex", "tvae"): g.pop(k)
+    g["save"] = {"class_type": "SaveGLB", "inputs": {"mesh": ["dec", 0], "filename_prefix": f"3d/{a.prefix}_shape"}}
 
 
 t0 = time.time()

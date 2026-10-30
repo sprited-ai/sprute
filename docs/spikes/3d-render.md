@@ -283,6 +283,36 @@ What this shows: **for a machine, a T-pose drawing is enough** — no 4-view des
 gives the placement and the parts; the motion, springs included, is a few lines of code per monster, as in Materia.
 What it doesn't show yet: a body without obvious parts (the wolf).
 
+### One command: a new machine from words
+
+`tools/render3d/make_character.py` chains the three steps: Codex draws the T-pose (from `--prompt`, or redrawing a
+`--reference` design), `trellis_shape.py --textured` makes the mesh on gin (behind any running workflow), and
+`animate_parts.py` cuts, animates and renders it. Steps already done are kept, so a rerun resumes.
+
+```bash
+python tools/render3d/make_character.py out --name brassy --prompt "a brass diving-helmet robot: a round brass helmet head with one round glass porthole for a face showing a glowing teal eye, rivets, a copper barrel body with a pressure gauge on its chest, dark iron arms and boots"
+```
+
+The prompt says the look; the body plan (head with an antenna, barrel, two side stubs, two feet, T-pose, 3/4 front,
+even light on white) is fixed in the script, because the cut and the gait are the stubby's. About 5 minutes: Codex
+~1.5, TRELLIS 70 s, render ~2.5.
+
+![brassy T-pose drawing](3d-render/brassy-tpose-drawing.png)
+![brassy rest and cut](3d-render/brassy-rest-parts.png)
+![brassy walk](3d-render/brassy-walk.gif)
+
+The first try taught three things, now fixed:
+
+- **Codex turned the head.** "Turned 30° to its left" turned the head further than the body, so TRELLIS built a helmet
+  whose porthole looked sideways. The prompt now says head and body face the same way.
+- **A head wider than the barrel lost bits to the stubs.** Four vertices of the helmet's side bolt lay past the
+  barrel's edge, below the stubs' height cap, and were lowered with the arm: a thin spike from the helmet. Stubs now
+  stop at the neck. The shoulders also blend across the barrel's edge (as the neck does), so a big shoulder bends
+  instead of tearing when lowered.
+- **A gap in the mesh** (a slice of the antenna with no vertices) crashed the cut; gaps now count as narrow.
+
+The stubby renders as before with these changes. Not run yet on brassy: `sprute check animation` and the Materia packer.
+
 ## Costs and timings
 
 | | 2D path (SCAIL2) | 3D path (this prototype) |
