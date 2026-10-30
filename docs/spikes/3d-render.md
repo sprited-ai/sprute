@@ -311,7 +311,15 @@ The first try taught three things, now fixed:
   instead of tearing when lowered.
 - **A gap in the mesh** (a slice of the antenna with no vertices) crashed the cut; gaps now count as narrow.
 
-The stubby renders as before with these changes. Not run yet on brassy: `sprute check animation` and the Materia packer.
+The stubby renders as before with these changes. Brassy passes `sprute check animation --directions 4` on all 12
+(minimum over frames), and Materia's `pack-atlas.py --scale 0.75` / `check-atlas.py` say ok (anchor [96, 180],
+figureHeight 178):
+
+| | identity | facing | coverage |
+|---|---|---|---|
+| idle (36) | 0.977–0.982 | 0.020–0.049 | 0.966–0.987 |
+| walk (8) | 0.954–0.972 | 0.037–0.039 | 0.924–0.942 |
+| run (8) | 0.939–0.968 | 0.038–0.047 | 0.942–0.961 |
 
 ## Costs and timings
 
