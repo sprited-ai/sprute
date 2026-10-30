@@ -188,6 +188,60 @@ Design / husky mesh / TRELLIS mesh on the husky rig:
   surfaces no view sees (the top of the tail) go dark. IoU falls from 0.93 to 0.80.
 - ComfyUI 0.37's native TRELLIS.2 nodes take one image; there is no multi-view conditioning to fix this.
 
+### The recommended step: the husky's own mesh fitted to the design's silhouette
+
+`tools/render3d/fit_silhouette.py` keeps the husky's vertices, faces and skin weights, and pushes each vertex along its
+normal in the reference pose until the outline matches the design's in all four diagonals (Adam, 400 steps, 45 s on
+the Mac): outline vertices are pulled onto the zero of the design's signed distance field, every pixel of the design's
+outline pulls the nearest outline vertex (so a spike of fur with no vertex near it still gets one), and a smoothness
+term spreads the push. `--subdivide 1` first splits each triangle in four (3.9k → 8.7k vertices, weights interpolated)
+so the mane has vertices to grow. Then `paint_rig.py --body`, as for the TRELLIS mesh.
+
+```
+python tools/render3d/fit_silhouette.py husky-b.glb dusk.directions.cut.png dusk-fit.npz --smooth 3 --subdivide 1
+python tools/render3d/paint_rig.py husky-b.glb dusk.directions.cut.png out --name dusk --body dusk-fit.npz \
+    --clip Idle:40 --clip Walk:12 --clip Gallop:6
+```
+
+Design green, mesh magenta, overlap white; husky above, fitted below:
+
+![silhouette fit](3d-render/fit-silhouette.png)
+
+| mesh | IoU to the design, SE NE NW SW |
+|---|---|
+| husky | 0.913 0.918 0.918 0.912 (at 256 px; 0.93 at 128) |
+| fitted, no subdivision | 0.958 0.959 0.953 0.959 |
+| fitted, `--subdivide 1` | 0.958 0.961 0.958 0.957 |
+
+The fit stops at ~0.96: what is left is under a pixel along the outline (at 256 px one pixel all round is 6–8 % of
+IoU), plus places where the four paintings don't agree with each other as one solid.
+
+A gallop frame (index 2) from each path; every frame of every clip was looked at:
+
+![comparison](3d-render/fit-compare.png)
+
+`sprute check animation --directions 4`, against the design's strip, all pass; identity min per direction (SE NE NW SW):
+
+| clip | SCAIL2 | husky + paint | TRELLIS + husky weights | husky fitted |
+|---|---|---|---|---|
+| idle | 0.960 | 0.872 | – | 0.930 0.890 0.888 0.938 |
+| walk | 0.958 | 0.851 | 0.885 0.883 0.866 0.887 | 0.919 0.901 0.894 0.935 |
+| gallop | 0.943 (s13, the kept seed) | 0.809 | 0.835 0.868 0.835 0.884 | 0.910 0.882 0.853 0.932 |
+
+- **The fit helps**: +0.03–0.08 identity over the husky mesh in every clip, more than the TRELLIS mesh, with the
+  husky's head and rig kept. The mane and neck read as the design's.
+- **The skinning holds.** No tears and no ghost legs in any frame of the three clips; the pushed vertices keep their
+  own weights, so nothing moves with a bone it didn't before. Gallop NE frames 3–4 cross a front and a hind leg, as
+  the husky mesh does: that is the clip, not the fit.
+- **0.97 identity is out of reach for this render, whatever the shape.** The reference pose itself — the very pose the
+  design was painted over, silhouette IoU 0.96 — scores 0.942 0.903 0.902 0.951 (husky mesh: 0.936 0.889 0.883
+  0.941). Drawing it with no ink line at all only lifts NE to 0.926. What keeps it under is the look: projected paint
+  on a mesh, flat lit, against a painting. SCAIL2 is closer (0.94–0.96) because it repaints every frame in the
+  painting's style, and that is also where its ghost legs come from.
+
+So the silhouette is now the design's; the look is the next gap, and it is a 2D one (a restyle pass over the rendered
+frames, conditioned on the design, with the render as structure), not a mesh one.
+
 ### A Materia machine from one image: the stubby
 
 Jin, after the wolf: try a Materia machine monster, starting simple. The stubby is Materia's code-modelled machine
