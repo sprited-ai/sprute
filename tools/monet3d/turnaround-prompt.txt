@@ -1,0 +1,14 @@
+The attached images show Monet, our own original chibi painter girl. Image 1 is a clean 3D toy render of her in an
+A-pose, front view. Image 2 is how her BACK really looks, from her animation (hair, bow and dress from behind).
+
+Use your image generation tool to draw ONE image of her {VIEW}, for a multi-view image-to-3D model:
+- exactly the same girl, outfit, colours, proportions, pose and render style as image 1: the same A-pose (arms straight,
+  angled down about 45 degrees, palms down, legs straight, feet a little apart), the same scale and the same height in
+  frame as image 1, so the views line up
+- from behind, the hair is as in image 2: a half-ponytail tied at the crown with the big red-and-blue bow, the rest of
+  the hair falling straight down the back in soft waves to the shoulder blades; no bun, no curls, no braids
+- orthographic-looking camera at the same height as image 1, the whole body in frame, centred, small margin
+- clean 3D toy render, soft even studio light, no strong shadows, no outline ink
+- plain pure white background, no ground shadow, no text, square 1024x1024
+Save the generated image as {FILE} in the current directory (copy it from wherever the tool writes it). Reply with just
+the path.

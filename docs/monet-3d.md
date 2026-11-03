@@ -104,3 +104,45 @@ Next: give TRELLIS her back. Either a back-view drawing taken from her `back-wal
 `turns` frames feeds a multi-view mesh, or the hair and skirt get remade as separate parts
 (segment by baked colour, or draw each part alone) so they can carry physics. Then fix the
 head ratio in the prompt.
+
+### Axis 1: her back, second pass (2026-11-03)
+
+Canon does show her back: `monet-turns.mp4` at 2.1 s (top half is colour, bottom half is
+alpha), ![](monet-3d/monet-back-canon.jpg). It shows a half-ponytail at the crown with the
+bow, and smooth waves to the shoulder blades. There's no bun and no curls.
+
+Codex redrew the right, back and left views from the A-pose front plus that frame
+(`tools/monet3d/turnaround-prompt.txt`):
+
+![](monet-3d/turnaround.jpg)
+
+Native TRELLIS.2 has no multi-view input, so `tools/monet3d/trellis_multi.py` conditions on
+every view and chains the positives through `ConditioningCombine`. The sampler then
+averages the per-view predictions, which is TRELLIS's multi-image "multidiffusion" idea in
+stock ComfyUI nodes. One run, no new models.
+
+| | 4 views (front, right, back, left) | 2 views (front, back) |
+|---|---|---|
+| mesh | ![](monet-3d/turntable-mv4.jpg) | ![](monet-3d/turntable-mv2.jpg) |
+| TRELLIS time | 145 s | 100 s |
+
+- **Her back is fixed** in both: smooth waves to the shoulder blades, the half-ponytail at
+  the crown. The invented curls and bun are gone.
+- **4 views wins.** Its face and eyes hold the canon teal-blue and the profiles are clean.
+  With 2 views the side has no input, so the bow grows two red horns there and the eyes go
+  dark.
+- **The bow is still the weak part.** Even with 4 views, the bow seen from the side or
+  back is a tangle of red and blue loops. The views disagree on its depth, and the average
+  splits it. The bow should be its own part anyway (axis 3: it swings).
+- **The skirt print** is still confetti, not flowers. That's TRELLIS's texture resolution,
+  not the views. The fix belongs to axis 7 (projected paint or a tiling print texture), not
+  to the mesh.
+- **The head ratio** is still about 1/3, inherited from the drawing.
+
+Split: AI did all of it (3 Codex calls + 1 TRELLIS run). The human part was finding the
+canon back frame in her clips, which took minutes. That step needs an index: which clip and
+frame shows which direction. Her `s3body3d.json` could give torso yaw per frame
+automatically.
+
+Next for axis 1: split the 4-view mesh into body, hair, skirt and bow (by baked colour and
+connectivity), and remake the bow as a clean separate part.
