@@ -1,0 +1,15 @@
+The attached images show Monet, a small chibi painter girl character (our own original design). Use your image
+generation tool to draw ONE new image of this same girl, for turning into a 3D model with an image-to-3D model:
+- the same design exactly: wavy golden-blonde hair to the shoulders with straight-cut bangs, a high half-ponytail tied
+  with a big red-and-blue bow; teal eyes; a red pinafore bodice with a small white lace collar, a beaded brown necklace
+  with an amber pendant; puffed short sleeves and a full pleated knee-length skirt in a cream fabric with a dense
+  multicolour floral pattern; grey socks; chunky grey sneakers with a yellow band
+- chibi proportions as in the reference: the head about 1/2.5 of her height
+- in an A-pose: arms held straight, angled down about 45 degrees away from the body, hands open, palms facing down;
+  legs straight, feet a little apart; the hair falling behind the shoulders so the arms and neck are clear
+- a calm neutral face, eyes open, small closed smile; head and body face the same way, head not turned
+- {VIEW}, whole body in frame, centred, small margin
+- rendered as a clean 3D toy render: soft even studio light, no strong shadows, no reflections, no outline ink
+- plain pure white background, no ground shadow, no text, square 1024x1024
+Save the generated image as {FILE} in the current directory (copy it from wherever the tool writes it). Reply with just
+the path.

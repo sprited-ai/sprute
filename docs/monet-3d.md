@@ -62,3 +62,45 @@ No replicas of existing studio characters. No real-time engine export yet. No re
 ## Compute
 
 Mesh, sim bakes and renders run on gin through `gin-gpu run`. On the Mac, only previews.
+
+## Ledger
+
+### Axis 1: mesh, first pass (2026-11-03)
+
+Codex drew Monet A-posed from `monet-idle-large.webp` + `monet-identity.webp`
+(`tools/monet3d/apose-prompt.txt`), in a three-quarter view and a front view. Then
+TRELLIS.2 textured (`trellis_shape.py --textured`, bf16) ran on gin. Renders come from
+`tools/monet3d/turntable.py` (Blender, ortho, emission, so we see only the shape and the
+baked colour).
+
+| | three-quarter | front |
+|---|---|---|
+| drawing | ![](monet-3d/monet-apose-three.jpg) | ![](monet-3d/monet-apose-front.jpg) |
+| mesh | ![](monet-3d/turntable-three.jpg) | ![](monet-3d/turntable-front.jpg) |
+| TRELLIS time | 55 s | 80 s |
+| vertices | 147k, one mesh | 156k, one mesh |
+
+What held:
+- **The front reads as Monet** in both: the bangs, the bow, the teal eyes, the pinafore,
+  the necklace and pendant, and the shoes.
+- **The A-pose worked.** Arms are clear of the skirt and hair, so the mesh is riggable.
+
+What broke:
+- **Unseen sides are invented.** The three-quarter mesh turns the back of her hair into
+  sausage curls. The front mesh turns the half-ponytail into an off-centre bun on the back
+  right. Neither matches canon, because canon never shows her back (the `back-walk` and
+  `turns` clips do).
+- **Fine pattern blurs.** The floral skirt bakes to a mottled red-brown; the colour
+  survives, the flowers don't. The three-quarter bake is darker and duller.
+- **It's one fused surface.** Hair, skirt, bow, sleeves and body are a single mesh, but
+  axis 3 needs hair, skirt and bow as their own pieces.
+- **The proportions drifted.** The head is about 1/3 of her height against canon's ~1/2.5,
+  and that came from Codex's drawing, not from TRELLIS.
+
+Split: AI did all of it (2 Codex calls, about 1 min each, + 2 TRELLIS runs). The human
+part was the prompt and judging the result. That's minutes, not hours.
+
+Next: give TRELLIS her back. Either a back-view drawing taken from her `back-walk` /
+`turns` frames feeds a multi-view mesh, or the hair and skirt get remade as separate parts
+(segment by baked colour, or draw each part alone) so they can carry physics. Then fix the
+head ratio in the prompt.
