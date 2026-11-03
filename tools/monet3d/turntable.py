@@ -24,6 +24,8 @@ for o in meshes:
         src = bsdf.inputs["Base Color"].links
         if src:
             links.new(src[0].from_socket, emit.inputs["Color"])
+        else:
+            emit.inputs["Color"].default_value = bsdf.inputs["Base Color"].default_value
         outp = next(n for n in nodes if n.type == "OUTPUT_MATERIAL")
         links.new(emit.outputs[0], outp.inputs["Surface"])
 

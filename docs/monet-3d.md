@@ -146,3 +146,30 @@ automatically.
 
 Next for axis 1: split the 4-view mesh into body, hair, skirt and bow (by baked colour and
 connectivity), and remake the bow as a clean separate part.
+
+### Axis 1: parts (2026-11-03)
+
+`tools/monet3d/split_parts.py` cuts the 4-view mesh into body, hair, skirt and bow, all in
+Blender with no ML:
+
+![](monet-3d/turntable-parts.jpg)
+
+- **Hair** = golden baked colour above the waist. **Bow** = red or blue above 0.86 of her
+  height. Colour alone was enough for both.
+- **The skirt can't be found by colour.** Its print has cream and pink flowers that read as
+  skin, so a colour rule speckles it. Instead it's the height band from the hem to the
+  waist, where the hem is found from the outline: the lowest slice whose width flares to
+  the skirt's. Inside that band, only the hands (skin, far out, upper half) and the legs
+  (inside the shell, near the hem) stay body.
+- **A 12-round neighbour vote** over shared edges cleans the edges.
+- Result: 88k body, 62k hair, 39k skirt and 10k bow faces. Edges are clean except a
+  little sleeve speckle.
+- It took 4 rounds of rules, each judged by eye on the part turntable. The thresholds are
+  Monet's (waist 0.49, bow 0.86); a second character needs its own or a smarter detector.
+
+**The cut parts are open shells.** Hair cut from the scalp leaves a hole in the head, and
+the skirt leaves the legs and waist open underneath. That's fine for rendering. For
+physics, the body under each part must be closed and the part needs thickness. That's the
+start of axis 3.
+
+GLBs: gin `~/sprute-3d/monet/` (`monet-mv4.glb` fused, `monet-parts.glb` split).
