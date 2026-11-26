@@ -1,9 +1,9 @@
 import numpy as np
 import torch
 
-from conftest import ROOT, node_module
+from conftest import ROOT
 
-renderer = node_module("renderer")
+from sprute_core import renderer
 
 
 def test_stands_template_kun_like_a_sprute_character():

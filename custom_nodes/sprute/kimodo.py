@@ -3,7 +3,7 @@ import json
 import struct
 import numpy as np
 from scipy.spatial.transform import Rotation
-from . import motion_file, retarget
+from sprute_core import motion_file, retarget
 
 MAPPING = {"Hips": "Hips", "Spine1": "Spine", "Spine2": "Spine1",
            "Chest": "Spine2", "Neck1": "Neck", "Head": "Head"}

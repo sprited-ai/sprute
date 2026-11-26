@@ -15,6 +15,10 @@ dependencies = [
     "nvidia-ml-py",
 ]
 
+[project.optional-dependencies]
+# sprute_core outside ComfyUI (Sprute Cloud); ComfyUI already brings these.
+core = ["torch", "numpy", "scipy"]
+
 [project.scripts]
 sprute = "sprute.cli:app"
 
