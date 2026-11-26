@@ -1,8 +1,6 @@
 import pytest
 
-from conftest import node_module
-
-snap = node_module("snap")
+from sprute_core import snap
 
 
 def motion(frames, fps, loop=True):

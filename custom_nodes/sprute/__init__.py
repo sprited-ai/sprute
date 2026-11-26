@@ -1,14 +1,23 @@
 """Sprute nodes for ComfyUI: render a motion on Template-kun into a driving video, and arrange the eight directions."""
 import hashlib
+import sys
 from pathlib import Path
 
 import comfy.model_management
 import torch
 import folder_paths
 
-from . import kimodo, layout, motion_file, renderer, retarget, seedance, snap
-
 ROOT = Path(__file__).resolve().parents[2]
+try:
+    import sprute_core
+except ImportError:
+    # A ComfyUI whose environment doesn't have this sprute installed (custom_nodes symlinked in): use this checkout.
+    # Not `sprute.core`: ComfyUI imports this node folder under the name `sprute`, which would shadow it.
+    sys.path.insert(0, str(ROOT / "src"))
+
+from sprute_core import layout, motion_file, renderer, retarget, snap
+from . import kimodo, seedance
+
 MODEL = ROOT / "assets" / "template-kun" / "template-kun.glb"
 MOTIONS = ROOT / "motions"
 BUNDLED = "sprute/"

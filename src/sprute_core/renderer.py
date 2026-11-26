@@ -1,6 +1,6 @@
 """Render a motion on Template-kun into an eight-direction driving video. No Blender, no OpenGL.
 
-Skins the mesh in PyTorch and draws it with ComfyUI's PyTorch rasterizer.
+Skins the mesh in PyTorch and draws it with Sprute's own PyTorch rasterizer.
 """
 import io, math
 from pathlib import Path
@@ -9,8 +9,8 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from scipy.spatial.transform import Rotation, Slerp
-from comfy_extras.sam3d_body.rasterizer import _rasterize_person
 from . import layout, motion_file
+from .rasterizer import rasterize
 
 SUPERSAMPLE = 3
 # One camera for every motion, so a seated or crouched body keeps its true size.
@@ -142,10 +142,12 @@ def render_cell(model: Model, positions, normals, direction: int, cell_width: in
         rim = (1 - (-normal[:, 2]).clamp(0, 1)).pow(3)[:, None]
         return (colour * light + 0.10 * rim).clamp(0, 1)
 
-    depth = torch.full((width * height,), float("inf"), device=device)
+    focal = PIXELS_PER_METRE * height * DISTANCE
+    points = torch.stack([0.5 * width + focal * view[:, 0] / view[:, 2], 0.5 * height + focal * view[:, 1] / view[:, 2], view[:, 2]], 1)
+    face, barycentric = rasterize(points, model.faces, width, height)
+    mask = face >= 0
     colour = torch.zeros((width * height, 3), device=device)
-    mask = torch.zeros(width * height, dtype=torch.bool, device=device)
-    _rasterize_person(view, model.faces, PIXELS_PER_METRE * height * DISTANCE, width, height, depth, colour, mask, shade)
+    colour[mask] = shade(face[mask], barycentric[mask])
     alpha = mask.float().view(1, 1, height, width)
     colour = colour.view(height, width, 3).permute(2, 0, 1)[None] * alpha
     alpha, colour = F.avg_pool2d(alpha, SUPERSAMPLE), F.avg_pool2d(colour, SUPERSAMPLE)
